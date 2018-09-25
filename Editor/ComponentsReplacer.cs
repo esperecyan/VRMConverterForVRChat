@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using System.IO;
 using UnityEngine;
@@ -32,7 +32,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
         static ComponentsReplacer()
         {
-            SuppressCompilerError();
+            EnableClassDependentDependingOptionalAsset();
         }
 
         /// <summary>
@@ -81,16 +81,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         }
 
         /// <summary>
-        /// Dynamic Boneアセットがインポートされていない場合、同アセットに含まれるクラスを利用しているスクリプトファイルを無効化します。
+        /// Dynamic Boneアセットがインポートされていれば場合、同アセットに含まれるクラスを利用しているスクリプトファイルを有効化します。
         /// </summary>
-        private static void SuppressCompilerError()
+        private static void EnableClassDependentDependingOptionalAsset()
         {
-            if (Type.GetType("DynamicBone, Assembly-CSharp") == null
-                && AssetDatabase.FindAssets(filter: "SwayingObjectsConverter.cs", searchInFolders: new[] { CurrentFolderGetter.Get() }).Length == 0) {
-                // Dynamicボーンが存在しない、
-                // かつ拡張子を除いたファイル名が「SwayingObjectsConverter.cs」になるファイルが存在しなければ
+            if (Type.GetType("DynamicBone, Assembly-CSharp") != null && Type.GetType("SwayingObjectsConverter, Assembly-CSharp-Editor") == null)
+            {
                 var path = Path.Combine(CurrentFolderGetter.Get(), "SwayingObjectsConverter.cs");
-                AssetDatabase.MoveAsset(oldPath: path, newPath: path + ".bak");
+                AssetDatabase.MoveAsset(oldPath: path + ".bak", newPath: path);
             }
         }
 
