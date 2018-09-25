@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using UnityEngine;
 using UnityEditor;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
@@ -19,7 +20,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             if (string.IsNullOrEmpty(CurrentFolderGetter.currentFolderPath)) {
                 CurrentFolderGetter.currentFolderPath = Path.GetDirectoryName(
                     path: AssetDatabase.GetAssetPath(
-                        assetObject: MonoScript.FromScriptableObject(scriptableObject: new CurrentFolderGetter())
+                        assetObject: MonoScript.FromScriptableObject(scriptableObject: ScriptableObject.CreateInstance<CurrentFolderGetter>())
                     )
                 );
             }
