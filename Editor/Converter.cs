@@ -27,6 +27,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         public static readonly Type[] RequiredComponents = { typeof(Animator), typeof(VRMMeta), typeof(VRMFirstPerson) };
 
         /// <summary>
+        /// 当エディタ拡張のバージョン。
+        /// </summary>
+        public static readonly string Version = "1.0.2";
+
+        /// <summary>
         /// Hierarchy上のアバターをVRChatへアップロード可能な状態にします。
         /// </summary>
         /// <param name="avatar"><see cref="Converter.RequiredComponents"/>が設定されたインスタンス。</param>

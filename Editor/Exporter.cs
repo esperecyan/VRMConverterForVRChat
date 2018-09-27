@@ -13,14 +13,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
         private static readonly string[] ExcludedFileNames = new[] { "Exporter.cs", "SwayingObjectsConverter.cs" };
 
-        private static readonly string PackageName = "VRM Converter for VRChat.unitypackage";
-
-        private static readonly string ArchiveName = "VRM Converter for VRChat-.zip";
+        private static readonly string PackageName = "VRM Converter for VRChat-" + Converter.Version;
 
         [MenuItem(itemName: "Assets/Export VRM Converter For VRChat", isValidateFunction: false, priority: 30)]
         private static void Export()
         {
-            var packagePath = Path.Combine(Application.temporaryCachePath, Exporter.PackageName);
+            var packagePath = Path.Combine(Application.temporaryCachePath, Exporter.PackageName + ".unitypackage");
             AssetDatabase.ExportPackage(
                 assetPathNames: AssetDatabase.GetAllAssetPaths()
                     .Where(path => path.StartsWith(Exporter.RootFolderPath + "/") && !Exporter.ExcludedFileNames.Contains(Path.GetFileName(path: path)))
@@ -30,7 +28,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             var zipFile = new ZipFile();
             zipFile.AddFile(fileName: packagePath, directoryPathInArchive: "");
-            zipFile.Save(fileName: Path.Combine(Environment.GetFolderPath(folder: Environment.SpecialFolder.DesktopDirectory), Exporter.ArchiveName));
+            zipFile.Save(fileName: Path.Combine(Environment.GetFolderPath(folder: Environment.SpecialFolder.DesktopDirectory), Exporter.PackageName + ".zip"));
 
             File.Delete(path: packagePath);
         }
