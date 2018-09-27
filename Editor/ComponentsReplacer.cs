@@ -68,11 +68,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             ConvertVRMFirstPerson(avatar: avatar);
             SetCollidersForCollisionWithOtherAvatar(avatar: avatar);
 
-            var swayingObjectsConverter = Type.GetType("SwayingObjectsConverter, Assembly-CSharp-Editor");
-            if (swayingObjectsConverter != null) {
+            var swayingObjectsConverter = Type.GetType(typeof(ComponentsReplacer).Namespace + ".SwayingObjectsConverter, Assembly-CSharp-Editor");
+            if (swayingObjectsConverter != null)
+            {
                 swayingObjectsConverter.InvokeMember(
                     name: "Apply",
-                    invokeAttr: BindingFlags.InvokeMethod,
+                    invokeAttr: BindingFlags.InvokeMethod | BindingFlags.NonPublic,
                     binder: null,
                     target: null,
                     args: new object[] { avatar, swayingParametersConverter }
@@ -85,7 +86,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </summary>
         private static void EnableClassDependentDependingOptionalAsset()
         {
-            if (Type.GetType("DynamicBone, Assembly-CSharp") != null && Type.GetType("SwayingObjectsConverter, Assembly-CSharp-Editor") == null)
+            if (Type.GetType("DynamicBone, Assembly-CSharp") != null
+                && Type.GetType(typeof(ComponentsReplacer).Namespace + ".SwayingObjectsConverter, Assembly-CSharp-Editor") == null)
             {
                 var path = Path.Combine(CurrentFolderGetter.Get(), "SwayingObjectsConverter.cs");
                 AssetDatabase.MoveAsset(oldPath: path + ".bak", newPath: path);
