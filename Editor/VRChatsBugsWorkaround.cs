@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
@@ -36,6 +36,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         internal static void Apply(GameObject avatar, string assetsPath)
         {
             VRChatsBugsWorkaround.AdjustHumanDescription(avatar: avatar, assetsPath: assetsPath);
+            VRChatsBugsWorkaround.EnableAnimationOvrride(avatar: avatar, assetsPath: assetsPath);
             VRChatsBugsWorkaround.EnableAutoEyeMovement(avatar: avatar, assetsPath: assetsPath);
         }
 
@@ -65,17 +66,52 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             boneLimits[boneLimits.FindIndex(boneLimit => boneLimit.humanBone == HumanBodyBones.UpperChest)] = upperChest;
 
             avatarDescription.human = boneLimits.ToArray();
+            ApplyAvatarDescription(avatar: avatar, assetsPath: assetsPath, avatarDescription: avatarDescription);
+        }
 
-            Avatar humanoidRig = AvatarBuilder.BuildHumanAvatar(
-                go: avatar,
-                humanDescription: avatarDescription.ToHumanDescription(root: avatar.transform)
-            );
-            AssetDatabase.CreateAsset(
-                asset: humanoidRig,
-                path: Path.Combine(Converter.GetAnimationsFolderPath(avatar: avatar, assetsPath: assetsPath), humanoidDescription.Avatar.name + ".asset")
-            );
-            avatar.GetComponent<Animator>().avatar = humanoidRig;
-            EditorUtility.SetDirty(target: humanoidRig);
+        /// <summary>
+        /// 指のボーンを補完し、アニメーションオーバーライドが機能するようにします。
+        /// </summary>
+        /// <remarks>
+        /// 参照:
+        /// 車軸制作所🌀mAtEyYEyLYE ouwua raudl/.さんのツイート: “Humanoidにしてるのになんで手の表情アニメーションオーバーライド動かないだーってなってたけど解決 ちゃんと指のボーンもHumanoidに対応づけないとダメなのね”
+        /// <https://twitter.com/shajiku_works/status/977811702921150464>
+        /// </remarks>
+        /// <param name="avatar"></param>
+        /// <param name="assetsPath"></param>
+        private static void EnableAnimationOvrride(GameObject avatar, string assetsPath)
+        {
+            var humanoidDescription = avatar.GetComponent<VRMHumanoidDescription>();
+            bool isCreated;
+            AvatarDescription avatarDescription = humanoidDescription.GetDescription(isCreated: out isCreated);
+
+            IEnumerable<HumanBodyBones> existedHumanBodyBones = avatarDescription.human.Select(boneLimit => boneLimit.humanBone);
+
+            IEnumerable<BoneLimit> addedBoneLimits = VRChatUtility.RequiredHumanBodyBonesForAnimationOverride.Select(bones => {
+                int missingHumanBodyBoneIndex = bones.ToList().FindIndex(match: bone => !existedHumanBodyBones.Contains(value: bone));
+                if (missingHumanBodyBoneIndex == -1)
+                {
+                    return new BoneLimit[0];
+                }
+                
+                Transform parent = avatar.GetComponent<Animator>().GetBoneTransform(humanBoneId: bones[missingHumanBodyBoneIndex - 1]);
+                return bones.Skip(count: missingHumanBodyBoneIndex).Select(bone => {
+                    Transform dummyBone = new GameObject(name: "vrc." + bone).transform;
+                    dummyBone.parent = parent;
+                    parent = dummyBone;
+                    return new BoneLimit() { humanBone = bone, boneName = dummyBone.name };
+                });
+            }).ToList().SelectMany(boneLimit => boneLimit);
+
+            if (addedBoneLimits.Count() == 0) {
+                return;
+            }
+
+            BoneLimit[] boneLimits = avatarDescription.human.Concat(addedBoneLimits).ToArray();
+
+            avatarDescription = VRChatsBugsWorkaround.DuplicateObject(avatar: avatar, assetsPath: assetsPath, obj: avatarDescription) as AvatarDescription;
+            avatarDescription.human = boneLimits;
+            ApplyAvatarDescription(avatar: avatar, assetsPath: assetsPath, avatarDescription: avatarDescription);
         }
 
         /// <summary>
@@ -95,6 +131,29 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
             EditorUtility.SetDirty(target: obj);
             return obj;
+        }
+
+        /// <summary>
+        /// <see cref="Avatar"/>を作成して保存し、アバターに設定します。
+        /// </summary>
+        /// <param name="avatar"></param>
+        /// <param name="assetsPath"></param>
+        /// <param name="humanoidDescription"></param>
+        /// <param name="avatarDescription"></param>
+        private static void ApplyAvatarDescription(GameObject avatar, string assetsPath, AvatarDescription avatarDescription)
+        {
+            var humanoidDescription = avatar.GetComponent<VRMHumanoidDescription>();
+            Avatar humanoidRig = AvatarBuilder.BuildHumanAvatar(
+                go: avatar,
+                humanDescription: avatarDescription.ToHumanDescription(root: avatar.transform)
+            );
+            AssetDatabase.CreateAsset(
+                asset: humanoidRig,
+                path: Path.Combine(Converter.GetAnimationsFolderPath(avatar: avatar, assetsPath: assetsPath), humanoidDescription.Avatar.name + ".asset")
+            );
+            humanoidDescription.Avatar = humanoidRig;
+            avatar.GetComponent<Animator>().avatar = humanoidRig;
+            EditorUtility.SetDirty(target: humanoidRig);
         }
 
         /// <summary>
