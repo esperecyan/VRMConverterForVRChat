@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.IO;
 using UnityEngine;
 using UnityEditor;
@@ -45,6 +45,19 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// VRCSDKがサポートするバージョンのUnityのダウンロード先。
         /// </summary>
         public static readonly string DownloadURL = "https://api.vrchat.cloud/home/download";
+
+        /// <summary>
+        /// オートアイムーブメントの有効化に必要となるダミーの階層構造。
+        /// </summary>
+        internal static readonly string[] RequiredPathForAutoEyeMovement = new[] {
+            "Armature/Hips/Spine/Chest/Neck/Head/LeftEye",
+            "Armature/Hips/Spine/Chest/Neck/Head/RightEye",
+        };
+
+        /// <summary>
+        /// 自動まばたきに利用されるメッシュのオブジェクトのパス。
+        /// </summary>
+        internal static readonly string AutoBlinkMeshPath = "Body";
 
         /// <summary>
         /// VRCSDKに含まれるカスタムアニメーション設定用のテンプレートファイルを複製します。

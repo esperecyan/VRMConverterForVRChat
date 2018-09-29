@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
@@ -14,6 +14,21 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
     public class VRChatsBugsWorkaround
     {
         /// <summary>
+        /// Cats Blender PluginでVRChat用に生成されるまばたきのシェイプキー名。
+        /// </summary>
+        /// <remarks>
+        /// 参照:
+        /// cats-blender-plugin/eyetracking.py at master · michaeldegroot/cats-blender-plugin
+        /// <https://github.com/michaeldegroot/cats-blender-plugin/blob/master/tools/eyetracking.py>
+        /// </remarks>
+        private static readonly string[] OrderedBlinkGeneratedByCatsBlenderPlugin = {
+            "vrc.blink_left",
+            "vrc.blink_right",
+            "vrc.lowerlid_left",
+            "vrc.lowerlid_right"
+        };
+
+        /// <summary>
         /// クラスに含まれる処理を適用します。
         /// </summary>
         /// <param name="avatar"></param>
@@ -21,6 +36,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         internal static void Apply(GameObject avatar, string assetsPath)
         {
             VRChatsBugsWorkaround.AdjustHumanDescription(avatar: avatar, assetsPath: assetsPath);
+            VRChatsBugsWorkaround.EnableAutoEyeMovement(avatar: avatar, assetsPath: assetsPath);
         }
 
         /// <summary>
@@ -79,6 +95,80 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
             EditorUtility.SetDirty(target: obj);
             return obj;
+        }
+
+        /// <summary>
+        /// オートアイムーブメントが有効化される条件を揃えます。
+        /// </summary>
+        /// <remarks>
+        /// 参照:
+        /// 100の人さんのツイート: “Body当たりでした！　オートアイムーブメントの条件解明！ • ルート直下に、BlendShapeが4つ以上設定された「Body」という名前のオブジェクトが存在する • ルート直下に Armature/Hips/Spine/Chest/Neck/Head/RightEyeとLeftEye 　※すべて空のオブジェクトで良い 　※目のボーンの名称は何でも良い… https://t.co/dLnHl7QjJk”
+        /// <https://twitter.com/esperecyan/status/1045713562348347392>
+        /// </remarks>
+        /// <param name="avatar"></param>
+        /// <param name="assetsPath"></param>
+        private static void EnableAutoEyeMovement(GameObject avatar, string assetsPath)
+        {
+            // ダミーの階層構造の作成
+            foreach (var path in VRChatUtility.RequiredPathForAutoEyeMovement.Concat(new string[] { VRChatUtility.AutoBlinkMeshPath })) {
+                var current = avatar.transform;
+                foreach (var name in path.Split(separator: '/')) {
+                    Transform child = current.Find(name: name);
+                    if (!child) {
+                        child = new GameObject(name: name).transform;
+                        child.parent = current;
+                    }
+                    current = child;
+                }
+            }
+
+            // ダミーのまばたき用ブレンドシェイプの作成
+            var renderer = avatar.transform.Find(name: VRChatUtility.AutoBlinkMeshPath).gameObject.GetOrAddComponent<SkinnedMeshRenderer>();
+            Mesh mesh = renderer.sharedMesh;
+            if (mesh && mesh.blendShapeCount >= VRChatsBugsWorkaround.OrderedBlinkGeneratedByCatsBlenderPlugin.Length) {
+                return;
+            }
+
+            var originalPath = mesh ? AssetDatabase.GetAssetPath(assetObject: mesh) : "dummy-for-auto-eye-movement.asset";
+            var newPath = Path.Combine(Converter.GetAnimationsFolderPath(avatar: avatar, assetsPath: assetsPath), Path.GetFileName(path: originalPath));
+            if (originalPath != newPath) {
+                mesh = mesh ? GameObject.Instantiate<Mesh>(original: mesh) : VRChatsBugsWorkaround.CreateDummyMesh();
+                AssetDatabase.CreateAsset(asset: mesh, path: newPath);
+                renderer.sharedMesh = mesh;
+            }
+            
+            foreach (var name in VRChatsBugsWorkaround.OrderedBlinkGeneratedByCatsBlenderPlugin.Skip(count: mesh.blendShapeCount)) {
+                VRChatsBugsWorkaround.CreateDummyBlendShape(mesh: mesh, name: name);
+            }
+            
+            EditorUtility.SetDirty(target: mesh);
+        }
+
+        /// <summary>
+        /// ダミー用の空のメッシュを生成します。
+        /// </summary>
+        /// <returns></returns>
+        private static Mesh CreateDummyMesh()
+        {
+            var mesh = new Mesh();
+            mesh.vertices = new[] { new Vector3(0, 0, 0) };
+            return mesh;
+        }
+
+        /// <summary>
+        /// ダミーのブレンドシェイプを作成します。
+        /// </summary>
+        /// <param name="mesh"></param>
+        /// <param name="name"></param>
+        private static void CreateDummyBlendShape(Mesh mesh, string name)
+        {
+            mesh.AddBlendShapeFrame(
+                shapeName: name,
+                frameWeight: 0,
+                deltaVertices: new Vector3[mesh.vertexCount],
+                deltaNormals: new Vector3[mesh.vertexCount],
+                deltaTangents: new Vector3[mesh.vertexCount]
+            );
         }
     }
 }
