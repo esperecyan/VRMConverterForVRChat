@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UniGLTF;
 using VRM;
 using VRCSDK2;
 
@@ -24,7 +25,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <summary>
         /// 変換元のアバターのルートに設定されている必要があるコンポーネント。
         /// </summary>
-        public static readonly Type[] RequiredComponents = { typeof(Animator), typeof(VRMMeta), typeof(VRMFirstPerson) };
+        public static readonly Type[] RequiredComponents = { typeof(Animator), typeof(VRMMeta), typeof(VRMHumanoidDescription), typeof(VRMFirstPerson) };
 
         /// <summary>
         /// 当エディタ拡張のバージョン。
@@ -51,8 +52,25 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             IEnumerable<Converter.Message> messages = GeometryCorrector.Apply(avatar: avatar);
             BlendShapeReplacer.Apply(avatar: avatar, assetsPath: assetsPath);
             ComponentsReplacer.Apply(avatar: avatar, defaultAnimationSet: defaultAnimationSet, swayingParametersConverter: swayingParametersConverter);
+            VRChatsBugsWorkaround.Apply(avatar: avatar, assetsPath: assetsPath);
             ComponentsRemover.Apply(avatar: avatar);
             return messages;
+        }
+
+        /// <summary>
+        /// 変換後のアバター固有のファイルを保存するフォルダパスを取得します。
+        /// </summary>
+        /// <remarks>
+        /// フォルダが存在しない場合は作成します。
+        /// </remarks>
+        /// <param name="avatar"></param>
+        /// <param name="assetsPath"></param>
+        /// <returns></returns>
+        internal static string GetAnimationsFolderPath(GameObject avatar, string assetsPath)
+        {
+            UnityPath path = UnityPath.FromUnityPath(string.IsNullOrEmpty(assetsPath) ? "Assets/" + avatar.name : assetsPath).GetAssetFolder(".Animations");
+            path.EnsureFolder();
+            return path.Value;
         }
     }
 }

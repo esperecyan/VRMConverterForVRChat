@@ -203,7 +203,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 return;
             }
 
-            var path = Path.Combine(GetAnimationsFolderPath(avatar: avatar, assetsPath: assetsPath), "blink.anim");
+            var path = Path.Combine(Converter.GetAnimationsFolderPath(avatar: avatar, assetsPath: assetsPath), "blink.anim");
             AssetDatabase.CopyAsset(
                 path: Path.Combine(CurrentFolderGetter.Get(), "blink.anim"),
                 newPath: path
@@ -317,7 +317,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             if (!avatarDescriptor.CustomStandingAnims)
             {
                 avatar.GetOrAddComponent<VRC_AvatarDescriptor>().CustomStandingAnims = VRChatUtility.CreateCustomStandingAnims(
-                    path: Path.Combine(GetAnimationsFolderPath(avatar: avatar, assetsPath: assetsPath), "CustomStandingAnims.overrideController")
+                    path: Path.Combine(Converter.GetAnimationsFolderPath(avatar: avatar, assetsPath: assetsPath), "CustomStandingAnims.overrideController")
                 );
             }
 
@@ -369,7 +369,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         {
             AnimationClip anim = VRChatUtility.CreateAnim(
                 name: BlendShapeReplacer.MappingBlendShapeToVRChatAnim[preset],
-                path: Path.Combine(GetAnimationsFolderPath(avatar: avatar, assetsPath: assetsPath), preset + ".anim")
+                path: Path.Combine(Converter.GetAnimationsFolderPath(avatar: avatar, assetsPath: assetsPath), preset + ".anim")
             );
             
             SetBlendShapeCurves(animationClip: anim, avatar: avatar, preset: preset, keys: new Dictionary<float, float> {
@@ -378,22 +378,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             });
 
             return anim;
-        }
-
-        /// <summary>
-        /// 変換後のアバター固有のファイルを保存するフォルダパスを取得します。
-        /// </summary>
-        /// <remarks>
-        /// フォルダが存在しない場合は作成します。
-        /// </remarks>
-        /// <param name="avatar"></param>
-        /// <param name="assetsPath"></param>
-        /// <returns></returns>
-        private static string GetAnimationsFolderPath(GameObject avatar, string assetsPath)
-        {
-            UnityPath path = UnityPath.FromUnityPath(string.IsNullOrEmpty(assetsPath) ? "Assets/" + avatar.name : assetsPath).GetAssetFolder(".Animations");
-            path.EnsureFolder();
-            return path.Value;
         }
 
         /// <summary>
@@ -437,12 +421,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
 
             var path = AssetDatabase.GetAssetPath(assetObject: renderer.sharedMesh);
-            var newPath = Path.Combine(GetAnimationsFolderPath(avatar: avatar, assetsPath: assetsPath), Path.GetFileName(path: path));
+            var newPath = Path.Combine(Converter.GetAnimationsFolderPath(avatar: avatar, assetsPath: assetsPath), Path.GetFileName(path: path));
             if (path != newPath)
             {
                 AssetDatabase.CopyAsset(
                     path: path,
-                    newPath: Path.Combine(GetAnimationsFolderPath(avatar: avatar, assetsPath: assetsPath), Path.GetFileName(path: path))
+                    newPath: Path.Combine(Converter.GetAnimationsFolderPath(avatar: avatar, assetsPath: assetsPath), Path.GetFileName(path: path))
                 );
                 renderer.sharedMesh = AssetDatabase.LoadAssetAtPath<Mesh>(assetPath: newPath);
             }
