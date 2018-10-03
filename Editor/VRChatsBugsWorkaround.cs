@@ -33,11 +33,18 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </summary>
         /// <param name="avatar"></param>
         /// <param name="assetsPath"></param>
-        internal static void Apply(GameObject avatar, string assetsPath)
+        /// <param name="enableAutoEyeMovement">オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。</param>
+        internal static void Apply(GameObject avatar, string assetsPath, bool enableAutoEyeMovement)
         {
             VRChatsBugsWorkaround.AdjustHumanDescription(avatar: avatar, assetsPath: assetsPath);
             VRChatsBugsWorkaround.EnableAnimationOvrride(avatar: avatar, assetsPath: assetsPath);
-            VRChatsBugsWorkaround.EnableAutoEyeMovement(avatar: avatar, assetsPath: assetsPath);
+            if (enableAutoEyeMovement)
+            {
+                VRChatsBugsWorkaround.EnableAutoEyeMovement(avatar: avatar, assetsPath: assetsPath);
+            }
+            else {
+                VRChatsBugsWorkaround.DisableAutoEyeMovement(avatar: avatar, assetsPath: assetsPath);
+            }
         }
 
         /// <summary>
@@ -201,6 +208,56 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
             
             EditorUtility.SetDirty(target: mesh);
+        }
+
+        /// <summary>
+        /// オートアイムーブメントが有効化される条件が揃っていれば、破壊します。
+        /// </summary>
+        /// <param name="avatar"></param>
+        private static void DisableAutoEyeMovement(GameObject avatar, string assetsPath)
+        {
+            var paths = VRChatUtility.RequiredPathForAutoEyeMovement.Concat(new string[] { VRChatUtility.AutoBlinkMeshPath });
+            var transforms = paths.Concat(new string[] { VRChatUtility.AutoBlinkMeshPath }).Select(path => avatar.transform.Find(name: path));
+            if (transforms.Contains(value: null))
+            {
+                return;
+            }
+
+            var renderer = avatar.transform.Find(name: VRChatUtility.AutoBlinkMeshPath).gameObject.GetOrAddComponent<SkinnedMeshRenderer>();
+            Mesh mesh = renderer.sharedMesh;
+            if (!mesh || mesh.blendShapeCount < VRChatsBugsWorkaround.OrderedBlinkGeneratedByCatsBlenderPlugin.Length)
+            {
+                return;
+            }
+
+            var eyeBones = new[] { HumanBodyBones.RightEye, HumanBodyBones.LeftEye }
+                .Select(id => avatar.GetComponent<Animator>().GetBoneTransform(humanBoneId: id))
+                .Where(bone => bone && transforms.Contains(value: bone));
+            if (eyeBones.Count() == 0)
+            {
+                return;
+            }
+
+            var humanoidDescription = avatar.GetComponent<VRMHumanoidDescription>();
+            bool isCreated;
+            AvatarDescription avatarDescription = VRChatsBugsWorkaround.DuplicateObject(
+                avatar: avatar,
+                assetsPath: assetsPath,
+                obj: humanoidDescription.GetDescription(isCreated: out isCreated)
+            ) as AvatarDescription;
+
+            var boneLimits = avatarDescription.human.ToList();
+            foreach (Transform bone in eyeBones)
+            {
+                int index = boneLimits.FindIndex(match: limit => limit.boneName == bone.name);
+                bone.name = bone.name.ToLower();
+                BoneLimit boneLimit = boneLimits[index];
+                boneLimit.boneName = bone.name;
+                boneLimits[index] = boneLimit;
+            }
+
+            avatarDescription.human = boneLimits.ToArray();
+            ApplyAvatarDescription(avatar: avatar, assetsPath: assetsPath, avatarDescription: avatarDescription);
         }
 
         /// <summary>

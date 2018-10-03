@@ -45,6 +45,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         private VRC_AvatarDescriptor.AnimationSet defaultAnimationSet;
 
         /// <summary>
+        /// オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。
+        /// </summary>
+        [SerializeField]
+        private bool enableEyeMovement;
+
+        /// <summary>
         /// 各種コールバック関数のユーザー設定値。
         /// </summary>
         [SerializeField]
@@ -81,6 +87,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             {
                 this.defaultAnimationSet = (VRC_AvatarDescriptor.AnimationSet)Enum.Parse(enumType: typeof(VRC_AvatarDescriptor.AnimationSet), value: defaultAnimationSet);
             }
+            this.enableEyeMovement = string.IsNullOrEmpty(EditorUserSettings.GetConfigValue(name: Wizard.EditorUserSettingsPrefix + "disableEyeMovement"));
             string callbackFunctions = EditorUserSettings.GetConfigValue(name: Wizard.EditorUserSettingsPrefix + "callbackFunctions");
             if (!string.IsNullOrEmpty(callbackFunctions))
             {
@@ -93,6 +100,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             EditorUserSettings.SetConfigValue(
                 name: Wizard.EditorUserSettingsPrefix + "defaultAnimationSet",
                 value: this.defaultAnimationSet.ToString()
+            );
+            EditorUserSettings.SetConfigValue(
+                name: Wizard.EditorUserSettingsPrefix + "disableEyeMovement",
+                value: this.enableEyeMovement ? "" : "on"
             );
             EditorUserSettings.SetConfigValue(
                 name: Wizard.EditorUserSettingsPrefix + "callbackFunctions",
@@ -168,7 +179,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 avatar: avatar,
                 defaultAnimationSet: this.defaultAnimationSet,
                 swayingParametersConverter: this.swayingParametersConverter,
-                assetsPath: GetAssetsPath(vrm: this.avatar.gameObject)
+                assetsPath: GetAssetsPath(vrm: this.avatar.gameObject),
+                enableAutoEyeMovement: this.enableEyeMovement
             );
 
             if (this.postConverting != null) {
