@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.Animations;
 using VRM;
 using UniGLTF;
 using VRCSDK2;
@@ -105,9 +106,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             SetLipSync(avatar: avatar);
 
-            SetAutoBlink(avatar: avatar, assetsPath: assetsPath);
+            var relativePathToBlinkMesh = SetAutoBlink(avatar: avatar, assetsPath: assetsPath);
 
-            SetFeelings(avatar: avatar, assetsPath: assetsPath);
+            SetFeelings(avatar: avatar, assetsPath: assetsPath, relativePathToBlinkMesh: relativePathToBlinkMesh);
         }
 
         /// <summary>
@@ -189,30 +190,31 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// VRChatのプログラム側で行われる自動まばたきの無効化は行いません。
         /// 
         /// 参照:
-        /// 自動まばたき — VRChat 技術メモ帳
-        /// <https://vrcworld.wiki.fc2.com/wiki/%E8%87%AA%E5%8B%95%E3%81%BE%E3%81%B0%E3%81%9F%E3%81%8D>
+        /// 最新版（10/02時点）自動まばたきの実装【VRChat技術情報】 — VRChatパブリックログ
+        /// <https://jellyfish-qrage.hatenablog.com/entry/2018/10/02/152316>
         /// VRchatでMMDモデルをアバターとして使う方法——上級者編 — 東屋書店
         /// <http://www.hushimero.xyz/entry/vrchat-EyeTracking#%E5%A4%A7%E5%8F%A3%E9%96%8B%E3%81%91%E3%82%8B%E5%95%8F%E9%A1%8C%E3%81%AE%E8%A7%A3%E6%B1%BA>
         /// </remarks>
         /// <param name="avatar"></param>
         /// <param name="assetsPath"></param>
-        private static void SetAutoBlink(GameObject avatar, string assetsPath)
+        /// <returns>自動まばたきの設定を行った場合、対象の<c>avatar</c>から対象のメッシュまでの相対パスを返します。</returns>
+        private static string SetAutoBlink(GameObject avatar, string assetsPath)
         {
             if (string.IsNullOrEmpty(VRMUtility.GetFirstBlendShapeBindingName(avatar: avatar, preset: BlendShapePreset.Blink)))
             {
-                return;
+                return "";
             }
 
-            var path = Path.Combine(Converter.GetAnimationsFolderPath(avatar: avatar, assetsPath: assetsPath), "blink.anim");
+            var path = Path.Combine(Converter.GetAnimationsFolderPath(avatar: avatar, assetsPath: assetsPath), "blink.controller");
             AssetDatabase.CopyAsset(
-                path: Path.Combine(CurrentFolderGetter.Get(), "blink.anim"),
+                path: Path.Combine(CurrentFolderGetter.Get(), "blink.controller"),
                 newPath: path
             );
-
             var animationClip = AssetDatabase.LoadAssetAtPath<AnimationClip>(assetPath: path);
 
             BlendShapeClip clip = VRMUtility.GetBlendShapeClip(avatar: avatar, preset: BlendShapePreset.Blink);
 
+            var relativePath = "";
             foreach (BlendShapeBinding binding in clip.Values)
             {
                 var blendShapeName = "blink-" + Random.value;
@@ -222,11 +224,20 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     continue;
                 }
 
+                if (string.IsNullOrEmpty(relativePath))
+                {
+                    relativePath = duplicatedBinding.RelativePath;
+                }
+                else if (relativePath != duplicatedBinding.RelativePath) {
+                    continue;
+                }
+
                 SetBlendShapeCurve(
                     animationClip: animationClip,
                     avatar: avatar,
                     binding: duplicatedBinding,
-                    keys: BlendShapeReplacer.BlinkWeights
+                    keys: BlendShapeReplacer.BlinkWeights,
+                    setRelativePath: false
                 );
             }
 
@@ -237,8 +248,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             }
 
-            var animation = avatar.AddComponent<Animation>();
-            animation.clip = animationClip;
+            if (string.IsNullOrEmpty(relativePath)) {
+                return "";
+            }
+
+            avatar.transform.Find(name: relativePath).gameObject.AddComponent<Animator>().runtimeAnimatorController
+                = AssetDatabase.LoadAssetAtPath<AnimatorController>(assetPath: path);
+
+            return relativePath;
         }
 
         /// <summary>
@@ -276,8 +293,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="avatar"></param>
         /// <param name="binding"></param>
         /// <param name="keys"></param>
-        private static void SetBlendShapeCurve(AnimationClip animationClip, GameObject avatar, BlendShapeBinding binding, IDictionary<float, float> keys)
-        {
+        /// <param name="setRelativePath"></param>
+        private static void SetBlendShapeCurve(
+            AnimationClip animationClip,
+            GameObject avatar,
+            BlendShapeBinding binding,
+            IDictionary<float, float> keys,
+            bool setRelativePath = true
+        ) {
             Transform face = avatar.transform.Find(name: binding.RelativePath);
             if (!face)
             {
@@ -297,7 +320,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
 
             animationClip.SetCurve(
-                relativePath: binding.RelativePath,
+                relativePath: setRelativePath ? binding.RelativePath : "",
                 type: typeof(SkinnedMeshRenderer),
                 propertyName: "blendShape." + renderer.sharedMesh.GetBlendShapeName(binding.Index),
                 curve: curve
@@ -329,7 +352,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </summary>
         /// <param name="avatar"></param>
         /// <param name="assetsPath"></param>
-        private static void SetFeelings(GameObject avatar, string assetsPath)
+        /// <param name="relativePathToBlinkMesh"><c>avatar</c>からまばたきが設定されたメッシュまでの相対パス。</param>
+        private static void SetFeelings(GameObject avatar, string assetsPath, string relativePathToBlinkMesh)
         {
             SetNeutral(avatar: avatar);
 
@@ -343,7 +367,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 }
 
                 customStandingAnims[BlendShapeReplacer.MappingBlendShapeToVRChatAnim[preset].ToString()]
-                    = CreateFeeling(avatar: avatar, preset: preset, assetsPath: assetsPath);
+                    = CreateFeeling(avatar: avatar, preset: preset, assetsPath: assetsPath, relativePathToBlinkMesh: relativePathToBlinkMesh);
             }
         }
 
@@ -364,18 +388,32 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="avatar"></param>
         /// <param name="preset"></param>
         /// <param name="assetsPath"></param>
+        /// <param name="relativePathToBlinkMesh"><c>avatar</c>からまばたきが設定されたメッシュまでの相対パス。</param>
         /// <returns></returns>
-        private static AnimationClip CreateFeeling(GameObject avatar, BlendShapePreset preset, string assetsPath)
+        private static AnimationClip CreateFeeling(GameObject avatar, BlendShapePreset preset, string assetsPath, string relativePathToBlinkMesh)
         {
             AnimationClip anim = VRChatUtility.CreateAnim(
                 name: BlendShapeReplacer.MappingBlendShapeToVRChatAnim[preset],
                 path: Path.Combine(Converter.GetAnimationsFolderPath(avatar: avatar, assetsPath: assetsPath), preset + ".anim")
             );
-            
+
             SetBlendShapeCurves(animationClip: anim, avatar: avatar, preset: preset, keys: new Dictionary<float, float> {
                 { 0, 1 },
                 { anim.length, 1 },
             });
+
+            if (!string.IsNullOrEmpty(relativePathToBlinkMesh))
+            {
+                var curve = new AnimationCurve();
+                curve.AddKey(time: 0, value: 0);
+                curve.AddKey(time: anim.length, value: 0);
+                anim.SetCurve(
+                    relativePath: relativePathToBlinkMesh,
+                    type: typeof(Behaviour),
+                    propertyName: "m_Enabled",
+                    curve: curve
+                );
+            }
 
             return anim;
         }

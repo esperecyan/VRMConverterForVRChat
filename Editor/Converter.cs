@@ -54,6 +54,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             ComponentsReplacer.Apply(avatar: avatar, defaultAnimationSet: defaultAnimationSet, swayingParametersConverter: swayingParametersConverter);
             VRChatsBugsWorkaround.Apply(avatar: avatar, assetsPath: assetsPath);
             ComponentsRemover.Apply(avatar: avatar);
+            Undo.RegisterCreatedObjectUndo(avatar, "Convert VRM for VRChat");
             return messages;
         }
 
