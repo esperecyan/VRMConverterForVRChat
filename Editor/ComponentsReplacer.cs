@@ -142,6 +142,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     foreach (VRMSpringBoneColliderGroup.SphereCollider collider in colliderGroup.Colliders)
                     {
                         var sphereCollider = bone.AddComponent<SphereCollider>();
+                        sphereCollider.isTrigger = true;
                         sphereCollider.center = collider.Offset;
                         sphereCollider.radius = collider.Radius;
                     }
