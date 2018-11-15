@@ -5,6 +5,7 @@ using UnityEditor;
 using UniGLTF;
 using VRM;
 using VRCSDK2;
+using VRC.Core;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
 {
@@ -55,6 +56,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             BlendShapeReplacer.Apply(avatar: avatar, assetsPath: assetsPath);
             ComponentsReplacer.Apply(avatar: avatar, defaultAnimationSet: defaultAnimationSet, swayingParametersConverter: swayingParametersConverter);
             VRChatsBugsWorkaround.Apply(avatar: avatar, assetsPath: assetsPath, enableAutoEyeMovement: enableAutoEyeMovement);
+            avatar.GetOrAddComponent<PipelineManager>();
             ComponentsRemover.Apply(avatar: avatar);
             Undo.RegisterCreatedObjectUndo(avatar, "Convert VRM for VRChat");
             return messages;
