@@ -11,7 +11,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 {
     internal class Exporter
     {
-        private static readonly string[] ExcludedFileNames = new[] { "Exporter.cs", "SwayingObjectsConverter.cs" };
+        private static readonly string[] ExcludedFileNames = new[] { "Exporter.cs", "SwayingObjectsConverter.cs", "Ionic.Zip.dll" };
 
         private static readonly string PackageName = Converter.Name + "-" + Converter.Version;
 
