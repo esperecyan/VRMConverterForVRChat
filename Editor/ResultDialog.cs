@@ -16,7 +16,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="messages"></param>
         internal static void Open(IEnumerable<Converter.Message> messages)
         {
-            var wizard = DisplayWizard<ResultDialog>(title: "VRMConverterForVRChat", createButtonName: Gettext._("OK"));
+            var wizard = DisplayWizard<ResultDialog>(title: "VRM Converter for VRChat " + Converter.Version, createButtonName: Gettext._("OK"));
             wizard.messages = messages;
         }
 
