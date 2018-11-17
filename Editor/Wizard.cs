@@ -72,7 +72,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="avatar"></param>
         internal static void Open(GameObject avatar)
         {
-            var wizard = DisplayWizard<Wizard>(title: "VRM Converter for VRChat " + Converter.Version, createButtonName: Gettext._("Duplicate and Convert"));
+            var wizard = DisplayWizard<Wizard>(title: Converter.Name + " " + Converter.Version, createButtonName: Gettext._("Duplicate and Convert"));
             wizard.minSize = Wizard.MinSize;
 
             wizard.avatar = avatar.GetComponent<Animator>();

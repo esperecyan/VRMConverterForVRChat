@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Linq;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEditor;
+using VRM;
 using Ionic.Zip;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
@@ -11,24 +13,36 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
     {
         private static readonly string[] ExcludedFileNames = new[] { "Exporter.cs", "SwayingObjectsConverter.cs" };
 
-        private static readonly string PackageName = "VRM Converter for VRChat-" + Converter.Version;
+        private static readonly string PackageName = Converter.Name + "-" + Converter.Version;
 
-        [MenuItem(itemName: "Assets/Export VRM Converter For VRChat", isValidateFunction: false, priority: 30)]
+        [MenuItem(itemName: "Assets/Export " + Converter.Name, isValidateFunction: false, priority: 30)]
         private static void Export()
         {
-            var packagePath = Path.Combine(Application.temporaryCachePath, Exporter.PackageName + ".unitypackage");
-            AssetDatabase.ExportPackage(
-                assetPathNames: AssetDatabase.GetAllAssetPaths()
-                    .Where(path => path.StartsWith(Converter.RootFolderPath + "/") && !Exporter.ExcludedFileNames.Contains(Path.GetFileName(path: path)))
-                    .ToArray(),
-                fileName: packagePath
-            );
+            string[] allAssetPathNames = AssetDatabase.GetAllAssetPaths();
 
+            IEnumerable<string> assetPathNames = allAssetPathNames
+                .Where(path => path.StartsWith(Converter.RootFolderPath + "/") && !Exporter.ExcludedFileNames.Contains(Path.GetFileName(path: path)));
+            
+            IEnumerable<string> packagePaths = new[] { false, true }.Select(withUniVRM => {
+                string name = Exporter.PackageName;
+
+                if (withUniVRM) {
+                    name += " + " + VRMVersion.VRM_VERSION;
+                    assetPathNames = assetPathNames.Concat(allAssetPathNames.Where(path => path.StartsWith("Assets/VRM/")));
+                }
+
+                var packagePath = Path.Combine(Application.temporaryCachePath, name + ".unitypackage");
+                AssetDatabase.ExportPackage(assetPathNames: assetPathNames.ToArray(), fileName: packagePath);
+                return packagePath;
+            });
+            
             var zipFile = new ZipFile();
-            zipFile.AddFile(fileName: packagePath, directoryPathInArchive: "");
+            zipFile.AddFiles(fileNames: packagePaths, directoryPathInArchive: "");
             zipFile.Save(fileName: Path.Combine(Environment.GetFolderPath(folder: Environment.SpecialFolder.DesktopDirectory), Exporter.PackageName + ".zip"));
 
-            File.Delete(path: packagePath);
+            foreach (string packagePath in packagePaths) {
+                File.Delete(path: packagePath);
+            }
         }
 
         [MenuItem(itemName: "Assets/Export VRM Converter For VRChat", isValidateFunction: true)]
