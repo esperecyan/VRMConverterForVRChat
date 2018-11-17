@@ -89,7 +89,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             if (Type.GetType("DynamicBone, Assembly-CSharp") != null
                 && Type.GetType(typeof(ComponentsReplacer).Namespace + ".SwayingObjectsConverter, Assembly-CSharp-Editor") == null)
             {
-                var path = Path.Combine(CurrentFolderGetter.Get(), "SwayingObjectsConverter.cs");
+                var path = Path.Combine(Path.Combine(Converter.RootFolderPath, "Editor"), "SwayingObjectsConverter.cs");
                 AssetDatabase.MoveAsset(oldPath: path + ".bak", newPath: path);
             }
         }

@@ -9,8 +9,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 {
     internal class Exporter
     {
-        private static readonly string RootFolderPath = "Assets/VRMConverterForVRChat";
-
         private static readonly string[] ExcludedFileNames = new[] { "Exporter.cs", "SwayingObjectsConverter.cs" };
 
         private static readonly string PackageName = "VRM Converter for VRChat-" + Converter.Version;
@@ -21,7 +19,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             var packagePath = Path.Combine(Application.temporaryCachePath, Exporter.PackageName + ".unitypackage");
             AssetDatabase.ExportPackage(
                 assetPathNames: AssetDatabase.GetAllAssetPaths()
-                    .Where(path => path.StartsWith(Exporter.RootFolderPath + "/") && !Exporter.ExcludedFileNames.Contains(Path.GetFileName(path: path)))
+                    .Where(path => path.StartsWith(Converter.RootFolderPath + "/") && !Exporter.ExcludedFileNames.Contains(Path.GetFileName(path: path)))
                     .ToArray(),
                 fileName: packagePath
             );
@@ -41,7 +39,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 return false;
             }
 
-            return (AssetDatabase.GetAssetPath(assetObject: activeObject) + "/").StartsWith(Exporter.RootFolderPath + "/");
+            return (AssetDatabase.GetAssetPath(assetObject: activeObject) + "/").StartsWith(Converter.RootFolderPath + "/");
         }
     }
 }

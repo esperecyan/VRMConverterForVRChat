@@ -207,7 +207,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             var path = Path.Combine(Converter.GetAnimationsFolderPath(avatar: avatar, assetsPath: assetsPath), "blink.controller");
             AssetDatabase.CopyAsset(
-                path: Path.Combine(CurrentFolderGetter.Get(), "blink.controller"),
+                path: Path.Combine(Path.Combine(Converter.RootFolderPath, "Editor"), "blink.controller"),
                 newPath: path
             );
             var animationClip = AssetDatabase.LoadAssetAtPath<AnimationClip>(assetPath: path);

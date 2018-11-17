@@ -63,6 +63,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         }
 
         /// <summary>
+        /// 当エディタ拡張が保存されているフォルダのパス。
+        /// </summary>
+        internal static readonly string RootFolderPath = "Assets/VRMConverterForVRChat";
+
+        /// <summary>
         /// 変換後のアバター固有のファイルを保存するフォルダパスを取得します。
         /// </summary>
         /// <remarks>

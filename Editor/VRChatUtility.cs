@@ -99,7 +99,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         internal static AnimationClip CreateAnim(Anim name, string path)
         {
             AssetDatabase.CopyAsset(
-                path: Path.Combine(CurrentFolderGetter.Get(), name + ".anim"),
+                path: Path.Combine(Path.Combine(Converter.RootFolderPath, "Editor"), name + ".anim"),
                 newPath: path
             );
 
