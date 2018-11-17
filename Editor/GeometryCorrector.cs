@@ -23,7 +23,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             {
                 messages.Add(new Converter.Message
                 {
-                    message = string.Format("ポリゴン数が{0}です。ポリゴン数が{1}を超える場合、アップロードできません。", polycount, VRChatUtility.MaxPolygonCount),
+                    message = string.Format(
+                        Gettext._("The number of polygons is {0}. If a number of polygons exceeds {1}, you can not upload."),
+                        polycount,
+                        VRChatUtility.MaxPolygonCount
+                    ),
                     type = MessageType.Error,
                 });
             }
@@ -39,7 +43,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 messages.Add(new Converter.Message
                 {
                     message = string.Format(
-                        "アバターを{0}倍に縮小し、アップロード可能な高さ{1}Unit、幅{2}Unit、奥行き{3}Unitに収まるようにしました。",
+                        Gettext._("The avatar is scaled to {0} times to be settled in uploadable height {1} Unit, width {2} Unit, and depth {3} Unit."),
                         scale,
                         VRChatUtility.MaxSize.y,
                         VRChatUtility.MaxSize.x,
@@ -54,7 +58,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             {
                 messages.Add(new Converter.Message
                 {
-                    message = string.Format("肩が {0} Unit の位置にあります。{1} Unit 以上でなければアップロードできません。", shoulderHeight, VRChatUtility.MinShoulderHeight),
+                    message = string.Format(
+                        Gettext._("The shoulders is in {0} Unit. You can not upload, if the shoulders is not in over than {1} Unit."),
+                        shoulderHeight,
+                        VRChatUtility.MinShoulderHeight
+                    ),
                     type = MessageType.Error,
                 });
             }

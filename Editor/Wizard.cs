@@ -47,13 +47,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <summary>
         /// オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。
         /// </summary>
-        [SerializeField]
+        [SerializeField, Localizable]
         private bool enableEyeMovement;
 
         /// <summary>
         /// 各種コールバック関数のユーザー設定値。
         /// </summary>
-        [SerializeField]
+        [SerializeField, Localizable]
         private MonoScript callbackFunctions;
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="avatar"></param>
         internal static void Open(GameObject avatar)
         {
-            var wizard = DisplayWizard<Wizard>(title: "VRM Converter for VRChat " + Converter.Version, createButtonName: "Duplicate and Convert");
+            var wizard = DisplayWizard<Wizard>(title: "VRM Converter for VRChat " + Converter.Version, createButtonName: Gettext._("Duplicate and Convert"));
             Vector2 minSize = wizard.minSize;
             minSize.x = Wizard.MinWidth;
             wizard.minSize = minSize;
@@ -153,7 +153,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             foreach (var type in Converter.RequiredComponents) {
                 if (!this.avatar.GetComponent(type: type))
                 {
-                    EditorGUILayout.HelpBox(string.Format("{0}コンポーネントが設定されていません。", type), MessageType.Error);
+                    EditorGUILayout.HelpBox(string.Format(Gettext._("Not set “{0}” component."), type), MessageType.Error);
                     isValid = false;
                 }
             }
@@ -161,7 +161,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             if (Application.unityVersion != VRChatUtility.SupportedUnityVersion)
             {
                 EditorGUILayout.HelpBox(string.Format(
-                    "Unity {0} が起動しています。{1} 以外のバージョンでは、VRCSDK が正常に動作しない可能性があります。{2} からダウンロードした Unity の利用を推奨します。",
+                    "Unity {0} is running. If you are using a different version than {1}, VRCSDK might not work correctly. Recommended using Unity downloaded from {2} .",
                     Application.unityVersion,
                     VRChatUtility.SupportedUnityVersion,
                     VRChatUtility.DownloadURL
