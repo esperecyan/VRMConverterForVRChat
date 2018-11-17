@@ -36,8 +36,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         [MenuItem(itemName: Menu.ItemName, isValidateFunction: true)]
         private static bool DuplicateAndConvertForVRChatIsEnable()
         {
-            GameObject avatar = ClosestModel();
-            return avatar && Converter.RequiredComponents.All(type => avatar.GetComponent(type: type));
+            return ClosestModel();
         }
 
         /// <summary>

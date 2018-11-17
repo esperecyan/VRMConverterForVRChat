@@ -23,9 +23,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         public delegate void PostConverting(GameObject avatar, VRMMeta meta);
 
         /// <summary>
-        /// ダイアログの最小幅。
+        /// ダイアログの最小サイズ。
         /// </summary>
-        private static readonly float MinWidth = 800;
+        private static readonly Vector2 MinSize = new Vector2(x: 800, y: 350);
 
         /// <summary>
         /// リストにおける一段回分の字下げ幅。
@@ -73,9 +73,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         internal static void Open(GameObject avatar)
         {
             var wizard = DisplayWizard<Wizard>(title: "VRM Converter for VRChat " + Converter.Version, createButtonName: Gettext._("Duplicate and Convert"));
-            Vector2 minSize = wizard.minSize;
-            minSize.x = Wizard.MinWidth;
-            wizard.minSize = minSize;
+            wizard.minSize = Wizard.MinSize;
 
             wizard.avatar = avatar.GetComponent<Animator>();
         }
