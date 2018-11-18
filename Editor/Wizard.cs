@@ -51,6 +51,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         private bool enableEyeMovement;
 
         /// <summary>
+        /// VRoid Studioから出力されたモデルがなで肩になる問題について、ボーンのPositionを変更するなら<c>true</c>。
+        /// </summary>
+        [SerializeField, Localizable]
+        private bool fixVroidSlopingShoulders;
+
+        /// <summary>
         /// 各種コールバック関数のユーザー設定値。
         /// </summary>
         [SerializeField, Localizable]
@@ -86,6 +92,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 this.defaultAnimationSet = (VRC_AvatarDescriptor.AnimationSet)Enum.Parse(enumType: typeof(VRC_AvatarDescriptor.AnimationSet), value: defaultAnimationSet);
             }
             this.enableEyeMovement = string.IsNullOrEmpty(EditorUserSettings.GetConfigValue(name: Wizard.EditorUserSettingsPrefix + "disableEyeMovement"));
+            this.fixVroidSlopingShoulders = string.IsNullOrEmpty(EditorUserSettings.GetConfigValue(name: Wizard.EditorUserSettingsPrefix + "notFixVRoidSlopingShoulders"));
             string callbackFunctions = EditorUserSettings.GetConfigValue(name: Wizard.EditorUserSettingsPrefix + "callbackFunctions");
             if (!string.IsNullOrEmpty(callbackFunctions))
             {
@@ -102,6 +109,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             EditorUserSettings.SetConfigValue(
                 name: Wizard.EditorUserSettingsPrefix + "disableEyeMovement",
                 value: this.enableEyeMovement ? "" : "on"
+            );
+            EditorUserSettings.SetConfigValue(
+                name: Wizard.EditorUserSettingsPrefix + "notFixVRoidSlopingShoulders",
+                value: this.fixVroidSlopingShoulders ? "" : "on"
             );
             EditorUserSettings.SetConfigValue(
                 name: Wizard.EditorUserSettingsPrefix + "callbackFunctions",
@@ -178,7 +189,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 defaultAnimationSet: this.defaultAnimationSet,
                 swayingParametersConverter: this.swayingParametersConverter,
                 assetsPath: GetAssetsPath(vrm: this.avatar.gameObject),
-                enableAutoEyeMovement: this.enableEyeMovement
+                enableAutoEyeMovement: this.enableEyeMovement,
+                fixVRoidSlopingShoulders: this.fixVroidSlopingShoulders
             );
 
             if (this.postConverting != null) {

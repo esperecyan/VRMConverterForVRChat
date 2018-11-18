@@ -41,13 +41,15 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="swayingParametersConverter"></param>
         /// <param name="assetsPath">「Assets/」から始まるVRMプレハブのパス。</param>
         /// <param name="enableAutoEyeMovement">オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。</param>
+        /// <param name="fixVRoidSlopingShoulders">VRoid Studioから出力されたモデルがなで肩になる問題について、ボーンのPositionを変更するなら<c>true</c>。</param>
         /// <returns>変換中に発生したメッセージ。</returns>
         public static IEnumerable<Converter.Message> Convert(
             GameObject avatar,
             VRC_AvatarDescriptor.AnimationSet defaultAnimationSet,
             ComponentsReplacer.SwayingParametersConverter swayingParametersConverter = null,
             string assetsPath = "",
-            bool enableAutoEyeMovement = true
+            bool enableAutoEyeMovement = true,
+            bool fixVRoidSlopingShoulders = true
         ) {
 #pragma warning disable 618
             avatar.SetActiveRecursively(state: true); // GameObject.setActive() は子孫の有効・無効を切り替えない
@@ -55,7 +57,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             IEnumerable<Converter.Message> messages = GeometryCorrector.Apply(avatar: avatar);
             BlendShapeReplacer.Apply(avatar: avatar, assetsPath: assetsPath);
             ComponentsReplacer.Apply(avatar: avatar, defaultAnimationSet: defaultAnimationSet, swayingParametersConverter: swayingParametersConverter);
-            VRChatsBugsWorkaround.Apply(avatar: avatar, assetsPath: assetsPath, enableAutoEyeMovement: enableAutoEyeMovement);
+            VRChatsBugsWorkaround.Apply(
+                avatar: avatar,
+                assetsPath: assetsPath,
+                enableAutoEyeMovement: enableAutoEyeMovement,
+                fixVRoidSlopingShoulders: fixVRoidSlopingShoulders
+            );
             avatar.GetOrAddComponent<PipelineManager>();
             ComponentsRemover.Apply(avatar: avatar);
             Undo.RegisterCreatedObjectUndo(avatar, "Convert VRM for VRChat");

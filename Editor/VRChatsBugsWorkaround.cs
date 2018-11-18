@@ -1,8 +1,10 @@
+using System;
 using System.Linq;
 using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using VRM;
 using UniHumanoid;
 
@@ -27,14 +29,15 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             "vrc.lowerlid_left",
             "vrc.lowerlid_right"
         };
-
+        
         /// <summary>
         /// クラスに含まれる処理を適用します。
         /// </summary>
         /// <param name="avatar"></param>
         /// <param name="assetsPath"></param>
         /// <param name="enableAutoEyeMovement">オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。</param>
-        internal static void Apply(GameObject avatar, string assetsPath, bool enableAutoEyeMovement)
+        /// <param name="fixVRoidSlopingShoulders">VRoid Studioから出力されたモデルがなで肩になる問題について、ボーンのPositionを変更するなら<c>true</c>。</param>
+        internal static void Apply(GameObject avatar, string assetsPath, bool enableAutoEyeMovement, bool fixVRoidSlopingShoulders)
         {
             VRChatsBugsWorkaround.AdjustHumanDescription(avatar: avatar, assetsPath: assetsPath);
             VRChatsBugsWorkaround.EnableAnimationOvrride(avatar: avatar, assetsPath: assetsPath);
@@ -44,6 +47,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
             else {
                 VRChatsBugsWorkaround.DisableAutoEyeMovement(avatar: avatar, assetsPath: assetsPath);
+            }
+            if (fixVRoidSlopingShoulders)
+            {
+                VRChatsBugsWorkaround.FixVRoidSlopingShoulders(avatar: avatar, assetsPath: assetsPath);
             }
         }
 
@@ -145,20 +152,27 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </summary>
         /// <param name="avatar"></param>
         /// <param name="assetsPath"></param>
-        /// <param name="humanoidDescription"></param>
         /// <param name="avatarDescription"></param>
-        private static void ApplyAvatarDescription(GameObject avatar, string assetsPath, AvatarDescription avatarDescription)
-        {
+        /// <param name="humanDescriptionModifier"><see cref="AvatarDescription.ToHumanDescription"/>によって生成された<see cref="HumanDescription"/>を変更するコールバック関数。
+        ///     再度メソッドを呼び出すと変更は失われます。</param>
+        private static void ApplyAvatarDescription(
+            GameObject avatar,
+            string assetsPath,
+            AvatarDescription avatarDescription,
+            Action<HumanDescription> humanDescriptionModifier = null
+        ) {
             var humanoidDescription = avatar.GetComponent<VRMHumanoidDescription>();
-            Avatar humanoidRig = AvatarBuilder.BuildHumanAvatar(
-                go: avatar,
-                humanDescription: avatarDescription.ToHumanDescription(root: avatar.transform)
-            );
+            HumanDescription humanDescription = avatarDescription.ToHumanDescription(root: avatar.transform);
+            if (humanDescriptionModifier != null) {
+                humanDescriptionModifier(humanDescription);
+            }
+            Avatar humanoidRig = AvatarBuilder.BuildHumanAvatar(go: avatar, humanDescription: humanDescription);
             AssetDatabase.CreateAsset(
                 asset: humanoidRig,
                 path: Path.Combine(Converter.GetAnimationsFolderPath(avatar: avatar, assetsPath: assetsPath), humanoidDescription.Avatar.name + ".asset")
             );
             humanoidDescription.Avatar = humanoidRig;
+            humanoidDescription.Description = avatarDescription;
             avatar.GetComponent<Animator>().avatar = humanoidRig;
             EditorUtility.SetDirty(target: humanoidRig);
         }
@@ -285,6 +299,31 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 deltaNormals: new Vector3[mesh.vertexCount],
                 deltaTangents: new Vector3[mesh.vertexCount]
             );
+        }
+
+        /// <summary>
+        /// VRoid Studioから出力されたモデルがなで肩になる問題について、ボーンのPositionを変更します。
+        /// </summary>
+        /// <param name="avatar"></param>
+        /// <param name="assetsPath"></param>
+        private static void FixVRoidSlopingShoulders(GameObject avatar, string assetsPath)
+        {
+            bool isCreated;
+            AvatarDescription avatarDescription = avatar.GetComponent<VRMHumanoidDescription>().GetDescription(isCreated: out isCreated);
+
+            IDictionary<HumanBodyBones, string> bonesAndNames = avatarDescription.human
+                .ToDictionary(keySelector: boneLimit => boneLimit.humanBone, elementSelector: humanBone => humanBone.boneName);
+            if (VRoidUtility.RequiredModifiedBonesAndNamesForVRChat.All(boneAndName => bonesAndNames.Contains(item: boneAndName)))
+            {
+                ApplyAvatarDescription(avatar: avatar, assetsPath: assetsPath, avatarDescription: avatarDescription, humanDescriptionModifier: humanDescription => {
+                    List<SkeletonBone> skeltonBones = humanDescription.skeleton.ToList();
+                    foreach (string name in VRoidUtility.RequiredModifiedBonesAndNamesForVRChat.Values)
+                    {
+                        humanDescription.skeleton[skeltonBones.FindIndex(match: skeltonBone => skeltonBone.name == name)].position
+                            += VRoidUtility.AddedPositionValueForVRChat;
+                    }
+                });
+            }
         }
     }
 }
