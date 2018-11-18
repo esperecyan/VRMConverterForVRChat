@@ -37,12 +37,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         public static readonly float MinShoulderHeight = 0.2f;
 
         /// <summary>
-        /// VRCSDKがサポートするUnityのバージョン。
+        /// VRChat SDKがサポートするUnityのバージョン。
         /// </summary>
         public static readonly string SupportedUnityVersion = "5.6.3p1";
 
         /// <summary>
-        /// VRCSDKがサポートするバージョンのUnityのダウンロード先。
+        /// VRChat SDKがサポートするバージョンのUnityのダウンロード先。
         /// </summary>
         public static readonly string DownloadURL = "https://api.vrchat.cloud/home/download";
 
@@ -76,7 +76,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         };
 
         /// <summary>
-        /// VRCSDKに含まれるカスタムアニメーション設定用のテンプレートファイルを複製します。
+        /// VRChat SDKに含まれるカスタムアニメーション設定用のテンプレートファイルを複製します。
         /// </summary>
         /// <param name="path">複製したファイルの保存先。</param>
         /// <returns></returns>
