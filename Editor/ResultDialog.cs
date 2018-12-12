@@ -24,7 +24,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         {
             base.DrawWizardGUI();
             EditorGUILayout.LabelField(label: Gettext._("Converting is completed."));
-            EditorGUILayout.LabelField(label: Gettext._("Before you upload the avatar, please be sure to restart the Unity."));
             foreach (var message in this.messages) {
                 EditorGUILayout.HelpBox(message: message.message, type: message.type);
             }

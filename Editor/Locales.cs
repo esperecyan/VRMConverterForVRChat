@@ -29,7 +29,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     { "The shoulders is in {0} Unit. You can not upload, if the shoulders is not in over than {1} Unit.",
                         "肩が {0} Unit の位置にあります。{1} Unit 以上でなければアップロードできません。" },
                     { "Converting is completed.", "変換が完了しました。" },
-                    { "Before you upload the avatar, please be sure to restart the Unity.", "アップロードを行う前に、必ずUnityを再起動してください。" },
                     { "OK", "OK" },
                 }}
             });
