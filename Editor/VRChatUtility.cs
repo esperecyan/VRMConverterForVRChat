@@ -39,7 +39,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <summary>
         /// VRChat SDKがサポートするUnityのバージョン。
         /// </summary>
-        public static readonly string SupportedUnityVersion = "5.6.3p1";
+        public static readonly string SupportedUnityVersion = "2017.4.15f1";
 
         /// <summary>
         /// VRChat SDKがサポートするバージョンのUnityのダウンロード先。
