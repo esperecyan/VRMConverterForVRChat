@@ -31,6 +31,16 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         };
         
         /// <summary>
+        /// オートアイムーブメントにおける目のボーンの回転角度の最大値。
+        /// </summary>
+        /// <remarks>
+        /// 参照:
+        /// Eye trackingの実装【VRChat技術情報】 — VRChatパブリックログ
+        /// <https://jellyfish-qrage.hatenablog.com/entry/2018/07/25/034610>
+        /// </remarks>
+        internal static readonly int MaxAutoEyeMovementDegree = 30;
+        
+        /// <summary>
         /// クラスに含まれる処理を適用します。
         /// </summary>
         /// <param name="avatar"></param>
@@ -44,6 +54,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             if (enableAutoEyeMovement)
             {
                 VRChatsBugsWorkaround.EnableAutoEyeMovement(avatar: avatar, assetsPath: assetsPath);
+                VRChatsBugsWorkaround.ApplyAutoEyeMovementDegreeMapping(avatar: avatar, assetsPath: assetsPath);
             }
             else {
                 VRChatsBugsWorkaround.DisableAutoEyeMovement(avatar: avatar, assetsPath: assetsPath);
@@ -272,6 +283,92 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             avatarDescription.human = boneLimits.ToArray();
             ApplyAvatarDescription(avatar: avatar, assetsPath: assetsPath, avatarDescription: avatarDescription);
+        }
+
+        /// <summary>
+        /// オートアイムーブメントの目ボーンの角度を、<see cref="VRMLookAtBoneApplyer"/>で指定された角度のうち最小値になるようにウェイトペイントを行います。
+        /// </summary>
+        /// <param name="avatar"></param>
+        /// <remarks>
+        /// 参照:
+        /// Eye trackingの実装【VRChat技術情報】 — VRChatパブリックログ
+        /// <https://jellyfish-qrage.hatenablog.com/entry/2018/07/25/034610>
+        /// 海行プログラムさんのツイート: “自前でスキンメッシュをどうこうするにあたって役に立ったUnityマニュアルのコード。bindposeってのを各ボーンに設定しないといけないんだけど、ボーンのtransform.worldToLocalMatrixを入れればＯＫ　　https://t.co/I2qKb6uQ8a”
+        /// <https://twitter.com/kaigyoPG/status/807648864081616896>
+        /// </remarks>
+        private static void ApplyAutoEyeMovementDegreeMapping(GameObject avatar, string assetsPath)
+        {
+            var lookAtBoneApplyer = avatar.GetComponent<VRMLookAtBoneApplyer>();
+            if (!lookAtBoneApplyer)
+            {
+                return;
+            }
+
+            float minDegree = new[] { lookAtBoneApplyer.HorizontalOuter, lookAtBoneApplyer.HorizontalInner, lookAtBoneApplyer.VerticalDown, lookAtBoneApplyer.VerticalUp }
+                .Select(mapper => mapper.CurveYRangeDegree)
+                .Min();
+            float eyeBoneWeight = minDegree / VRChatsBugsWorkaround.MaxAutoEyeMovementDegree;
+            float headBoneWeight = 1 - eyeBoneWeight;
+
+            Transform headBone = avatar.GetComponent<VRMFirstPerson>().FirstPersonBone;
+            var eyeBones = new[] { HumanBodyBones.RightEye, HumanBodyBones.LeftEye }
+                .Select(id => avatar.GetComponent<Animator>().GetBoneTransform(humanBoneId: id));
+
+            foreach (var renderer in avatar.GetComponentsInChildren<SkinnedMeshRenderer>())
+            {
+                Transform[] bones = renderer.bones;
+                IEnumerable<int> eyeBoneIndexes = eyeBones.Select(eyeBone => bones.IndexOf(target: eyeBone)).Where(index => index >= 0);
+                if (eyeBoneIndexes.Count() == 0)
+                {
+                    continue;
+                }
+
+                var mesh = VRChatsBugsWorkaround.DuplicateObject(avatar: avatar, assetsPath: assetsPath, obj: renderer.sharedMesh) as Mesh;
+
+                int headBoneIndex = bones.IndexOf(target: headBone);
+                if (headBoneIndex < 0)
+                {
+                    renderer.bones = bones.Concat(new[] { headBone }).ToArray();
+                    headBoneIndex = bones.Length;
+                    mesh.bindposes = mesh.bindposes.Concat(new[] { headBone.worldToLocalMatrix }).ToArray();
+                }
+
+                mesh.boneWeights = mesh.boneWeights.Select(boneWeight => {
+                    IEnumerable<float> weights = new[] { boneWeight.weight0, boneWeight.weight1, boneWeight.weight2, boneWeight.weight3 }.Where(weight => weight > 0);
+                    IEnumerable<int> boneIndexes = new[] { boneWeight.boneIndex0, boneWeight.boneIndex1, boneWeight.boneIndex2, boneWeight.boneIndex3 }.Take(weights.Count());
+                    if (eyeBoneIndexes.Intersect(boneIndexes).Count() == 0 || boneIndexes.Contains(headBoneIndex))
+                    {
+                        return boneWeight;
+                    }
+
+                    foreach (int eyeBoneIndex in eyeBoneIndexes)
+                    {
+                        int index = boneIndexes.ToList().FindIndex(boneIndex => boneIndex == eyeBoneIndex);
+                        switch (index)
+                        {
+                            case 0:
+                                boneWeight.weight0 = eyeBoneWeight;
+                                boneWeight.boneIndex1 = headBoneIndex;
+                                boneWeight.weight1 = headBoneWeight;
+                                break;
+                            case 1:
+                                boneWeight.weight1 = eyeBoneWeight;
+                                boneWeight.boneIndex2 = headBoneIndex;
+                                boneWeight.weight2 = headBoneWeight;
+                                break;
+                            case 2:
+                                boneWeight.weight2 = eyeBoneWeight;
+                                boneWeight.boneIndex3 = headBoneIndex;
+                                boneWeight.weight3 = headBoneWeight;
+                                break;
+                        }
+                    }
+
+                                return boneWeight;
+                }).ToArray();
+
+                renderer.sharedMesh = mesh;
+            }
         }
 
         /// <summary>
