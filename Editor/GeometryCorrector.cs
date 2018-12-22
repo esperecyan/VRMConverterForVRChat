@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using VRM;
+using VRCSDK2;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
 {
@@ -15,41 +17,19 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         {
             var messages = new List<Converter.Message>();
 
-            Bounds bounds;
-            int polycount;
-            VRChatUtility.AnalyzeGeometry(go: avatar, bounds: out bounds, polycount: out polycount);
+            AvatarPerformanceStats statistics
+                = AvatarPerformance.CalculatePerformanceStats(avatarName: avatar.GetComponent<VRMMeta>().Meta.Title, avatarObject: avatar);
 
-            if (polycount > VRChatUtility.MaxPolygonCount)
+            if (statistics.PolyCount > AvatarPerformanceStats.BadPeformanceStatLimits.PolyCount)
             {
                 messages.Add(new Converter.Message
                 {
                     message = string.Format(
                         Gettext._("The number of polygons is {0}. If a number of polygons exceeds {1}, you can not upload."),
-                        polycount,
-                        VRChatUtility.MaxPolygonCount
+                        statistics.PolyCount,
+                        AvatarPerformanceStats.BadPeformanceStatLimits.PolyCount
                     ),
                     type = MessageType.Error,
-                });
-            }
-
-            float scale = new[] {
-                VRChatUtility.MaxSize.x / bounds.size.x,
-                VRChatUtility.MaxSize.y / bounds.size.y,
-                VRChatUtility.MaxSize.z / bounds.size.z,
-            }.Min();
-            if (scale < 1)
-            {
-                avatar.transform.localScale *= scale;
-                messages.Add(new Converter.Message
-                {
-                    message = string.Format(
-                        Gettext._("The avatar is scaled to {0} times to be settled in uploadable height {1} Unit, width {2} Unit, and depth {3} Unit."),
-                        scale,
-                        VRChatUtility.MaxSize.y,
-                        VRChatUtility.MaxSize.x,
-                        VRChatUtility.MaxSize.z
-                    ),
-                    type = MessageType.Warning,
                 });
             }
 

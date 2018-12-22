@@ -22,16 +22,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         }
         
         /// <summary>
-        /// アバターの最大ポリゴン数。
-        /// </summary>
-        public static readonly int MaxPolygonCount = 19999;
-
-        /// <summary>
-        /// アバターの最大サイズ。
-        /// </summary>
-        public static readonly Vector3 MaxSize = new Vector3 { x = 5.0f, y = 6.0f, z = 5.0f };
-
-        /// <summary>
         /// アバターの最小の方の位置。
         /// </summary>
         public static readonly float MinShoulderHeight = 0.2f;

@@ -24,8 +24,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     { "The number of polygons is {0}. If a number of polygons exceeds {1}, you can not upload.",
                         "ポリゴン数が{0}です。ポリゴン数が{1}を超える場合、アップロードできません。" },
                     { "Duplicate and Convert", "複製して変換" },
-                    { "The avatar is scaled to {0} times to be settled in uploadable height {1} Unit, width {2} Unit, and depth {3} Unit.",
-                        "アバターを{0}倍に縮小し、アップロード可能な高さ{1}Unit、幅{2}Unit、奥行き{3}Unitに収まるようにしました。" },
                     { "The shoulders is in {0} Unit. You can not upload, if the shoulders is not in over than {1} Unit.",
                         "肩が {0} Unit の位置にあります。{1} Unit 以上でなければアップロードできません。" },
                     { "Converting is completed.", "変換が完了しました。" },
