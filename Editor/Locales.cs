@@ -26,6 +26,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     { "Duplicate and Convert", "複製して変換" },
                     { "The shoulders is in {0} Unit. You can not upload, if the shoulders is not in over than {1} Unit.",
                         "肩が {0} Unit の位置にあります。{1} Unit 以上でなければアップロードできません。" },
+                    { "The avatar is scaled to {0} times to be settled in uploadable shoulders height {1} Unit.",
+                        "アバターを{0}倍に拡大し、アップロード可能な肩の高さ {1} Unit を超えるようにしました。" },
                     { "Converting is completed.", "変換が完了しました。" },
                     { "OK", "OK" },
                 }}

@@ -34,7 +34,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
 
             float shoulderHeight = (avatar.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.LeftUpperArm).transform.position - avatar.transform.position).y;
-            if (shoulderHeight < VRChatUtility.MinShoulderHeight)
+            if (shoulderHeight <= 0)
             {
                 messages.Add(new Converter.Message
                 {
@@ -44,6 +44,20 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                         VRChatUtility.MinShoulderHeight
                     ),
                     type = MessageType.Error,
+                });
+            }
+            else if (shoulderHeight < VRChatUtility.MinShoulderHeight)
+            {
+                float scale = VRChatUtility.MinShoulderHeight / shoulderHeight;
+                avatar.transform.localScale *= scale;
+                messages.Add(new Converter.Message
+                {
+                    message = string.Format(
+                        Gettext._("The avatar is scaled to {0} times to be settled in uploadable shoulders height {1} Unit."),
+                        scale,
+                        VRChatUtility.MinShoulderHeight
+                    ),
+                    type = MessageType.Warning,
                 });
             }
 
