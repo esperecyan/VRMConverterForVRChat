@@ -22,7 +22,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         }
         
         /// <summary>
-        /// アバターの最小の方の位置。
+        /// アバターの最小の肩の位置。
         /// </summary>
         public static readonly float MinShoulderHeight = 0.2f;
 
