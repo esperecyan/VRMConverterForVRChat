@@ -66,7 +66,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         {
             ConvertMeta(avatar: avatar, defaultAnimationSet: defaultAnimationSet);
             ConvertVRMFirstPerson(avatar: avatar);
-            SetCollidersForCollisionWithOtherAvatar(avatar: avatar);
 
             var swayingObjectsConverter = Type.GetType(typeof(ComponentsReplacer).Namespace + ".SwayingObjectsConverter, Assembly-CSharp-Editor");
             if (swayingObjectsConverter != null)
@@ -114,42 +113,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
             var firstPerson = avatar.GetComponent<VRMFirstPerson>();
             avatarDescriptor.ViewPosition = firstPerson.FirstPersonBone.position + firstPerson.FirstPersonOffset - avatar.transform.localPosition;
-        }
-
-        /// <summary>
-        /// アバター同士の干渉に関する設定を行います。
-        /// </summary>
-        /// <remarks>
-        /// 参照:
-        /// 他人が触れる揺れもの構造 — VRChat KemonoClub Wiki
-        /// <http://seesaawiki.jp/vrchat_kemonoclub/d/%c2%be%bf%cd%a4%ac%bf%a8%a4%ec%a4%eb%cd%c9%a4%ec%a4%e2%a4%ce%b9%bd%c2%a4>
-        /// </remarks>
-        /// <param name="avatar"></param>
-        private static void SetCollidersForCollisionWithOtherAvatar(GameObject avatar)
-        {
-            var animator = avatar.GetComponent<Animator>();
-
-            foreach (HumanBodyBones humanoidBodyBone in ComponentsReplacer.BonesForCollisionWithOtherAvatarOnVirtualCast)
-            {
-                GameObject bone = animator.GetBoneTransform(humanBoneId: humanoidBodyBone).gameObject;
-
-                var rigidbody = bone.AddComponent<Rigidbody>();
-                rigidbody.useGravity = false;
-                rigidbody.isKinematic = true;
-
-                foreach (VRMSpringBoneColliderGroup colliderGroup in bone.GetComponents<VRMSpringBoneColliderGroup>())
-                {
-                    foreach (VRMSpringBoneColliderGroup.SphereCollider collider in colliderGroup.Colliders)
-                    {
-                        var sphereCollider = bone.AddComponent<SphereCollider>();
-                        sphereCollider.isTrigger = true;
-                        sphereCollider.center = collider.Offset;
-                        sphereCollider.radius = collider.Radius;
-                    }
-                }
-            }
-
-            // TODO: 触られる側の設定
         }
     }
 }
