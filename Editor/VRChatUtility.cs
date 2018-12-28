@@ -2,6 +2,7 @@ using System.Reflection;
 using System.IO;
 using UnityEngine;
 using UnityEditor;
+using VRC.Core;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
 {
@@ -25,11 +26,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// アバターの最小の肩の位置。
         /// </summary>
         public static readonly float MinShoulderHeight = 0.2f;
-
-        /// <summary>
-        /// VRChat SDKがサポートするUnityのバージョン。
-        /// </summary>
-        public static readonly string SupportedUnityVersion = "2017.4.15f1";
 
         /// <summary>
         /// VRChat SDKがサポートするバージョンのUnityのダウンロード先。
@@ -115,6 +111,15 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             bounds = (Bounds)args[1];
             polycount = (int)args[2];
+        }
+
+        /// <summary>
+        /// VRChat SDKがサポートするUnityのバージョンを取得します。
+        /// </summary>
+        /// <returns>取得できなかった場合は空文字列を返します。</returns>
+        internal static string GetSupportedUnityVersion()
+        {
+            return RemoteConfig.HasKey("sdkUnityVersion") ? RemoteConfig.GetString("sdkUnityVersion") : "";
         }
     }
 }
