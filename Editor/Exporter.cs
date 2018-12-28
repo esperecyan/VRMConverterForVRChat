@@ -27,7 +27,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 string name = Exporter.PackageName;
 
                 if (withUniVRM) {
-                    name += " + " + VRMVersion.VRM_VERSION;
+                    name += " + " + VRMVersion.VRM_VERSION + (VRMVersion.VERSION == "0.46" ? "c" : "");
                     assetPathNames = assetPathNames.Concat(allAssetPathNames.Where(path => path.StartsWith("Assets/VRM/")));
                 }
 
