@@ -11,14 +11,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
     public class Menu
     {
         /// <summary>
-        /// 追加するメニューアイテムの、<see cref="VRMVersion.VRM_VERSION"/>メニュー内の位置。
+        /// 追加するメニューアイテムの、「VRM」メニュー内の位置。
         /// </summary>
-        public const int Priority = 100;
+        public const int Priority = 1100;
 
         /// <summary>
         /// 追加するメニューアイテム名。
         /// </summary>
-        private const string ItemName = VRMVersion.VRM_VERSION + "/Duplicate and Convert for VRChat";
+        private const string ItemName = "VRM/Duplicate and Convert for VRChat";
 
         /// <summary>
         /// 選択されているアバターの変換ダイアログを開きます。
