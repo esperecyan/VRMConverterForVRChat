@@ -44,16 +44,5 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 File.Delete(path: packagePath);
             }
         }
-
-        [MenuItem(itemName: "Assets/Export VRM Converter For VRChat", isValidateFunction: true)]
-        private static bool IsInProjectFolder()
-        {
-            var activeObject = Selection.activeObject;
-            if (!activeObject) {
-                return false;
-            }
-
-            return (AssetDatabase.GetAssetPath(assetObject: activeObject) + "/").StartsWith(Converter.RootFolderPath + "/");
-        }
     }
 }
