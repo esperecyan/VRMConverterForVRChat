@@ -13,8 +13,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </summary>
         /// <param name="avatar"></param>
         /// <param name="preset"></param>
+        /// <param name="leadingPath"></param>
         /// <returns></returns>
-        internal static SkinnedMeshRenderer GetFirstSkinnedMeshRenderer(GameObject avatar, BlendShapePreset preset)
+        internal static SkinnedMeshRenderer GetFirstSkinnedMeshRenderer(GameObject avatar, BlendShapePreset preset, string leadingPath = "")
         {
             var clip = GetBlendShapeClip(avatar: avatar, preset: preset);
             if (!clip)
@@ -29,7 +30,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
 
             var binding = bindings[0];
-            Transform face = avatar.transform.Find(name: binding.RelativePath);
+            Transform face = avatar.transform.Find(name: binding.RelativePath)
+                ?? (leadingPath != "" ? avatar.transform.Find(name: leadingPath + binding.RelativePath) : null);
             if (!face)
             {
                 return null;
@@ -43,10 +45,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </summary>
         /// <param name="avatar"></param>
         /// <param name="preset"></param>
+        /// <param name="leadingPath"></param>
         /// <returns>対応するブレンドシェイプ名が見つからなければ空文字列を返します。</returns>
-        internal static string GetFirstBlendShapeBindingName(GameObject avatar, BlendShapePreset preset)
+        internal static string GetFirstBlendShapeBindingName(GameObject avatar, BlendShapePreset preset, string leadingPath = "")
         {
-            var renderer = GetFirstSkinnedMeshRenderer(avatar: avatar, preset: preset);
+            var renderer = GetFirstSkinnedMeshRenderer(avatar: avatar, preset: preset, leadingPath: leadingPath);
             if (!renderer)
             {
                 return "";
@@ -64,7 +67,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 return "";
             }
 
-            Mesh mesh = GetFirstSkinnedMeshRenderer(avatar: avatar, preset: preset).sharedMesh;
+            Mesh mesh = renderer.sharedMesh;
             if (mesh.blendShapeCount <= bindings[0].Index) {
                 return "";
             }
