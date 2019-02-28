@@ -57,6 +57,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         private bool fixVroidSlopingShoulders;
 
         /// <summary>
+        /// Directional Lightがないワールド向けにマテリアルを変更するなら <c>true</c>。
+        /// </summary>
+        [SerializeField, Localizable]
+        private bool useOldMtoon;
+
+        /// <summary>
         /// 各種コールバック関数のユーザー設定値。
         /// </summary>
         [SerializeField, Localizable]
@@ -93,6 +99,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
             this.enableEyeMovement = string.IsNullOrEmpty(EditorUserSettings.GetConfigValue(name: Wizard.EditorUserSettingsPrefix + "disableEyeMovement"));
             this.fixVroidSlopingShoulders = string.IsNullOrEmpty(EditorUserSettings.GetConfigValue(name: Wizard.EditorUserSettingsPrefix + "notFixVRoidSlopingShoulders"));
+            this.useOldMtoon = string.IsNullOrEmpty(EditorUserSettings.GetConfigValue(name: Wizard.EditorUserSettingsPrefix + "changeMaterialsForWorldsNotHavingDirectionalLight"));
             string callbackFunctions = EditorUserSettings.GetConfigValue(name: Wizard.EditorUserSettingsPrefix + "callbackFunctions");
             if (!string.IsNullOrEmpty(callbackFunctions))
             {
@@ -113,6 +120,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             EditorUserSettings.SetConfigValue(
                 name: Wizard.EditorUserSettingsPrefix + "notFixVRoidSlopingShoulders",
                 value: this.fixVroidSlopingShoulders ? "" : "on"
+            );
+            EditorUserSettings.SetConfigValue(
+                name: Wizard.EditorUserSettingsPrefix + "changeMaterialsForWorldsNotHavingDirectionalLight",
+                value: this.useOldMtoon ? "" : "on"
             );
             EditorUserSettings.SetConfigValue(
                 name: Wizard.EditorUserSettingsPrefix + "callbackFunctions",
@@ -191,7 +202,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 swayingParametersConverter: this.swayingParametersConverter,
                 assetsPath: GetAssetsPath(vrm: this.avatar.gameObject),
                 enableAutoEyeMovement: this.enableEyeMovement,
-                fixVRoidSlopingShoulders: this.fixVroidSlopingShoulders
+                fixVRoidSlopingShoulders: this.fixVroidSlopingShoulders,
+                changeMaterialsForWorldsNotHavingDirectionalLight: this.useOldMtoon
             );
 
             if (this.postConverting != null) {

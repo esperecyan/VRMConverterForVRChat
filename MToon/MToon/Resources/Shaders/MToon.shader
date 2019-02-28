@@ -1,4 +1,4 @@
-Shader "VRM/MToon"
+Shader "VRChat/MToon-1.7"
 {
     Properties
     {

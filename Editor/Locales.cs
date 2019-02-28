@@ -17,6 +17,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 { "ja", new Dictionary<string, string> {
                     { "Enable Eye Movement", "視線追従を有効化" },
                     { "Fix Vroid Sloping Shoulders", "VRoidのなで肩解消" },
+                    { "Use Old Mtoon", "MToon 1.7を使用" },
                     { "Callback Functions", "コールバック関数" },
                     { "Not set “{0}” component.", "{0}コンポーネントが設定されていません。" },
                     { "Unity {0} is running. If you are using a different version than {1}, VRChat SDK might not work correctly. Recommended using Unity downloaded from {2} .",

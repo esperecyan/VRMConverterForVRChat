@@ -47,8 +47,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="assetsPath"></param>
         /// <param name="enableAutoEyeMovement">オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。</param>
         /// <param name="fixVRoidSlopingShoulders">VRoid Studioから出力されたモデルがなで肩になる問題について、ボーンのPositionを変更するなら<c>true</c>。</param>
-        internal static void Apply(GameObject avatar, string assetsPath, bool enableAutoEyeMovement, bool fixVRoidSlopingShoulders)
-        {
+        /// <param name="changeMaterialsForWorldsNotHavingDirectionalLight">Directional Lightがないワールド向けにマテリアルを変更するなら <c>true</c>。</param>
+        internal static void Apply(
+            GameObject avatar,
+            string assetsPath,
+            bool enableAutoEyeMovement,
+            bool fixVRoidSlopingShoulders,
+            bool changeMaterialsForWorldsNotHavingDirectionalLight
+        ) {
             VRChatsBugsWorkaround.AdjustHumanDescription(avatar: avatar, assetsPath: assetsPath);
             VRChatsBugsWorkaround.EnableAnimationOvrride(avatar: avatar, assetsPath: assetsPath);
             if (enableAutoEyeMovement)
@@ -62,6 +68,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             if (fixVRoidSlopingShoulders)
             {
                 VRChatsBugsWorkaround.FixVRoidSlopingShoulders(avatar: avatar, assetsPath: assetsPath);
+            }
+            if (changeMaterialsForWorldsNotHavingDirectionalLight)
+            {
+                VRChatsBugsWorkaround.ChangeMaterialsForWorldsNotHavingDirectionalLight(avatar: avatar, assetsPath: assetsPath);
             }
         }
 
@@ -420,6 +430,35 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                             += VRoidUtility.AddedPositionValueForVRChat;
                     }
                 });
+            }
+        }
+
+        /// <summary>
+        /// Directional Lightがないワールド向けに、マテリアルにMToonが設定されている場合、MToon-1.7へ変更します。
+        /// </summary>
+        /// <param name="avatar"></param>
+        /// <param name="assetsPath"></param>
+        /// <remarks>
+        /// 参照:
+        /// まじかる☆しげぽん@VRoidさんのツイート: “UniVRM0.49に含まれるMToonは、これまでDirectionalLightで暗くなってもキャラが暗くならなかったのが修正されたので、VRChatのようなDirectionalLightが無い環境だと逆にこういう風になってしまうっぽいです。#VRoid https://t.co/3OQ2uLvfOx”
+        /// <https://twitter.com/m_sigepon/status/1091418527775391744>
+        /// さんたーPさんのツイート: “僕としては VRChat に持っていくなら MToon for VRChat みたいな派生 MToon シェーダを作るのが最善かと思います。パラメータは使い回しで、DirectionalLight が～といった VRChat の特殊な状況に対応するための処理を入れた MToon を。… https://t.co/4AHjkaqxaY”
+        /// <https://twitter.com/santarh/status/1088340412765356032>
+        /// </remarks>
+        private static void ChangeMaterialsForWorldsNotHavingDirectionalLight(GameObject avatar, string assetsPath)
+        {
+            foreach (var renderer in avatar.GetComponentsInChildren<Renderer>())
+            {
+                renderer.sharedMaterials = renderer.sharedMaterials.Select(material => {
+                    if (!material || material.shader.name != "VRM/MToon")
+                    {
+                        return material;
+                    }
+
+                    var newMaterial = VRChatsBugsWorkaround.DuplicateObject(avatar: avatar, assetsPath: assetsPath, obj: material) as Material;
+                    newMaterial.shader = Shader.Find("VRChat/MToon-1.7");
+                    return newMaterial;
+                }).ToArray();
             }
         }
     }
