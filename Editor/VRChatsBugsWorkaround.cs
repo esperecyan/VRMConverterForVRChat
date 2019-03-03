@@ -447,13 +447,15 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </remarks>
         private static void ChangeMaterialsForWorldsNotHavingDirectionalLight(GameObject avatar, string assetsPath)
         {
+            var alreadyDuplicatedMaterials = new List<Material>();
             foreach (var renderer in avatar.GetComponentsInChildren<Renderer>())
             {
                 renderer.sharedMaterials = renderer.sharedMaterials.Select(material => {
-                    if (!material || material.shader.name != "VRM/MToon")
+                    if (!material || alreadyDuplicatedMaterials.Contains(item: material) || material.shader.name != "VRM/MToon")
                     {
                         return material;
                     }
+                    alreadyDuplicatedMaterials.Add(item: material);
 
                     var newMaterial = VRChatsBugsWorkaround.DuplicateObject(avatar: avatar, assetsPath: assetsPath, obj: material) as Material;
                     newMaterial.shader = Shader.Find("VRChat/MToon-1.7");
