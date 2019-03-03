@@ -31,7 +31,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <summary>
         /// 当エディタ拡張のバージョン。
         /// </summary>
-        public static readonly string Version = "4.0.0";
+        public static readonly string Version = "4.0.1";
 
         /// <summary>
         /// Hierarchy上のアバターをVRChatへアップロード可能な状態にします。
