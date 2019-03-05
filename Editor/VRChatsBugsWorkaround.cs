@@ -155,17 +155,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="avatar">複製したアバター。</param>
         /// <param name="assetsPath"></param>
         /// <param name="obj"></param>
-        /// <param name="alreadyDuplicatedPaths">複製済みの複製元パス一覧。</param>
-        /// <returns>すでに複製されていた場合、または複製元のパスと複製後のパスが一致する場合、複製後のオブジェクトをそのまま返します。</returns>
-        private static UnityEngine.Object DuplicateObject(GameObject avatar, string assetsPath, UnityEngine.Object obj, IEnumerable<string> alreadyDuplicatedPaths = null)
+        /// <returns>複製元のパスと複製後のパスが一致する場合、複製後のオブジェクトをそのまま返します。</returns>
+        private static UnityEngine.Object DuplicateObject(GameObject avatar, string assetsPath, UnityEngine.Object obj)
         {
             var path = AssetDatabase.GetAssetPath(assetObject: obj);
             var newPath = Path.Combine(Converter.GetAnimationsFolderPath(avatar: avatar, assetsPath: assetsPath), obj.name + ".asset");
-            if (alreadyDuplicatedPaths != null && alreadyDuplicatedPaths.Contains(value: path))
-            {
-                obj = AssetDatabase.LoadAssetAtPath(newPath, obj.GetType());
-            }
-            else if(path != newPath)
+            if (path != newPath)
             {
                 obj = GameObject.Instantiate(original: obj);
                 AssetDatabase.CreateAsset(asset: obj, path: newPath);
@@ -453,7 +448,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </remarks>
         private static void ChangeMaterialsForWorldsNotHavingDirectionalLight(GameObject avatar, string assetsPath)
         {
-            var alreadyDuplicatedPaths = new List<string>();
+            var alreadyDuplicatedMaterials = new Dictionary<Material, Material>();
             foreach (var renderer in avatar.GetComponentsInChildren<Renderer>())
             {
                 renderer.sharedMaterials = renderer.sharedMaterials.Select(material => {
@@ -461,11 +456,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     {
                         return material;
                     }
-
-                    alreadyDuplicatedPaths.Add(item: AssetDatabase.GetAssetPath(material));
-                    material = VRChatsBugsWorkaround.DuplicateObject(avatar: avatar, assetsPath: assetsPath, obj: material, alreadyDuplicatedPaths: alreadyDuplicatedPaths) as Material;
-                    material.shader = Shader.Find("VRChat/MToon-1.7");
-                    return material;
+                    if (alreadyDuplicatedMaterials.ContainsKey(key: material))
+                    {
+                        return alreadyDuplicatedMaterials[material];
+                    }
+                    var newMaterial = VRChatsBugsWorkaround.DuplicateObject(avatar: avatar, assetsPath: assetsPath, obj: material) as Material;
+                    newMaterial.shader = Shader.Find("VRChat/MToon-1.7");
+                    alreadyDuplicatedMaterials[material] = newMaterial;
+                    return newMaterial;
                 }).ToArray();
             }
         }
