@@ -160,7 +160,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             var indentStyle = new GUIStyle() { padding = new RectOffset() { left = Wizard.Indent } };
             EditorGUILayout.LabelField(
                 label: (this.swayingParametersConverter != null ? "☑" : "☐")
-                    + " public static void SwayingParametersConverter(DynamicBoneParameters, SpringBoneParameters, BoneInfo)",
+                    + " public static DynamicBoneParameters SwayingParametersConverter(SpringBoneParameters, BoneInfo)",
                 style: indentStyle
             );
             
