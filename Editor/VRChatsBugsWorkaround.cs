@@ -466,6 +466,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     AssetDatabase.CopyAsset(path, newPath);
                     var newMaterial = AssetDatabase.LoadAssetAtPath<Material>(assetPath: newPath);
                     newMaterial.shader = Shader.Find("VRChat/MToon-1.7");
+                    newMaterial.renderQueue = material.renderQueue;
                     alreadyDuplicatedMaterials[material] = newMaterial;
                     return newMaterial;
                 }).ToArray();
