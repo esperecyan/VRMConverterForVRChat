@@ -460,7 +460,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     {
                         return alreadyDuplicatedMaterials[material];
                     }
-                    var newMaterial = VRChatsBugsWorkaround.DuplicateObject(avatar: avatar, assetsPath: assetsPath, obj: material) as Material;
+
+                    string path = AssetDatabase.GetAssetPath(assetObject: material);
+                    string newPath = Path.Combine(Converter.GetAnimationsFolderPath(avatar: avatar, assetsPath: assetsPath), Path.GetFileName(path: path));
+                    AssetDatabase.CopyAsset(path, newPath);
+                    var newMaterial = AssetDatabase.LoadAssetAtPath<Material>(assetPath: newPath);
                     newMaterial.shader = Shader.Find("VRChat/MToon-1.7");
                     alreadyDuplicatedMaterials[material] = newMaterial;
                     return newMaterial;
