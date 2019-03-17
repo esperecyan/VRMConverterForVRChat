@@ -1,5 +1,8 @@
-﻿using System;
+using System;
+using System.Reflection;
+using System.Linq;
 using System.Collections.Generic;
+using System.Xml;
 using UnityEngine;
 using UnityEditor;
 using UniGLTF;
@@ -13,7 +16,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
     /// </summary>
     public class Wizard : ScriptableWizard
     {
-        private static readonly string EditorUserSettingsPrefix = typeof(Wizard).Namespace + ".";
+        private static readonly string EditorUserSettingsName = typeof(Wizard).Namespace;
+        private static readonly string EditorUserSettingsXmlNamespace = "https://pokemori.booth.pm/items/1025226";
 
         /// <summary>
         /// 変換後の処理を行うコールバック関数。
@@ -48,19 +52,19 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。
         /// </summary>
         [SerializeField, Localizable]
-        private bool enableEyeMovement;
+        private bool enableEyeMovement = true;
 
         /// <summary>
         /// VRoid Studioから出力されたモデルがなで肩になる問題について、ボーンのPositionを変更するなら<c>true</c>。
         /// </summary>
         [SerializeField, Localizable]
-        private bool fixVroidSlopingShoulders;
+        private bool fixVroidSlopingShoulders = true;
 
         /// <summary>
         /// Directional Lightがないワールド向けにマテリアルを変更するなら <c>true</c>。
         /// </summary>
         [SerializeField, Localizable]
-        private bool useOldMtoon;
+        private bool useOldMtoon = true;
 
         /// <summary>
         /// 各種コールバック関数のユーザー設定値。
@@ -88,47 +92,145 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             wizard.minSize = Wizard.MinSize;
 
             wizard.avatar = avatar.GetComponent<Animator>();
+
+            wizard.LoadSettings();
         }
 
-        private void Awake()
+        /// <summary>
+        /// <see cref="Wizard"/>の保存するフィールド一覧を取得します。
+        /// </summary>
+        /// <returns></returns>
+        private IEnumerable<FieldInfo> GetSavedFieldInfos()
         {
-            string defaultAnimationSet = EditorUserSettings.GetConfigValue(name: Wizard.EditorUserSettingsPrefix + "defaultAnimationSet");
-            if (!string.IsNullOrEmpty(defaultAnimationSet))
+            return this.GetType().GetFields(bindingAttr: BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.NonPublic)
+                .Where(info => info.Name != "avatar" && info.GetCustomAttributes(attributeType: typeof(SerializeField), inherit: false).Length > 0);
+        }
+
+        /// <summary>
+        /// アバターごとの変換設定を記録したXML文書を返します。
+        /// </summary>
+        /// <returns>まだ何も保存されていない場合、またはXMLパースエラーが発生した場合は、ルート要素のみ存在する文書を返します。</returns>
+        private XmlDocument GetSettingsList()
+        {
+            var defaultDocument = new XmlDocument();
+            defaultDocument.AppendChild(defaultDocument.CreateElement(qualifiedName: "list", namespaceURI: Wizard.EditorUserSettingsXmlNamespace));
+
+            string configValue = EditorUserSettings.GetConfigValue(Wizard.EditorUserSettingsName);
+            if (string.IsNullOrEmpty(configValue))
             {
-                this.defaultAnimationSet = (VRC_AvatarDescriptor.AnimationSet)Enum.Parse(enumType: typeof(VRC_AvatarDescriptor.AnimationSet), value: defaultAnimationSet);
+                return defaultDocument;
             }
-            this.enableEyeMovement = string.IsNullOrEmpty(EditorUserSettings.GetConfigValue(name: Wizard.EditorUserSettingsPrefix + "disableEyeMovement"));
-            this.fixVroidSlopingShoulders = string.IsNullOrEmpty(EditorUserSettings.GetConfigValue(name: Wizard.EditorUserSettingsPrefix + "notFixVRoidSlopingShoulders"));
-            this.useOldMtoon = string.IsNullOrEmpty(EditorUserSettings.GetConfigValue(name: Wizard.EditorUserSettingsPrefix + "changeMaterialsForWorldsNotHavingDirectionalLight"));
-            string callbackFunctions = EditorUserSettings.GetConfigValue(name: Wizard.EditorUserSettingsPrefix + "callbackFunctions");
-            if (!string.IsNullOrEmpty(callbackFunctions))
+
+            var document = new XmlDocument();
+            try
             {
-                this.callbackFunctions = AssetDatabase.LoadAssetAtPath<MonoScript>(assetPath: callbackFunctions);
+                document.LoadXml(xml: configValue);
+            }
+            catch (XmlException)
+            {
+                return defaultDocument;
+            }
+
+            return document;
+        }
+
+        /// <summary>
+        /// XML文書から指定したタイトルのアバターの変換設定を取得します。
+        /// </summary>
+        /// <param name="document"></param>
+        /// <param name="title"></param>
+        /// <returns>存在しない場合、ルート要素へ属性が設定されていないsettings要素を追加し、それを返します。</returns>
+        private XmlElement GetSettings(XmlDocument document, string title)
+        {
+            XmlElement settings = document.GetElementsByTagName(localName: "settings", namespaceURI: Wizard.EditorUserSettingsXmlNamespace)
+                .Cast<XmlElement>().FirstOrDefault(predicate: element => element.GetAttribute(name: "title") == title);
+            if (settings != null) {
+                return settings;
+            }
+
+            settings = document.CreateElement(qualifiedName: "settings", namespaceURI: Wizard.EditorUserSettingsXmlNamespace);
+            document.DocumentElement.AppendChild(settings);
+            return settings;
+        }
+        
+        /// <summary>
+        /// 選択されているアバターの変換設定を反映します。
+        /// </summary>
+        private void LoadSettings()
+        {
+            string title = this.avatar.GetComponent<VRMMeta>().Meta.Title;
+            if (string.IsNullOrEmpty(title))
+            {
+                return;
+            }
+
+            XmlElement settings = this.GetSettings(document: this.GetSettingsList(), title: title);
+            if (string.IsNullOrEmpty(settings.GetAttribute("title")))
+            {
+                return;
+            }
+
+            foreach (FieldInfo info in this.GetSavedFieldInfos())
+            {
+                string value = settings.GetAttribute(info.Name);
+                if (string.IsNullOrEmpty(value))
+                {
+                    continue;
+                }
+
+                Type type = info.FieldType;
+                object fieldValue = null;
+                if (typeof(Enum).IsAssignableFrom(type))
+                {
+                    fieldValue = Enum.Parse(enumType: type, value: value);
+                }
+                else if (type == typeof(bool))
+                {
+                    fieldValue = bool.Parse(value);
+                }
+                else if (typeof(UnityEngine.Object).IsAssignableFrom(type))
+                {
+                    fieldValue = AssetDatabase.LoadAssetAtPath(value, type);
+                }
+                info.SetValue(obj: this, value: fieldValue);
             }
         }
 
-        private void OnWizardUpdate()
+        /// <summary>
+        /// 選択されているアバターの変換設定を保存します。
+        /// </summary>
+        private void SaveSettings()
         {
-            EditorUserSettings.SetConfigValue(
-                name: Wizard.EditorUserSettingsPrefix + "defaultAnimationSet",
-                value: this.defaultAnimationSet.ToString()
-            );
-            EditorUserSettings.SetConfigValue(
-                name: Wizard.EditorUserSettingsPrefix + "disableEyeMovement",
-                value: this.enableEyeMovement ? "" : "on"
-            );
-            EditorUserSettings.SetConfigValue(
-                name: Wizard.EditorUserSettingsPrefix + "notFixVRoidSlopingShoulders",
-                value: this.fixVroidSlopingShoulders ? "" : "on"
-            );
-            EditorUserSettings.SetConfigValue(
-                name: Wizard.EditorUserSettingsPrefix + "changeMaterialsForWorldsNotHavingDirectionalLight",
-                value: this.useOldMtoon ? "" : "on"
-            );
-            EditorUserSettings.SetConfigValue(
-                name: Wizard.EditorUserSettingsPrefix + "callbackFunctions",
-                value: AssetDatabase.GetAssetPath(assetObject: this.callbackFunctions)
-            );
+            string title = this.avatar.GetComponent<VRMMeta>().Meta.Title;
+            if (string.IsNullOrEmpty(title))
+            {
+                return;
+            }
+
+            XmlDocument document = this.GetSettingsList();
+            XmlElement settings = this.GetSettings(document: document, title: title);
+            settings.SetAttribute("title", title);
+            
+            foreach (FieldInfo info in this.GetSavedFieldInfos())
+            {
+                Type type = info.FieldType;
+                string value = "";
+                if (typeof(Enum).IsAssignableFrom(type) || type == typeof(bool))
+                {
+                    value = info.GetValue(obj: this).ToString();
+                }
+                else if (typeof(UnityEngine.Object).IsAssignableFrom(type))
+                {
+                    value = AssetDatabase.GetAssetPath(this.callbackFunctions);
+                }
+
+                settings.SetAttribute(info.Name, value);
+            }
+
+            var writer = new Writer();
+            document.Save(writer: writer);
+            EditorUserSettings.SetConfigValue(Wizard.EditorUserSettingsName, writer.ToString());
+            writer.Close();
         }
 
         protected override bool DrawWizardGUI()
@@ -195,6 +297,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         private void OnWizardCreate()
         {
             var avatar = Instantiate(this.avatar.gameObject) as GameObject;
+
+            this.SaveSettings();
 
             IEnumerable<Converter.Message> messages = Converter.Convert(
                 avatar: avatar,
