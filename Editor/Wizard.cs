@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Linq;
 using System.Collections.Generic;
 using System.Xml;
+using System.IO;
 using UnityEngine;
 using UnityEditor;
 using UniGLTF;
@@ -83,6 +84,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         private Wizard.PostConverting postConverting;
 
         /// <summary>
+        /// 「Assets/」で始まり「.prefab」で終わる保存先のパス。
+        /// </summary>
+        private string destinationPath;
+
+        /// <summary>
         /// 変換ダイアログを開きます。
         /// </summary>
         /// <param name="avatar"></param>
@@ -103,7 +109,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         private IEnumerable<FieldInfo> GetSavedFieldInfos()
         {
             return this.GetType().GetFields(bindingAttr: BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.NonPublic)
-                .Where(info => info.Name != "avatar" && info.GetCustomAttributes(attributeType: typeof(SerializeField), inherit: false).Length > 0);
+                .Where(info => info.Name == "destinationPath"
+                    || info.Name != "avatar" && info.GetCustomAttributes(attributeType: typeof(SerializeField), inherit: false).Length > 0);
         }
 
         /// <summary>
@@ -188,6 +195,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 {
                     fieldValue = bool.Parse(value);
                 }
+                else if (type == typeof(string))
+                {
+                    fieldValue = value;
+                }
                 else if (typeof(UnityEngine.Object).IsAssignableFrom(type))
                 {
                     fieldValue = AssetDatabase.LoadAssetAtPath(value, type);
@@ -215,7 +226,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             {
                 Type type = info.FieldType;
                 string value = "";
-                if (typeof(Enum).IsAssignableFrom(type) || type == typeof(bool))
+                if (typeof(Enum).IsAssignableFrom(type) || type == typeof(bool) || type == typeof(string))
                 {
                     value = info.GetValue(obj: this).ToString();
                 }
@@ -296,23 +307,56 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
         private void OnWizardCreate()
         {
-            var avatar = Instantiate(this.avatar.gameObject) as GameObject;
+            if (string.IsNullOrEmpty(this.destinationPath))
+            {
+                string sourcePath = this.GetAssetsPath(vrm: this.avatar.gameObject);
+                this.destinationPath = UnityPath.FromUnityPath(sourcePath).Parent
+                    .Child(Path.GetFileNameWithoutExtension(sourcePath) + " (VRChat).prefab").Value;
+            }
+            else
+            {
+                UnityPath destinationFolderUnityPath = UnityPath.FromUnityPath(this.destinationPath).Parent;
+                while (!destinationFolderUnityPath.IsDirectoryExists)
+                {
+                    destinationFolderUnityPath = destinationFolderUnityPath.Parent;
+                }
+                this.destinationPath = destinationFolderUnityPath.Child(Path.GetFileName(this.destinationPath)).Value;
+            }
+
+            string destinationPath = EditorUtility.SaveFilePanelInProject(
+                "",
+                Path.GetFileName(path: this.destinationPath),
+                "prefab",
+                "",
+                Path.GetDirectoryName(path: this.destinationPath)
+            );
+            if (string.IsNullOrEmpty(destinationPath)){
+                Wizard.Open(avatar: this.avatar.gameObject);
+                return;
+            }
+            this.destinationPath = destinationPath;
+
+            Duplicator.Duplicate(sourceAvatar: this.avatar.gameObject, destinationPath: this.destinationPath);
 
             this.SaveSettings();
 
+            var prefab = AssetDatabase.LoadMainAssetAtPath(this.destinationPath) as GameObject;
+            var prefabInstance = PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(this.destinationPath)) as GameObject;
+
             IEnumerable<Converter.Message> messages = Converter.Convert(
-                avatar: avatar,
+                prefabInstance: prefabInstance,
                 defaultAnimationSet: this.defaultAnimationSet,
                 swayingParametersConverter: this.swayingParametersConverter,
-                assetsPath: GetAssetsPath(vrm: this.avatar.gameObject),
                 enableAutoEyeMovement: this.enableEyeMovement,
                 fixVRoidSlopingShoulders: this.fixVroidSlopingShoulders,
                 changeMaterialsForWorldsNotHavingDirectionalLight: this.useOldMtoon
             );
 
             if (this.postConverting != null) {
-                this.postConverting(avatar, this.avatar.gameObject.GetComponent<VRMMeta>());
+                this.postConverting(prefabInstance, prefabInstance.GetComponent<VRMMeta>());
             }
+
+            PrefabUtility.ReplacePrefab(prefabInstance, prefab, ReplacePrefabOptions.ConnectToPrefab);
 
             ResultDialog.Open(messages: messages);
         }

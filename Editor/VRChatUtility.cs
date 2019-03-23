@@ -62,35 +62,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         };
 
         /// <summary>
-        /// VRChat SDKに含まれるカスタムアニメーション設定用のテンプレートファイルを複製します。
+        /// VRChat SDKに含まれるカスタムアニメーション設定用のテンプレートファイルのパス。
         /// </summary>
-        /// <param name="path">複製したファイルの保存先。</param>
-        /// <returns></returns>
-        internal static AnimatorOverrideController CreateCustomStandingAnims(string path)
-        {
-            AssetDatabase.CopyAsset(
-                path: "Assets/VRCSDK/Examples/Sample Assets/Animation/CustomOverrideEmpty.overrideController",
-                newPath: path
-            );
-
-            return AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>(assetPath: path);
-        }
-
-        /// <summary>
-        /// カスタムアニメーション用のアニメーションクリップのテンプレートを複製します。
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="path">複製したファイルの保存先。</param>
-        /// <returns></returns>
-        internal static AnimationClip CreateAnim(Anim name, string path)
-        {
-            AssetDatabase.CopyAsset(
-                path: Path.Combine(Path.Combine(Converter.RootFolderPath, "Editor"), name + ".anim"),
-                newPath: path
-            );
-
-            return AssetDatabase.LoadAssetAtPath<AnimationClip>(assetPath: path);
-        }
+        internal static readonly string CustomStandingAnimsPath = "Assets/VRCSDK/Examples/Sample Assets/Animation/CustomOverrideEmpty.overrideController";
 
         /// <summary>
         /// <see cref="VRC_SdkControlPanel.AnalyzeGeometry"/>を実行します。

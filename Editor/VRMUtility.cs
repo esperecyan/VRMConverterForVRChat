@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 using VRM;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
@@ -13,9 +14,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </summary>
         /// <param name="avatar"></param>
         /// <param name="preset"></param>
-        /// <param name="leadingPath"></param>
         /// <returns></returns>
-        internal static SkinnedMeshRenderer GetFirstSkinnedMeshRenderer(GameObject avatar, BlendShapePreset preset, string leadingPath = "")
+        internal static SkinnedMeshRenderer GetFirstSkinnedMeshRenderer(GameObject avatar, BlendShapePreset preset)
         {
             var clip = GetBlendShapeClip(avatar: avatar, preset: preset);
             if (!clip)
@@ -30,8 +30,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
 
             var binding = bindings[0];
-            Transform face = avatar.transform.Find(name: binding.RelativePath)
-                ?? (leadingPath != "" ? avatar.transform.Find(name: leadingPath + binding.RelativePath) : null);
+            Transform face = avatar.transform.Find(name: binding.RelativePath);
             if (!face)
             {
                 return null;
@@ -45,11 +44,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </summary>
         /// <param name="avatar"></param>
         /// <param name="preset"></param>
-        /// <param name="leadingPath"></param>
         /// <returns>対応するブレンドシェイプ名が見つからなければ空文字列を返します。</returns>
-        internal static string GetFirstBlendShapeBindingName(GameObject avatar, BlendShapePreset preset, string leadingPath = "")
+        internal static string GetFirstBlendShapeBindingName(GameObject avatar, BlendShapePreset preset)
         {
-            var renderer = GetFirstSkinnedMeshRenderer(avatar: avatar, preset: preset, leadingPath: leadingPath);
+            var renderer = GetFirstSkinnedMeshRenderer(avatar: avatar, preset: preset);
             if (!renderer)
             {
                 return "";
@@ -96,6 +94,41 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
 
             return blendShapeAvatar.GetClip(preset: preset);
+        }
+
+        /// <summary>
+        /// 指定したパスが含まれる<see cref="BlendShapeClip">のパスを置換します。
+        /// </summary>
+        /// <param name="avatar"></param>
+        /// <param name="oldPath"></param>
+        /// <param name="newPath"></param>
+        internal static void ReplaceBlendShapeRelativePaths(GameObject avatar, string oldPath, string newPath)
+        {
+            var blendShapeProxy = avatar.GetComponent<VRMBlendShapeProxy>();
+            if (!blendShapeProxy)
+            {
+                return;
+            }
+
+            if (!blendShapeProxy.BlendShapeAvatar || blendShapeProxy.BlendShapeAvatar.Clips == null)
+            {
+                return;
+            }
+
+            foreach (BlendShapeClip clip in blendShapeProxy.BlendShapeAvatar.Clips) {
+                if (!clip || clip.Values == null) {
+                    continue;
+                }
+
+                clip.Values = clip.Values.Select(binding => {
+                    string relativePath = binding.RelativePath;
+                    if (relativePath == oldPath || relativePath.StartsWith(oldPath + "/"))
+                    {
+                        binding.RelativePath = newPath + relativePath.Substring(startIndex: oldPath.Length);
+                    }
+                    return binding;
+                }).ToArray();
+            }
         }
     }
 }

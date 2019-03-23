@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
@@ -44,34 +43,32 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// クラスに含まれる処理を適用します。
         /// </summary>
         /// <param name="avatar"></param>
-        /// <param name="assetsPath"></param>
         /// <param name="enableAutoEyeMovement">オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。</param>
         /// <param name="fixVRoidSlopingShoulders">VRoid Studioから出力されたモデルがなで肩になる問題について、ボーンのPositionを変更するなら<c>true</c>。</param>
         /// <param name="changeMaterialsForWorldsNotHavingDirectionalLight">Directional Lightがないワールド向けにマテリアルを変更するなら <c>true</c>。</param>
         internal static void Apply(
             GameObject avatar,
-            string assetsPath,
             bool enableAutoEyeMovement,
             bool fixVRoidSlopingShoulders,
             bool changeMaterialsForWorldsNotHavingDirectionalLight
         ) {
-            VRChatsBugsWorkaround.AdjustHumanDescription(avatar: avatar, assetsPath: assetsPath);
-            VRChatsBugsWorkaround.EnableAnimationOvrride(avatar: avatar, assetsPath: assetsPath);
+            VRChatsBugsWorkaround.AdjustHumanDescription(avatar: avatar);
+            VRChatsBugsWorkaround.EnableAnimationOvrride(avatar: avatar);
             if (enableAutoEyeMovement)
             {
-                VRChatsBugsWorkaround.EnableAutoEyeMovement(avatar: avatar, assetsPath: assetsPath);
-                VRChatsBugsWorkaround.ApplyAutoEyeMovementDegreeMapping(avatar: avatar, assetsPath: assetsPath);
+                VRChatsBugsWorkaround.EnableAutoEyeMovement(avatar: avatar);
+                VRChatsBugsWorkaround.ApplyAutoEyeMovementDegreeMapping(avatar: avatar);
             }
             else {
-                VRChatsBugsWorkaround.DisableAutoEyeMovement(avatar: avatar, assetsPath: assetsPath);
+                VRChatsBugsWorkaround.DisableAutoEyeMovement(avatar: avatar);
             }
             if (fixVRoidSlopingShoulders)
             {
-                VRChatsBugsWorkaround.FixVRoidSlopingShoulders(avatar: avatar, assetsPath: assetsPath);
+                VRChatsBugsWorkaround.FixVRoidSlopingShoulders(avatar: avatar);
             }
             if (changeMaterialsForWorldsNotHavingDirectionalLight)
             {
-                VRChatsBugsWorkaround.ChangeMaterialsForWorldsNotHavingDirectionalLight(avatar: avatar, assetsPath: assetsPath);
+                VRChatsBugsWorkaround.ChangeMaterialsForWorldsNotHavingDirectionalLight(avatar: avatar);
             }
         }
 
@@ -80,12 +77,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </summary>
         /// <seealso cref="VRC_SdkControlPanel.AnalyzeIK"/>
         /// <param name="avatar"></param>
-        /// <param name="assetsPath"></param>
-        private static void AdjustHumanDescription(GameObject avatar, string assetsPath)
+        private static void AdjustHumanDescription(GameObject avatar)
         {
-            var humanoidDescription = avatar.GetComponent<VRMHumanoidDescription>();
-            bool isCreated;
-            AvatarDescription avatarDescription = humanoidDescription.GetDescription(isCreated: out isCreated);
+            AvatarDescription avatarDescription = avatar.GetComponent<VRMHumanoidDescription>().Description;
 
             List<BoneLimit> boneLimits = avatarDescription.human.ToList();
             var upperChest = boneLimits.FirstOrDefault(predicate: boneLimit => boneLimit.humanBone == HumanBodyBones.UpperChest);
@@ -93,15 +87,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 return;
             }
 
-            avatarDescription = VRChatsBugsWorkaround.DuplicateObject(avatar: avatar, assetsPath: assetsPath, obj: avatarDescription) as AvatarDescription;
-
             boneLimits.Remove(boneLimits.First(predicate: boneLimit => boneLimit.humanBone == HumanBodyBones.Chest));
 
             upperChest.humanBone = HumanBodyBones.Chest;
             boneLimits[boneLimits.FindIndex(boneLimit => boneLimit.humanBone == HumanBodyBones.UpperChest)] = upperChest;
 
             avatarDescription.human = boneLimits.ToArray();
-            ApplyAvatarDescription(avatar: avatar, assetsPath: assetsPath, avatarDescription: avatarDescription);
+            ApplyAvatarDescription(avatar: avatar);
         }
 
         /// <summary>
@@ -113,12 +105,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <https://twitter.com/shajiku_works/status/977811702921150464>
         /// </remarks>
         /// <param name="avatar"></param>
-        /// <param name="assetsPath"></param>
-        private static void EnableAnimationOvrride(GameObject avatar, string assetsPath)
+        private static void EnableAnimationOvrride(GameObject avatar)
         {
-            var humanoidDescription = avatar.GetComponent<VRMHumanoidDescription>();
-            bool isCreated;
-            AvatarDescription avatarDescription = humanoidDescription.GetDescription(isCreated: out isCreated);
+            AvatarDescription avatarDescription = avatar.GetComponent<VRMHumanoidDescription>().Description;
 
             IEnumerable<HumanBodyBones> existedHumanBodyBones = avatarDescription.human.Select(boneLimit => boneLimit.humanBone);
 
@@ -141,60 +130,31 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             if (addedBoneLimits.Count() == 0) {
                 return;
             }
-
-            BoneLimit[] boneLimits = avatarDescription.human.Concat(addedBoneLimits).ToArray();
-
-            avatarDescription = VRChatsBugsWorkaround.DuplicateObject(avatar: avatar, assetsPath: assetsPath, obj: avatarDescription) as AvatarDescription;
-            avatarDescription.human = boneLimits;
-            ApplyAvatarDescription(avatar: avatar, assetsPath: assetsPath, avatarDescription: avatarDescription);
-        }
-
-        /// <summary>
-        /// 変換前のアバターに関連するオブジェクトを複製して返します。
-        /// </summary>
-        /// <param name="avatar">複製したアバター。</param>
-        /// <param name="assetsPath"></param>
-        /// <param name="obj"></param>
-        /// <returns>複製元のパスと複製後のパスが一致する場合、複製後のオブジェクトをそのまま返します。</returns>
-        private static UnityEngine.Object DuplicateObject(GameObject avatar, string assetsPath, UnityEngine.Object obj)
-        {
-            var path = AssetDatabase.GetAssetPath(assetObject: obj);
-            var newPath = Path.Combine(Converter.GetAnimationsFolderPath(avatar: avatar, assetsPath: assetsPath), obj.name + ".asset");
-            if (path != newPath)
-            {
-                obj = GameObject.Instantiate(original: obj);
-                AssetDatabase.CreateAsset(asset: obj, path: newPath);
-            }
-            EditorUtility.SetDirty(target: obj);
-            return obj;
+            
+            avatarDescription.human = avatarDescription.human.Concat(addedBoneLimits).ToArray();
+            ApplyAvatarDescription(avatar: avatar);
         }
 
         /// <summary>
         /// <see cref="Avatar"/>を作成して保存し、アバターに設定します。
         /// </summary>
         /// <param name="avatar"></param>
-        /// <param name="assetsPath"></param>
-        /// <param name="avatarDescription"></param>
         /// <param name="humanDescriptionModifier"><see cref="AvatarDescription.ToHumanDescription"/>によって生成された<see cref="HumanDescription"/>を変更するコールバック関数。
         ///     再度メソッドを呼び出すと変更は失われます。</param>
         private static void ApplyAvatarDescription(
             GameObject avatar,
-            string assetsPath,
-            AvatarDescription avatarDescription,
             Action<HumanDescription> humanDescriptionModifier = null
         ) {
             var humanoidDescription = avatar.GetComponent<VRMHumanoidDescription>();
+            AvatarDescription avatarDescription = humanoidDescription.Description;
             HumanDescription humanDescription = avatarDescription.ToHumanDescription(root: avatar.transform);
             if (humanDescriptionModifier != null) {
                 humanDescriptionModifier(humanDescription);
             }
             Avatar humanoidRig = AvatarBuilder.BuildHumanAvatar(go: avatar, humanDescription: humanDescription);
-            AssetDatabase.CreateAsset(
-                asset: humanoidRig,
-                path: Path.Combine(Converter.GetAnimationsFolderPath(avatar: avatar, assetsPath: assetsPath), humanoidDescription.Avatar.name + ".asset")
-            );
+            humanoidRig.name = humanoidDescription.Avatar.name;
+            EditorUtility.CopySerialized(humanoidRig, humanoidDescription.Avatar);
             humanoidDescription.Avatar = humanoidRig;
-            humanoidDescription.Description = avatarDescription;
             avatar.GetComponent<Animator>().avatar = humanoidRig;
             EditorUtility.SetDirty(target: humanoidRig);
         }
@@ -208,8 +168,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <https://twitter.com/esperecyan/status/1045713562348347392>
         /// </remarks>
         /// <param name="avatar"></param>
-        /// <param name="assetsPath"></param>
-        private static void EnableAutoEyeMovement(GameObject avatar, string assetsPath)
+        private static void EnableAutoEyeMovement(GameObject avatar)
         {
             // ダミーの階層構造の作成
             foreach (var path in VRChatUtility.RequiredPathForAutoEyeMovement.Concat(new string[] { VRChatUtility.AutoBlinkMeshPath })) {
@@ -231,12 +190,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 return;
             }
 
-            var originalPath = mesh ? AssetDatabase.GetAssetPath(assetObject: mesh) : "dummy-for-auto-eye-movement.asset";
-            var newPath = Path.Combine(Converter.GetAnimationsFolderPath(avatar: avatar, assetsPath: assetsPath), Path.GetFileName(path: originalPath));
-            if (originalPath != newPath) {
-                mesh = mesh ? GameObject.Instantiate<Mesh>(original: mesh) : VRChatsBugsWorkaround.CreateDummyMesh();
-                AssetDatabase.CreateAsset(asset: mesh, path: newPath);
-                renderer.sharedMesh = mesh;
+            if (!mesh)
+            {
+                mesh = renderer.sharedMesh = VRChatsBugsWorkaround.CreateDummyMesh();
             }
             
             foreach (var name in VRChatsBugsWorkaround.OrderedBlinkGeneratedByCatsBlenderPlugin.Skip(count: mesh.blendShapeCount)) {
@@ -250,7 +206,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// オートアイムーブメントが有効化される条件が揃っていれば、破壊します。
         /// </summary>
         /// <param name="avatar"></param>
-        private static void DisableAutoEyeMovement(GameObject avatar, string assetsPath)
+        private static void DisableAutoEyeMovement(GameObject avatar)
         {
             var paths = VRChatUtility.RequiredPathForAutoEyeMovement.Concat(new string[] { VRChatUtility.AutoBlinkMeshPath });
             var transforms = paths.Concat(new string[] { VRChatUtility.AutoBlinkMeshPath }).Select(path => avatar.transform.Find(name: path));
@@ -273,14 +229,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             {
                 return;
             }
-
-            var humanoidDescription = avatar.GetComponent<VRMHumanoidDescription>();
-            bool isCreated;
-            AvatarDescription avatarDescription = VRChatsBugsWorkaround.DuplicateObject(
-                avatar: avatar,
-                assetsPath: assetsPath,
-                obj: humanoidDescription.GetDescription(isCreated: out isCreated)
-            ) as AvatarDescription;
+            
+            AvatarDescription avatarDescription = avatar.GetComponent<VRMHumanoidDescription>().Description;
 
             var boneLimits = avatarDescription.human.ToList();
             foreach (Transform bone in eyeBones)
@@ -293,7 +243,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
 
             avatarDescription.human = boneLimits.ToArray();
-            ApplyAvatarDescription(avatar: avatar, assetsPath: assetsPath, avatarDescription: avatarDescription);
+            ApplyAvatarDescription(avatar: avatar);
         }
 
         /// <summary>
@@ -307,7 +257,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// 海行プログラムさんのツイート: “自前でスキンメッシュをどうこうするにあたって役に立ったUnityマニュアルのコード。bindposeってのを各ボーンに設定しないといけないんだけど、ボーンのtransform.worldToLocalMatrixを入れればＯＫ　　https://t.co/I2qKb6uQ8a”
         /// <https://twitter.com/kaigyoPG/status/807648864081616896>
         /// </remarks>
-        private static void ApplyAutoEyeMovementDegreeMapping(GameObject avatar, string assetsPath)
+        private static void ApplyAutoEyeMovementDegreeMapping(GameObject avatar)
         {
             var lookAtBoneApplyer = avatar.GetComponent<VRMLookAtBoneApplyer>();
             if (!lookAtBoneApplyer)
@@ -334,7 +284,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     continue;
                 }
 
-                var mesh = VRChatsBugsWorkaround.DuplicateObject(avatar: avatar, assetsPath: assetsPath, obj: renderer.sharedMesh) as Mesh;
+                Mesh mesh = renderer.sharedMesh;
 
                 int headBoneIndex = bones.IndexOf(target: headBone);
                 if (headBoneIndex < 0)
@@ -377,8 +327,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
                                 return boneWeight;
                 }).ToArray();
-
-                renderer.sharedMesh = mesh;
             }
         }
 
@@ -389,6 +337,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         private static Mesh CreateDummyMesh()
         {
             var mesh = new Mesh();
+            mesh.name = "dummy-for-auto-eye-movement";
             mesh.vertices = new[] { new Vector3(0, 0, 0) };
             return mesh;
         }
@@ -413,17 +362,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// VRoid Studioから出力されたモデルがなで肩になる問題について、ボーンのPositionを変更します。
         /// </summary>
         /// <param name="avatar"></param>
-        /// <param name="assetsPath"></param>
-        private static void FixVRoidSlopingShoulders(GameObject avatar, string assetsPath)
+        private static void FixVRoidSlopingShoulders(GameObject avatar)
         {
-            bool isCreated;
-            AvatarDescription avatarDescription = avatar.GetComponent<VRMHumanoidDescription>().GetDescription(isCreated: out isCreated);
-
-            IDictionary<HumanBodyBones, string> bonesAndNames = avatarDescription.human
+            IDictionary<HumanBodyBones, string> bonesAndNames = avatar.GetComponent<VRMHumanoidDescription>().Description.human
                 .ToDictionary(keySelector: boneLimit => boneLimit.humanBone, elementSelector: humanBone => humanBone.boneName);
             if (VRoidUtility.RequiredModifiedBonesAndNamesForVRChat.All(boneAndName => bonesAndNames.Contains(item: boneAndName)))
             {
-                ApplyAvatarDescription(avatar: avatar, assetsPath: assetsPath, avatarDescription: avatarDescription, humanDescriptionModifier: humanDescription => {
+                ApplyAvatarDescription(avatar: avatar, humanDescriptionModifier: humanDescription => {
                     List<SkeletonBone> skeltonBones = humanDescription.skeleton.ToList();
                     foreach (string name in VRoidUtility.RequiredModifiedBonesAndNamesForVRChat.Values)
                     {
@@ -438,7 +383,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// Directional Lightがないワールド向けに、マテリアルにMToonが設定されている場合、MToon-1.7へ変更します。
         /// </summary>
         /// <param name="avatar"></param>
-        /// <param name="assetsPath"></param>
         /// <remarks>
         /// 参照:
         /// まじかる☆しげぽん@VRoidさんのツイート: “UniVRM0.49に含まれるMToonは、これまでDirectionalLightで暗くなってもキャラが暗くならなかったのが修正されたので、VRChatのようなDirectionalLightが無い環境だと逆にこういう風になってしまうっぽいです。#VRoid https://t.co/3OQ2uLvfOx”
@@ -446,30 +390,20 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// さんたーPさんのツイート: “僕としては VRChat に持っていくなら MToon for VRChat みたいな派生 MToon シェーダを作るのが最善かと思います。パラメータは使い回しで、DirectionalLight が～といった VRChat の特殊な状況に対応するための処理を入れた MToon を。… https://t.co/4AHjkaqxaY”
         /// <https://twitter.com/santarh/status/1088340412765356032>
         /// </remarks>
-        private static void ChangeMaterialsForWorldsNotHavingDirectionalLight(GameObject avatar, string assetsPath)
+        private static void ChangeMaterialsForWorldsNotHavingDirectionalLight(GameObject avatar)
         {
-            var alreadyDuplicatedMaterials = new Dictionary<Material, Material>();
             foreach (var renderer in avatar.GetComponentsInChildren<Renderer>())
             {
-                renderer.sharedMaterials = renderer.sharedMaterials.Select(material => {
+                foreach (Material material in renderer.sharedMaterials) {
                     if (!material || material.shader.name != "VRM/MToon")
                     {
-                        return material;
-                    }
-                    if (alreadyDuplicatedMaterials.ContainsKey(key: material))
-                    {
-                        return alreadyDuplicatedMaterials[material];
+                        continue;
                     }
 
-                    string path = AssetDatabase.GetAssetPath(assetObject: material);
-                    string newPath = Path.Combine(Converter.GetAnimationsFolderPath(avatar: avatar, assetsPath: assetsPath), Path.GetFileName(path: path));
-                    AssetDatabase.CopyAsset(path, newPath);
-                    var newMaterial = AssetDatabase.LoadAssetAtPath<Material>(assetPath: newPath);
-                    newMaterial.shader = Shader.Find("VRChat/MToon-1.7");
-                    newMaterial.renderQueue = material.renderQueue;
-                    alreadyDuplicatedMaterials[material] = newMaterial;
-                    return newMaterial;
-                }).ToArray();
+                    int renderQueue = material.renderQueue;
+                    material.shader = Shader.Find("VRChat/MToon-1.7");
+                    material.renderQueue = renderQueue;
+                }
             }
         }
     }
