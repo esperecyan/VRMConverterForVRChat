@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEditor;
 using VRM;
@@ -11,7 +12,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 {
     internal class Exporter
     {
-        private static readonly string[] ExcludedFileNames = new[] { "Exporter.cs", "SwayingObjectsConverter.cs", "Ionic.Zip.dll" };
+        private static readonly Regex ExcludedFilePathPattern
+            = new Regex(pattern: @"/(?:Exporter\.cs|SwayingObjectsConverter\.cs|Ionic\.Zip\.dll|MToon-.+\.shader)$");
 
         private static readonly string PackageName = Converter.Name + "-" + Converter.Version;
 
@@ -21,7 +23,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             string[] allAssetPathNames = AssetDatabase.GetAllAssetPaths();
 
             IEnumerable<string> assetPathNames = allAssetPathNames
-                .Where(path => path.StartsWith(Converter.RootFolderPath + "/") && !Exporter.ExcludedFileNames.Contains(Path.GetFileName(path: path)));
+                .Where(path => path.StartsWith(Converter.RootFolderPath + "/") && !Exporter.ExcludedFilePathPattern.IsMatch(input: path));
             
             IEnumerable<string> packagePaths = new[] { false, true }.Select(withUniVRM => {
                 string name = Exporter.PackageName;

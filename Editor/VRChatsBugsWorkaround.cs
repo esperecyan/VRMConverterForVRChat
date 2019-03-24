@@ -1,11 +1,16 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using VRM;
 using UniHumanoid;
+using UniGLTF;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
 {
@@ -14,6 +19,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
     /// </summary>
     public class VRChatsBugsWorkaround
     {
+        /// <summary>
+        /// VRChatのバグ対策用のシェーダー名に前置する文字列。
+        /// </summary>
+        public static readonly string ShaderNamePrefix = "VRChat/RenderQueueApplied/";
+
         /// <summary>
         /// Cats Blender PluginでVRChat用に生成されるまばたきのシェイプキー名。
         /// </summary>
@@ -46,12 +56,15 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="enableAutoEyeMovement">オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。</param>
         /// <param name="fixVRoidSlopingShoulders">VRoid Studioから出力されたモデルがなで肩になる問題について、ボーンのPositionを変更するなら<c>true</c>。</param>
         /// <param name="changeMaterialsForWorldsNotHavingDirectionalLight">Directional Lightがないワールド向けにマテリアルを変更するなら <c>true</c>。</param>
-        internal static void Apply(
+        /// <returns>変換中に発生したメッセージ。</returns>
+        internal static IEnumerable<Converter.Message> Apply(
             GameObject avatar,
             bool enableAutoEyeMovement,
             bool fixVRoidSlopingShoulders,
             bool changeMaterialsForWorldsNotHavingDirectionalLight
         ) {
+            var messages = new List<Converter.Message>();
+
             VRChatsBugsWorkaround.AdjustHumanDescription(avatar: avatar);
             VRChatsBugsWorkaround.EnableAnimationOvrride(avatar: avatar);
             if (enableAutoEyeMovement)
@@ -70,6 +83,20 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             {
                 VRChatsBugsWorkaround.ChangeMaterialsForWorldsNotHavingDirectionalLight(avatar: avatar);
             }
+            IEnumerable<string> convertingFailedMaterialNames = VRChatsBugsWorkaround.ApplyRenderQueues(avatar: avatar);
+            if (convertingFailedMaterialNames.Count() > 0)
+            {
+                messages.Add(new Converter.Message
+                {
+                    message = string.Join(
+                        separator: "\n• ",
+                        value: new[] { Gettext._("Converting these materials (for VRChat Render Queue bug) was failed.") }.Concat(convertingFailedMaterialNames).ToArray()
+                    ),
+                    type = MessageType.Warning,
+                });
+            }
+
+            return messages;
         }
 
         /// <summary>
@@ -394,7 +421,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         {
             foreach (var renderer in avatar.GetComponentsInChildren<Renderer>())
             {
-                foreach (Material material in renderer.sharedMaterials) {
+                foreach (Material material in renderer.sharedMaterials)
+                {
                     if (!material || material.shader.name != "VRM/MToon")
                     {
                         continue;
@@ -404,6 +432,150 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     material.shader = Shader.Find("VRChat/MToon-1.7");
                     material.renderQueue = renderQueue;
                 }
+            }
+        }
+
+        /// <summary>
+        /// マテリアルのRender Queueが適用されないバグに対処します。
+        /// </summary>
+        /// <param name="avatar"></param>
+        /// <remarks>
+        /// 参照:
+        /// Use with VRChat – Type74
+        /// <http://type74.lsrv.jp/use-with-vrchat/>
+        /// </remarks>
+        /// <retunrs>シェーダーの変換に失敗したマテリアル名を返します。</retunrs>
+        private static IEnumerable<string> ApplyRenderQueues(GameObject avatar)
+        {
+            var convertingFailedMaterialNames = new List<string>();
+
+            var alreadyGeneratedShaders = new Dictionary<string, Shader>();
+
+            var namePattern = new Regex(
+                pattern: @"(?<leading>Shader\s*"")(?<name>[^""]+)(?<following>""\s*{)",
+                options: RegexOptions.IgnoreCase
+            );
+            var tagsPattern = new Regex(
+                pattern: @"SubShader\s*{\s*Tags\s*{(?<tags>(?:\s*""(?<name>[^""]+)""\s*=\s*""(?<value>[^""]+)""\s*)+)}",
+                options: RegexOptions.IgnoreCase
+            );
+            foreach (var renderer in avatar.GetComponentsInChildren<Renderer>())
+            {
+                foreach (Material material in renderer.sharedMaterials)
+                {
+                    if (!material || material.renderQueue == material.shader.renderQueue)
+                    {
+                        continue;
+                    }
+
+                    string queueTag = VRChatsBugsWorkaround.ConvertToQueueTag(renderQueue: material.renderQueue);
+                    string shaderName = material.shader.name;
+                    if (shaderName.StartsWith("VRChat/"))
+                    {
+                        shaderName = shaderName.Replace(oldValue: "VRChat/", newValue: "");
+                    }
+                    shaderName = VRChatsBugsWorkaround.ShaderNamePrefix + shaderName + "-" + queueTag;
+                    if (alreadyGeneratedShaders.ContainsKey(shaderName))
+                    {
+                        Shader shader = alreadyGeneratedShaders[shaderName];
+                        if (shader)
+                        {
+                            material.shader = shader;
+                        }
+                        else if (!convertingFailedMaterialNames.Contains(material.name))
+                        {
+                            convertingFailedMaterialNames.Add(material.name);
+                        }
+                        continue;
+                    }
+
+                    var sourceShaderUnityPath = UnityPath.FromAsset(material.shader);
+                    string sourceShaderFullPath = sourceShaderUnityPath.FullPath;
+                    if (!File.Exists(path: sourceShaderFullPath))
+                    {
+                        alreadyGeneratedShaders[shaderName] = null;
+                        convertingFailedMaterialNames.Add(material.name);
+                        continue;
+                    }
+
+                    string shaderContent = File.ReadAllText(path: sourceShaderFullPath, encoding: Encoding.UTF8);
+                    Match match = tagsPattern.Match(input: shaderContent);
+                    if (!match.Success)
+                    {
+                        alreadyGeneratedShaders[shaderName] = null;
+                        convertingFailedMaterialNames.Add(material.name);
+                        continue;
+                    }
+
+                    int index = Array.FindIndex(
+                        array: match.Groups["name"].Captures.Cast<Capture>().ToArray(),
+                        match: name => name.Value == "Queue"
+                    );
+                    if (index == -1)
+                    {
+                        int tagsContentEndIndex = match.Groups["tags"].Index + match.Groups["tags"].Length;
+                        shaderContent = shaderContent.Substring(startIndex: 0, length: tagsContentEndIndex)
+                            + " \"Queue\" = \"" + queueTag + "\""
+                            + shaderContent.Substring(startIndex: tagsContentEndIndex);
+                    }
+                    else
+                    {
+                        Capture queueTagValue = match.Groups["value"].Captures[index];
+                        shaderContent = shaderContent.Substring(startIndex: 0, length: queueTagValue.Index)
+                            + queueTag
+                            + shaderContent.Substring(startIndex: queueTagValue.Index + queueTagValue.Length);
+                    }
+
+                    string newNameShaderContent = namePattern.Replace(
+                        input: shaderContent,
+                        replacement: "${leading}" + shaderName.Replace(oldValue: "$", newValue: "$$") + "${following}",
+                        count: 1
+                    );
+                    if (newNameShaderContent == shaderContent)
+                    {
+                        alreadyGeneratedShaders[shaderName] = null;
+                        convertingFailedMaterialNames.Add(material.name);
+                        continue;
+                    }
+                    
+                    var destinationUnityPath = sourceShaderUnityPath.Parent
+                        .Child(sourceShaderUnityPath.FileNameWithoutExtension + "-" + queueTag + sourceShaderUnityPath.Extension);
+                    File.WriteAllText(
+                        path: destinationUnityPath.FullPath,
+                        contents: newNameShaderContent,
+                        encoding: new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)
+                    );
+
+                    AssetDatabase.ImportAsset(destinationUnityPath.Value);
+                    material.shader = AssetDatabase.LoadAssetAtPath<Shader>(destinationUnityPath.Value);
+                    alreadyGeneratedShaders[material.shader.name] = material.shader;
+                }
+            }
+
+            return convertingFailedMaterialNames;
+        }
+
+        /// <summary>
+        /// 指定されたRender Queueに対応するSubShaderのQueueタグの値を返します。
+        /// </summary>
+        /// <param name="renderQueue"></param>
+        /// <returns></returns>
+        private static string ConvertToQueueTag(int renderQueue)
+        {
+            RenderQueue definedRenderQueue = new[] { RenderQueue.Transparent, RenderQueue.AlphaTest, RenderQueue.Geometry }
+                .FirstOrDefault(value => (int)value <= renderQueue);
+
+            if (definedRenderQueue == default(RenderQueue))
+            {
+                return renderQueue.ToString();
+            }
+            else if ((int)definedRenderQueue == renderQueue)
+            {
+                return definedRenderQueue.ToString();
+            }
+            else
+            {
+                return definedRenderQueue + "+" + (renderQueue - (int)definedRenderQueue);
             }
         }
     }

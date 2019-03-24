@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
@@ -51,15 +52,16 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             bool fixVRoidSlopingShoulders = true,
             bool changeMaterialsForWorldsNotHavingDirectionalLight = true
         ) {
-            IEnumerable<Converter.Message> messages = GeometryCorrector.Apply(avatar: prefabInstance);
+            var messages = new List<Converter.Message>();
+            messages.AddRange(GeometryCorrector.Apply(avatar: prefabInstance));
             BlendShapeReplacer.Apply(avatar: prefabInstance);
             ComponentsReplacer.Apply(avatar: prefabInstance, defaultAnimationSet: defaultAnimationSet, swayingParametersConverter: swayingParametersConverter);
-            VRChatsBugsWorkaround.Apply(
+            messages.AddRange(VRChatsBugsWorkaround.Apply(
                 avatar: prefabInstance,
                 enableAutoEyeMovement: enableAutoEyeMovement,
                 fixVRoidSlopingShoulders: fixVRoidSlopingShoulders,
                 changeMaterialsForWorldsNotHavingDirectionalLight: changeMaterialsForWorldsNotHavingDirectionalLight
-            );
+            ));
             prefabInstance.GetOrAddComponent<PipelineManager>();
             ComponentsRemover.Apply(avatar: prefabInstance);
             Undo.RegisterCreatedObjectUndo(prefabInstance, "Convert VRM for VRChat");

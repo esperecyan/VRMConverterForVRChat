@@ -29,6 +29,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                         "肩が {0} Unit の位置にあります。{1} Unit 以上でなければアップロードできません。" },
                     { "The avatar is scaled to {0} times to be settled in uploadable shoulders height {1} Unit.",
                         "アバターを{0}倍に拡大し、アップロード可能な肩の高さ {1} Unit を超えるようにしました。" },
+                    { "Converting these materials (for VRChat Render Queue bug) was failed.",
+                        "以下のマテリアルの変換 (VRChatのRender Queueバグ対策) が失敗しました。" },
                     { "Converting is completed.", "変換が完了しました。" },
                     { "OK", "OK" },
                 }}
