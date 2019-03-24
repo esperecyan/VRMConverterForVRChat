@@ -3,17 +3,17 @@ using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
 using UnityEngine;
 using UnityEditor;
 using VRM;
-using Ionic.Zip;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
 {
     internal class Exporter
     {
         private static readonly Regex ExcludedFilePathPattern
-            = new Regex(pattern: @"/(?:Exporter\.cs|SwayingObjectsConverter\.cs|Ionic\.Zip\.dll|MToon-.+\.shader)$");
+            = new Regex(pattern: @"/(?:Exporter\.cs|SwayingObjectsConverter\.cs|MToon-.+\.shader)$");
 
         private static readonly Regex ExcludedFilePathPatternInUniVRM = new Regex(pattern: @"/[^/]+-[^/]+\.shader$");
 
@@ -41,10 +41,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 AssetDatabase.ExportPackage(assetPathNames: assetPathNames.ToArray(), fileName: packagePath);
                 return packagePath;
             });
-            
-            var zipFile = new ZipFile();
-            zipFile.AddFiles(fileNames: packagePaths, directoryPathInArchive: "");
-            zipFile.Save(fileName: Path.Combine(Environment.GetFolderPath(folder: Environment.SpecialFolder.DesktopDirectory), Exporter.PackageName + ".zip"));
+
+            Process.Start(fileName: "PowerShell", arguments: "-Command \"Compress-Archive"
+                + " -Path @(" + string.Join(separator: ",", value: packagePaths.Select(path => "'" + path + "'").ToArray()) + ")"
+                + " -DestinationPath '" + Path.Combine(Environment.GetFolderPath(folder: Environment.SpecialFolder.DesktopDirectory), Exporter.PackageName + ".zip") + "'\"");
 
             foreach (string packagePath in packagePaths) {
                 File.Delete(path: packagePath);
