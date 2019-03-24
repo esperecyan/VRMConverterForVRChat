@@ -15,6 +15,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         private static readonly Regex ExcludedFilePathPattern
             = new Regex(pattern: @"/(?:Exporter\.cs|SwayingObjectsConverter\.cs|Ionic\.Zip\.dll|MToon-.+\.shader)$");
 
+        private static readonly Regex ExcludedFilePathPatternInUniVRM = new Regex(pattern: @"/[^/]+-[^/]+\.shader$");
+
         private static readonly string PackageName = Converter.Name + "-" + Converter.Version;
 
         [MenuItem(itemName: "Assets/Export " + Converter.Name, isValidateFunction: false, priority: 30)]
@@ -30,7 +32,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
                 if (withUniVRM) {
                     name += " + " + VRMVersion.VRM_VERSION;
-                    assetPathNames = assetPathNames.Concat(allAssetPathNames.Where(path => path.StartsWith("Assets/VRM/")));
+                    assetPathNames = assetPathNames.Concat(
+                        allAssetPathNames.Where(path => path.StartsWith("Assets/VRM/") && !Exporter.ExcludedFilePathPatternInUniVRM.IsMatch(input: path))
+                    );
                 }
 
                 var packagePath = Path.Combine(Application.temporaryCachePath, name + ".unitypackage");
