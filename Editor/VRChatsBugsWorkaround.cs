@@ -64,7 +64,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             bool changeMaterialsForWorldsNotHavingDirectionalLight
         ) {
             var messages = new List<Converter.Message>();
-
+            
             VRChatsBugsWorkaround.AdjustHumanDescription(avatar: avatar);
             VRChatsBugsWorkaround.EnableAnimationOvrride(avatar: avatar);
             if (enableAutoEyeMovement)
@@ -181,6 +181,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             Avatar humanoidRig = AvatarBuilder.BuildHumanAvatar(go: avatar, humanDescription: humanDescription);
             humanoidRig.name = humanoidDescription.Avatar.name;
             EditorUtility.CopySerialized(humanoidRig, humanoidDescription.Avatar);
+            PrefabUtility.ReplacePrefab(avatar, PrefabUtility.GetPrefabParent(avatar), ReplacePrefabOptions.ConnectToPrefab);
             EditorUtility.SetDirty(target: humanoidDescription.Avatar);
         }
 
@@ -308,8 +309,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 {
                     continue;
                 }
+                Debug.Log(1);
 
                 Mesh mesh = renderer.sharedMesh;
+                EditorUtility.SetDirty(mesh);
 
                 int headBoneIndex = bones.IndexOf(target: headBone);
                 if (headBoneIndex < 0)
