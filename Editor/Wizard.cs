@@ -225,14 +225,15 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             foreach (FieldInfo info in this.GetSavedFieldInfos())
             {
                 Type type = info.FieldType;
+                object fieldValue = info.GetValue(obj: this);
                 string value = "";
                 if (typeof(Enum).IsAssignableFrom(type) || type == typeof(bool) || type == typeof(string))
                 {
-                    value = info.GetValue(obj: this).ToString();
+                    value = fieldValue.ToString();
                 }
                 else if (typeof(UnityEngine.Object).IsAssignableFrom(type))
                 {
-                    value = AssetDatabase.GetAssetPath(this.callbackFunctions);
+                    value = AssetDatabase.GetAssetPath(fieldValue as UnityEngine.Object);
                 }
 
                 settings.SetAttribute(info.Name, value);
