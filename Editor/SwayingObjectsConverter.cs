@@ -85,10 +85,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             var springBoneParameters = new SpringBoneParameters(stiffnessForce: springBone.m_stiffnessForce, dragForce: springBone.m_dragForce);
             var boneInfo = new BoneInfo(vrmMeta: springBone.gameObject.GetComponentsInParent<VRMMeta>()[0]);
 
-            foreach (var transform in springBone.RootBones)
+            foreach (IGrouping<Transform, Transform> parentAndRootBones in springBone.RootBones.ToLookup(keySelector: rootBone => rootBone.parent))
             {
                 var dynamicBone = springBone.gameObject.AddComponent<DynamicBone>();
-                dynamicBone.m_Root = transform;
+                dynamicBone.m_Root = parentAndRootBones.Key;
+                dynamicBone.m_Exclusions = new List<Transform>();
+                dynamicBone.m_Exclusions.AddRange(parentAndRootBones.Key.Cast<Transform>().Where(child => !parentAndRootBones.Contains(child)));
 
                 DynamicBoneParameters dynamicBoneParameters = (swayingParametersConverter ?? ComponentsReplacer.DefaultSwayingParametersConverter)(
                     springBoneParameters: springBoneParameters,

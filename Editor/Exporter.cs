@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Diagnostics;
 using UnityEngine;
 using UnityEditor;
+using UniGLTF;
 using VRM;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
@@ -22,6 +23,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         [MenuItem(itemName: "Assets/Export " + Converter.Name, isValidateFunction: false, priority: 30)]
         private static void Export()
         {
+            string swayingObjectsConverterPath = UnityPath.FromUnityPath(Converter.RootFolderPath).Child("Editor/SwayingObjectsConverter.cs").Value;
+            AssetDatabase.CopyAsset(swayingObjectsConverterPath, swayingObjectsConverterPath + ".bak");
+
             string[] allAssetPathNames = AssetDatabase.GetAllAssetPaths();
 
             IEnumerable<string> assetPathNames = allAssetPathNames
