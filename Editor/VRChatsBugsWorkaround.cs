@@ -309,7 +309,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 {
                     continue;
                 }
-                Debug.Log(1);
 
                 Mesh mesh = renderer.sharedMesh;
                 EditorUtility.SetDirty(mesh);
