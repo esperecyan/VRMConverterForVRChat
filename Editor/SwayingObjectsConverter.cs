@@ -15,8 +15,29 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             ComponentsReplacer.SwayingParametersConverter swayingParametersConverter
         )
         {
+            RemoveUnusedColliderGroups(avatar: avatar);
             var dynamicBoneColliderGroups = ConvertVRMSpringBoneColliderGroups(avatar);
             ConvertVRMSpringBones(avatar: avatar, dynamicBoneColliderGroups: dynamicBoneColliderGroups, swayingParametersConverter: swayingParametersConverter);
+        }
+
+        /// <summary>
+        /// <see cref="VRMSpringBone.ColliderGroups"/>から参照されていない<see cref="VRMSpringBoneColliderGroup"/>を削除します。
+        /// </summary>
+        /// <param name="avatar"></param>
+        private static void RemoveUnusedColliderGroups(GameObject avatar)
+        {
+            IEnumerable<GameObject> objectsHavingUsedColliderGroup = avatar.GetComponentsInChildren<VRMSpringBone>()
+                .SelectMany(springBone => springBone.ColliderGroups)
+                .Select(colliderGroup => colliderGroup.gameObject)
+                .ToArray();
+
+            foreach (var colliderGroup in avatar.GetComponentsInChildren<VRMSpringBoneColliderGroup>())
+            {
+                if (!objectsHavingUsedColliderGroup.Contains(colliderGroup.gameObject))
+                {
+                    UnityEngine.Object.DestroyImmediate(colliderGroup);
+                }
+            }
         }
 
         /// <summary>

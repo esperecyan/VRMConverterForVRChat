@@ -56,6 +56,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         private bool enableEyeMovement = true;
 
         /// <summary>
+        /// 除外する揺れ物の<see cref="VRMSpringBone.m_comment" />。
+        /// </summary>
+        [SerializeField, Localizable]
+        private List<string> excludedSpringBoneComments = new List<string>();
+
+        /// <summary>
         /// VRoid Studioから出力されたモデルがなで肩になる問題について、ボーンのPositionを変更するなら<c>true</c>。
         /// </summary>
         [SerializeField, Localizable]
@@ -179,29 +185,43 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             foreach (FieldInfo info in this.GetSavedFieldInfos())
             {
-                string value = settings.GetAttribute(info.Name);
-                if (string.IsNullOrEmpty(value))
-                {
-                    continue;
-                }
-
                 Type type = info.FieldType;
+
                 object fieldValue = null;
-                if (typeof(Enum).IsAssignableFrom(type))
+                if (type == typeof(List<string>))
                 {
-                    fieldValue = Enum.Parse(enumType: type, value: value);
+                    XmlElement list = settings.GetElementsByTagName(localName: info.Name, namespaceURI: Wizard.EditorUserSettingsXmlNamespace)
+                        .Cast<XmlElement>().FirstOrDefault();
+                    if (list == null)
+                    {
+                        continue;
+                    }
+                    fieldValue = list.ChildNodes.Cast<XmlElement>().Select(element => element.InnerText).ToList();
                 }
-                else if (type == typeof(bool))
+                else
                 {
-                    fieldValue = bool.Parse(value);
-                }
-                else if (type == typeof(string))
-                {
-                    fieldValue = value;
-                }
-                else if (typeof(UnityEngine.Object).IsAssignableFrom(type))
-                {
-                    fieldValue = AssetDatabase.LoadAssetAtPath(value, type);
+                    string value = settings.GetAttribute(info.Name);
+                    if (string.IsNullOrEmpty(value))
+                    {
+                        continue;
+                    }
+
+                    if (typeof(Enum).IsAssignableFrom(type))
+                    {
+                        fieldValue = Enum.Parse(enumType: type, value: value);
+                    }
+                    else if (type == typeof(bool))
+                    {
+                        fieldValue = bool.Parse(value);
+                    }
+                    else if (type == typeof(string))
+                    {
+                        fieldValue = value;
+                    }
+                    else if (typeof(UnityEngine.Object).IsAssignableFrom(type))
+                    {
+                        fieldValue = AssetDatabase.LoadAssetAtPath(value, type);
+                    }
                 }
                 info.SetValue(obj: this, value: fieldValue);
             }
@@ -230,6 +250,38 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 if (typeof(Enum).IsAssignableFrom(type) || type == typeof(bool) || type == typeof(string))
                 {
                     value = fieldValue.ToString();
+                }
+                else if (type == typeof(List<string>))
+                {
+                    var list = settings.GetElementsByTagName(
+                        localName: info.Name,
+                        namespaceURI: Wizard.EditorUserSettingsXmlNamespace
+                    ).Cast<XmlElement>().FirstOrDefault();
+                    if (list != null)
+                    {
+                        list.RemoveAll();
+                    }
+                    else
+                    {
+                        list = document.CreateElement(
+                            qualifiedName: info.Name,
+                            namespaceURI: Wizard.EditorUserSettingsXmlNamespace
+                        );
+                    }
+                    foreach (var content in fieldValue as List<string>)
+                    {
+                        if (string.IsNullOrEmpty(content)) {
+                            continue;
+                        }
+                        XmlElement element = document.CreateElement(
+                            qualifiedName: "element",
+                            namespaceURI: Wizard.EditorUserSettingsXmlNamespace
+                        );
+                        element.InnerText = content;
+                        list.AppendChild(element);
+                    }
+                    settings.AppendChild(list);
+                    continue;
                 }
                 else if (typeof(UnityEngine.Object).IsAssignableFrom(type))
                 {
@@ -292,6 +344,20 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 }
             }
 
+            IEnumerable<string> excludedSpringBoneComments = this.excludedSpringBoneComments.Except(new[] { "" });
+            if (excludedSpringBoneComments.Count() > 0)
+            {
+                IEnumerable<string> comments = excludedSpringBoneComments.Except(
+                    this.GetSpringBonesWithComments(prefab: this.avatar.gameObject, comments: excludedSpringBoneComments)
+                        .Select(commentAndSpringBones => commentAndSpringBones.Key)
+                );
+                if (comments.Count() > 0)
+                {
+                    EditorGUILayout.HelpBox(string.Join(separator: "\n• ", value: new[] { Gettext._("VRMSpringBones with the below Comments do not exist.") }
+                        .Concat(comments).ToArray()), MessageType.Warning);
+                }
+            }
+
             string version = VRChatUtility.GetSupportedUnityVersion();
             if (version != "" && Application.unityVersion != version)
             {
@@ -344,6 +410,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             var prefab = AssetDatabase.LoadMainAssetAtPath(this.destinationPath) as GameObject;
             var prefabInstance = PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(this.destinationPath)) as GameObject;
 
+            foreach (VRMSpringBone springBone in this.GetSpringBonesWithComments(prefab: prefabInstance, comments: this.excludedSpringBoneComments)
+                .SelectMany(springBone => springBone))
+            {
+                UnityEngine.Object.DestroyImmediate(springBone);
+            }
+
             IEnumerable<Converter.Message> messages = Converter.Convert(
                 prefabInstance: prefabInstance,
                 defaultAnimationSet: this.defaultAnimationSet,
@@ -384,6 +456,19 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
 
             return path.Value;
+        }
+
+        /// <summary>
+        /// 指定した<see cref="VRMSpringBone.m_comment" />を持つSpringBoneを返します。
+        /// </summary>
+        /// <param name="prefab"></param>
+        /// <param name="comments"></param>
+        /// <returns></returns>
+        private ILookup<string, VRMSpringBone> GetSpringBonesWithComments(GameObject prefab, IEnumerable<string> comments)
+        {
+            return prefab.GetComponentsInChildren<VRMSpringBone>()
+                .Where(bone => comments.Contains(bone.m_comment))
+                .ToLookup(keySelector: bone => bone.m_comment);
         }
     }
 }

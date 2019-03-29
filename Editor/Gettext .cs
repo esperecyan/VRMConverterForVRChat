@@ -79,6 +79,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 Gettext.DefaultLocale,
             }) {
                 if (Gettext.multilingualLocalizedTexts.ContainsKey(key: langtag)
+                    && Gettext.multilingualLocalizedTexts[Gettext.langtag].ContainsKey(key: message)
                     && Gettext.multilingualLocalizedTexts[Gettext.langtag][message] != "") {
                     return Gettext.multilingualLocalizedTexts[Gettext.langtag][message];
                 }
