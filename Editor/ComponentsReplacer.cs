@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEditor;
@@ -68,27 +69,32 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="avatar"></param>
         /// <param name="defaultAnimationSet"></param>
         /// <param name="swayingParametersConverter"></param>
-        internal static void Apply(
+        /// <returns></returns>
+        internal static IEnumerable<Converter.Message> Apply(
             GameObject avatar,
             VRC_AvatarDescriptor.AnimationSet defaultAnimationSet,
             ComponentsReplacer.SwayingObjectsConverterSetting swayingObjectsConverterSetting,
             ComponentsReplacer.SwayingParametersConverter swayingParametersConverter
         )
         {
+            var messages = new List<Converter.Message>();
+
             ConvertMeta(avatar: avatar, defaultAnimationSet: defaultAnimationSet);
             ConvertVRMFirstPerson(avatar: avatar);
 
             var swayingObjectsConverter = Type.GetType(typeof(ComponentsReplacer).Namespace + ".SwayingObjectsConverter, Assembly-CSharp-Editor");
             if (swayingObjectsConverter != null)
             {
-                swayingObjectsConverter.InvokeMember(
+                messages.AddRange(swayingObjectsConverter.InvokeMember(
                     name: "Apply",
                     invokeAttr: BindingFlags.InvokeMethod | BindingFlags.NonPublic,
                     binder: null,
                     target: null,
                     args: new object[] { avatar, swayingObjectsConverterSetting, swayingParametersConverter }
-                );
+                ) as IEnumerable<Converter.Message>);
             }
+
+            return messages;
         }
 
         /// <summary>

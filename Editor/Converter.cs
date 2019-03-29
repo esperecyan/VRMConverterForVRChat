@@ -58,12 +58,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             var messages = new List<Converter.Message>();
             messages.AddRange(GeometryCorrector.Apply(avatar: prefabInstance));
             BlendShapeReplacer.Apply(avatar: prefabInstance);
-            ComponentsReplacer.Apply(
+            messages.AddRange(ComponentsReplacer.Apply(
                 avatar: prefabInstance,
                 defaultAnimationSet: defaultAnimationSet,
                 swayingObjectsConverterSetting: swayingObjectsConverterSetting,
                 swayingParametersConverter: swayingParametersConverter
-            );
+            ));
             messages.AddRange(VRChatsBugsWorkaround.Apply(
                 avatar: prefabInstance,
                 enableAutoEyeMovement: enableAutoEyeMovement,
