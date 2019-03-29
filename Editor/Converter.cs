@@ -43,6 +43,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="enableAutoEyeMovement">オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。</param>
         /// <param name="fixVRoidSlopingShoulders">VRoid Studioから出力されたモデルがなで肩になる問題について、ボーンのPositionを変更するなら<c>true</c>。</param>
         /// <param name="changeMaterialsForWorldsNotHavingDirectionalLight">Directional Lightがないワールド向けにマテリアルを変更するなら <c>true</c>。</param>
+        /// <param name="swayingObjectsConverterSettings">揺れ物を変換するか否かの設定。</param>
         /// <returns>変換中に発生したメッセージ。</returns>
         public static IEnumerable<Converter.Message> Convert(
             GameObject prefabInstance,
@@ -50,12 +51,19 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             ComponentsReplacer.SwayingParametersConverter swayingParametersConverter = null,
             bool enableAutoEyeMovement = true,
             bool fixVRoidSlopingShoulders = true,
-            bool changeMaterialsForWorldsNotHavingDirectionalLight = true
+            bool changeMaterialsForWorldsNotHavingDirectionalLight = true,
+            ComponentsReplacer.SwayingObjectsConverterSetting swayingObjectsConverterSetting
+                = default(ComponentsReplacer.SwayingObjectsConverterSetting)
         ) {
             var messages = new List<Converter.Message>();
             messages.AddRange(GeometryCorrector.Apply(avatar: prefabInstance));
             BlendShapeReplacer.Apply(avatar: prefabInstance);
-            ComponentsReplacer.Apply(avatar: prefabInstance, defaultAnimationSet: defaultAnimationSet, swayingParametersConverter: swayingParametersConverter);
+            ComponentsReplacer.Apply(
+                avatar: prefabInstance,
+                defaultAnimationSet: defaultAnimationSet,
+                swayingObjectsConverterSetting: swayingObjectsConverterSetting,
+                swayingParametersConverter: swayingParametersConverter
+            );
             messages.AddRange(VRChatsBugsWorkaround.Apply(
                 avatar: prefabInstance,
                 enableAutoEyeMovement: enableAutoEyeMovement,

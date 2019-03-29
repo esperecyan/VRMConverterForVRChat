@@ -56,6 +56,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         private bool enableEyeMovement = true;
 
         /// <summary>
+        /// 揺れ物を変換するか否かの設定。
+        /// </summary>
+        [SerializeField, Localizable]
+        private ComponentsReplacer.SwayingObjectsConverterSetting swayingObjects;
+
+        /// <summary>
         /// 除外する揺れ物の<see cref="VRMSpringBone.m_comment" />。
         /// </summary>
         [SerializeField, Localizable]
@@ -422,7 +428,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 swayingParametersConverter: this.swayingParametersConverter,
                 enableAutoEyeMovement: this.enableEyeMovement,
                 fixVRoidSlopingShoulders: this.fixVroidSlopingShoulders,
-                changeMaterialsForWorldsNotHavingDirectionalLight: this.useOldMtoon
+                changeMaterialsForWorldsNotHavingDirectionalLight: this.useOldMtoon,
+                swayingObjectsConverterSetting: this.swayingObjects
             );
 
             if (this.postConverting != null) {

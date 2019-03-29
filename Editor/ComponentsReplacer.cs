@@ -15,6 +15,16 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
     public class ComponentsReplacer
     {
         /// <summary>
+        /// 揺れ物を変換するか否かの設定。
+        /// </summary>
+        public enum SwayingObjectsConverterSetting
+        {
+            ConvertVrmSpringBonesOnly,
+            ConvertVrmSpringBonesAndVrmSpringBoneColliderGroups,
+            RemoveSwayingObjects,
+        }
+
+        /// <summary>
         /// 揺れ物のパラメータ変換アルゴリズムの定義を行うコールバック関数。
         /// </summary>
         /// <param name="springBoneParameters"></param>
@@ -61,6 +71,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         internal static void Apply(
             GameObject avatar,
             VRC_AvatarDescriptor.AnimationSet defaultAnimationSet,
+            ComponentsReplacer.SwayingObjectsConverterSetting swayingObjectsConverterSetting,
             ComponentsReplacer.SwayingParametersConverter swayingParametersConverter
         )
         {
@@ -75,7 +86,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     invokeAttr: BindingFlags.InvokeMethod | BindingFlags.NonPublic,
                     binder: null,
                     target: null,
-                    args: new object[] { avatar, swayingParametersConverter }
+                    args: new object[] { avatar, swayingObjectsConverterSetting, swayingParametersConverter }
                 );
             }
         }

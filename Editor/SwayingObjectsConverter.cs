@@ -12,11 +12,21 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
     {
         internal static void Apply(
             GameObject avatar,
+            ComponentsReplacer.SwayingObjectsConverterSetting setting,
             ComponentsReplacer.SwayingParametersConverter swayingParametersConverter
         )
         {
-            RemoveUnusedColliderGroups(avatar: avatar);
-            var dynamicBoneColliderGroups = ConvertVRMSpringBoneColliderGroups(avatar);
+            if (setting == ComponentsReplacer.SwayingObjectsConverterSetting.RemoveSwayingObjects)
+            {
+                return;
+            }
+
+            IDictionary<VRMSpringBoneColliderGroup, IEnumerable<DynamicBoneColliderBase>> dynamicBoneColliderGroups = null;
+            if (setting == ComponentsReplacer.SwayingObjectsConverterSetting.ConvertVrmSpringBonesAndVrmSpringBoneColliderGroups)
+            {
+                RemoveUnusedColliderGroups(avatar: avatar);
+                dynamicBoneColliderGroups = ConvertVRMSpringBoneColliderGroups(avatar);
+            }
             ConvertVRMSpringBones(avatar: avatar, dynamicBoneColliderGroups: dynamicBoneColliderGroups, swayingParametersConverter: swayingParametersConverter);
         }
 
@@ -130,8 +140,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 }
 
                 dynamicBone.m_Gravity = springBone.m_gravityDir * springBone.m_gravityPower;
-                dynamicBone.m_Colliders = new List<DynamicBoneColliderBase>();
-                dynamicBone.m_Colliders.AddRange(springBone.ColliderGroups.SelectMany(colliderGroup => dynamicBoneColliderGroups[colliderGroup]).ToList());
+                if (dynamicBoneColliderGroups != null)
+                {
+                    dynamicBone.m_Colliders = new List<DynamicBoneColliderBase>();
+                    dynamicBone.m_Colliders.AddRange(springBone.ColliderGroups.SelectMany(colliderGroup => dynamicBoneColliderGroups[colliderGroup]).ToList());
+                }
                 dynamicBone.m_DistantDisable = true;
             }
         }
