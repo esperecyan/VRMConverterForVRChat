@@ -209,7 +209,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     message = string.Format(Gettext._("The “Dynamic Bone Collision Check Count” is {0}."), collisionCheckCount)
                         + string.Format(
                             Gettext._("If this value exceeds {0}, the default user setting disable all Dynamic Bones."),
-                            AvatarPerformanceStats.MediumPeformanceStatLimits.DynamicBoneAffectedTransformCount
+                            AvatarPerformanceStats.MediumPeformanceStatLimits.DynamicBoneCollisionCheckCount
                         ),
                     type = MessageType.Warning,
                 });
