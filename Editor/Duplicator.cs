@@ -137,7 +137,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             UnityEngine.Object destination = AssetDatabase.LoadMainAssetAtPath(destinationPath);
             if (destination)
             {
-                if (AssetDatabase.IsNativeAsset(source))
+                if (AssetDatabase.IsNativeAsset(source) || string.IsNullOrEmpty(AssetDatabase.GetAssetPath(source)))
                 {
                     EditorUtility.CopySerialized(source, destination);
                 }
@@ -158,7 +158,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
             else
             {
-                if (AssetDatabase.IsSubAsset(source))
+                if (AssetDatabase.IsSubAsset(source) || string.IsNullOrEmpty(AssetDatabase.GetAssetPath(source)))
                 {
                     AssetDatabase.CreateAsset(Duplicator.DuplicateAssetInstance(source), destinationPath);
                 }

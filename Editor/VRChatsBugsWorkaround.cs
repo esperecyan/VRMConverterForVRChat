@@ -218,7 +218,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             if (!mesh)
             {
-                mesh = renderer.sharedMesh = VRChatsBugsWorkaround.CreateDummyMesh();
+                mesh = renderer.sharedMesh = Duplicator.DuplicateAssetToFolder<Mesh>(
+                    source: VRChatsBugsWorkaround.CreateDummyMesh(),
+                    prefabInstance: avatar
+                );
             }
             
             foreach (var name in VRChatsBugsWorkaround.OrderedBlinkGeneratedByCatsBlenderPlugin.Skip(count: mesh.blendShapeCount)) {
