@@ -48,7 +48,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             Process.Start(fileName: "PowerShell", arguments: "-Command \"Compress-Archive"
                 + " -Path @(" + string.Join(separator: ",", value: packagePaths.Select(path => "'" + path + "'").ToArray()) + ")"
-                + " -DestinationPath '" + Path.Combine(Environment.GetFolderPath(folder: Environment.SpecialFolder.DesktopDirectory), Exporter.PackageName + ".zip") + "'\"");
+                + " -DestinationPath '" + Path.Combine(Environment.GetFolderPath(folder: Environment.SpecialFolder.DesktopDirectory), Exporter.PackageName + ".zip") + "'\"")
+                .WaitForExit();
 
             foreach (string packagePath in packagePaths) {
                 File.Delete(path: packagePath);
