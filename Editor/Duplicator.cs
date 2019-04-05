@@ -78,7 +78,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 }
                 else
                 {
-                    destinationFileName = Path.GetFileName(AssetDatabase.GetAssetPath(source));
+                    destinationFileName = Path.GetFileName(sourcePath);
                 }
             }
             else
