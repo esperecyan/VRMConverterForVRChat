@@ -120,12 +120,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             var springBoneParameters = new SpringBoneParameters(stiffnessForce: springBone.m_stiffnessForce, dragForce: springBone.m_dragForce);
             var boneInfo = new BoneInfo(vrmMeta: springBone.gameObject.GetComponentsInParent<VRMMeta>()[0]);
 
-            foreach (IGrouping<Transform, Transform> parentAndRootBones in springBone.RootBones.ToLookup(keySelector: rootBone => rootBone.parent))
+            foreach (var transform in springBone.RootBones)
             {
                 var dynamicBone = springBone.gameObject.AddComponent<DynamicBone>();
-                dynamicBone.m_Root = parentAndRootBones.Key;
-                dynamicBone.m_Exclusions = new List<Transform>();
-                dynamicBone.m_Exclusions.AddRange(parentAndRootBones.Key.Cast<Transform>().Where(child => !parentAndRootBones.Contains(child)));
+                dynamicBone.m_Root = transform;
 
                 DynamicBoneParameters dynamicBoneParameters = (swayingParametersConverter ?? ComponentsReplacer.DefaultSwayingParametersConverter)(
                     springBoneParameters: springBoneParameters,
@@ -174,7 +172,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
                     return dynamicBone.m_Root.GetComponentsInChildren<Transform>().Length
                         //- 1 // Collision checks counted incorrectly | Bug Reports | VRChat <https://vrchat.canny.io/bug-reports/p/collision-checks-counted-incorrectly>
-                        - dynamicBone.m_Exclusions.Sum(exclusion => exclusion.GetComponentsInChildren<Transform>().Length);
+                        - (dynamicBone.m_Exclusions != null ? dynamicBone.m_Exclusions.Sum(exclusion => exclusion.GetComponentsInChildren<Transform>().Length) : 0);
                 }
             );
 
