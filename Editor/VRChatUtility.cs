@@ -67,6 +67,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         internal static readonly string CustomStandingAnimsPath = "Assets/VRCSDK/Examples/Sample Assets/Animation/CustomOverrideEmpty.overrideController";
 
         /// <summary>
+        /// <see cref="AvatarPerformance"/>クラスが記述されているファイルのパス。
+        /// </summary>
+        internal static readonly string AvatarPerformanceClassPath = "Assets/VRCSDK/Dependencies/VRChat/Scripts/AvatarPerformance.cs";
+
+        /// <summary>
         /// <see cref="VRC_SdkControlPanel.AnalyzeGeometry"/>を実行します。
         /// </summary>
         /// <param name="go">対象のアバター。</param>

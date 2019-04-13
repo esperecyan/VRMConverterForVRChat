@@ -128,6 +128,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             {
                 var dynamicBone = springBone.gameObject.AddComponent<DynamicBone>();
                 dynamicBone.m_Root = transform;
+                dynamicBone.m_Exclusions = new List<Transform>();
 
                 DynamicBoneParameters dynamicBoneParameters = null;
                 if (swayingParametersConverter != null)
@@ -168,55 +169,39 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         private static IEnumerable<Converter.Message> GetMessagesAboutDynamicBoneLimits(GameObject avatar)
         {
             var messages = new List<Converter.Message>();
+            AvatarPerformanceStats statistics = AvatarPerformance.CalculatePerformanceStats(
+                avatarName: avatar.GetComponent<VRMMeta>().Meta.Title,
+                avatarObject: avatar
+            );Debug.Log(statistics.DynamicBoneAffectedTransformCount);
 
-            var dynamicBonesAndAffectedTransformCounts = avatar.GetComponentsInChildren<DynamicBone>().ToDictionary(
-                keySelector: dynamicBone => dynamicBone,
-                elementSelector: dynamicBone => {
-                    Transform rootTransform = dynamicBone.m_Root;
-                    if (!rootTransform.IsChildOf(avatar.transform))
-                    {
-                        return 0;
-                    }
-
-                    return dynamicBone.m_Root.GetComponentsInChildren<Transform>().Length
-                        //- 1 // Collision checks counted incorrectly | Bug Reports | VRChat <https://vrchat.canny.io/bug-reports/p/collision-checks-counted-incorrectly>
-                        - (dynamicBone.m_Exclusions != null ? dynamicBone.m_Exclusions.Sum(exclusion => exclusion.GetComponentsInChildren<Transform>().Length) : 0);
-                }
-            );
-
-            int affectedTransformCount = dynamicBonesAndAffectedTransformCounts.Values.Sum();
-            if (affectedTransformCount > AvatarPerformanceStats.MediumPeformanceStatLimits.DynamicBoneAffectedTransformCount)
+            if (statistics.DynamicBoneAffectedTransformCount
+                > AvatarPerformanceStats.MediumPeformanceStatLimits.DynamicBoneAffectedTransformCount)
             {
                 messages.Add(new Converter.Message
                 {
-                    message = string.Format(Gettext._("The “Dynamic Bone Affected Transform Count” is {0}."), affectedTransformCount)
-                        + string.Format(
-                            Gettext._("If this value exceeds {0}, the default user setting disable all Dynamic Bones."),
-                            AvatarPerformanceStats.MediumPeformanceStatLimits.DynamicBoneAffectedTransformCount
-                        ),
+                    message = string.Format(
+                        Gettext._("The “Dynamic Bone Affected Transform Count” is {0}."),
+                        statistics.DynamicBoneAffectedTransformCount
+                    ) + string.Format(
+                        Gettext._("If this value exceeds {0}, the default user setting disable all Dynamic Bones."),
+                        AvatarPerformanceStats.MediumPeformanceStatLimits.DynamicBoneAffectedTransformCount
+                    ),
                     type = MessageType.Warning,
                 });
             }
-
-            int collisionCheckCount = dynamicBonesAndAffectedTransformCounts.Sum(selector: dynamicBoneAndAffectedTransformCount => {
-                IEnumerable<DynamicBoneColliderBase> colliders = dynamicBoneAndAffectedTransformCount.Key.m_Colliders;
-                if (colliders == null)
-                {
-                    return 0;
-                }
-
-                return (dynamicBoneAndAffectedTransformCount.Value)
-                    * colliders.Where(collider => collider.transform.IsChildOf(avatar.transform)).Count();
-            });
-            if (collisionCheckCount > AvatarPerformanceStats.MediumPeformanceStatLimits.DynamicBoneCollisionCheckCount)
+            
+            if (statistics.DynamicBoneCollisionCheckCount
+                > AvatarPerformanceStats.MediumPeformanceStatLimits.DynamicBoneCollisionCheckCount)
             {
                 messages.Add(new Converter.Message
                 {
-                    message = string.Format(Gettext._("The “Dynamic Bone Collision Check Count” is {0}."), collisionCheckCount)
-                        + string.Format(
-                            Gettext._("If this value exceeds {0}, the default user setting disable all Dynamic Bones."),
-                            AvatarPerformanceStats.MediumPeformanceStatLimits.DynamicBoneCollisionCheckCount
-                        ),
+                    message = string.Format(
+                        Gettext._("The “Dynamic Bone Collision Check Count” is {0}."),
+                        statistics.DynamicBoneCollisionCheckCount
+                    ) + string.Format(
+                        Gettext._("If this value exceeds {0}, the default user setting disable all Dynamic Bones."),
+                        AvatarPerformanceStats.MediumPeformanceStatLimits.DynamicBoneCollisionCheckCount
+                    ),
                     type = MessageType.Warning,
                 });
             }
