@@ -38,7 +38,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// プレハブをVRChatへアップロード可能な状態にします。
         /// </summary>
         /// <param name="prefabPath">現在のシーンに存在するプレハブのインスタンス。</param>
-        /// <param name="defaultAnimationSet"></param>
         /// <param name="swayingParametersConverter"></param>
         /// <param name="enableAutoEyeMovement">オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。</param>
         /// <param name="fixVRoidSlopingShoulders">VRoid Studioから出力されたモデルがなで肩になる問題について、ボーンのPositionを変更するなら<c>true</c>。</param>
@@ -47,7 +46,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <returns>変換中に発生したメッセージ。</returns>
         public static IEnumerable<Converter.Message> Convert(
             GameObject prefabInstance,
-            VRC_AvatarDescriptor.AnimationSet defaultAnimationSet,
             ComponentsReplacer.SwayingParametersConverter swayingParametersConverter = null,
             bool enableAutoEyeMovement = true,
             bool fixVRoidSlopingShoulders = true,
@@ -60,7 +58,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             BlendShapeReplacer.Apply(avatar: prefabInstance);
             messages.AddRange(ComponentsReplacer.Apply(
                 avatar: prefabInstance,
-                defaultAnimationSet: defaultAnimationSet,
                 swayingObjectsConverterSetting: swayingObjectsConverterSetting,
                 swayingParametersConverter: swayingParametersConverter
             ));

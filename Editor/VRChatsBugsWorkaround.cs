@@ -11,6 +11,7 @@ using UnityEditor.SceneManagement;
 using VRM;
 using UniHumanoid;
 using UniGLTF;
+using VRCSDK2;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
 {
@@ -23,6 +24,17 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// VRChatのバグ対策用のシェーダー名に前置する文字列。
         /// </summary>
         public static readonly string ShaderNamePrefix = "VRChat/RenderQueueApplied/";
+
+        /// <summary>
+        /// 正常に動作する<see cref="VRC_AvatarDescriptor.Animations"/>の値。
+        /// </summary>
+        /// <remarks>
+        /// 参照:
+        /// キノスラさんのツイート: “・男の子でもVRC_Avatar Descriptorの設定はFemaleにしておいた方が良さげ。Maleだと脚の開き方とかジャンプポーズに違和感が。 ・DynamicBoneの動きがUnity上で揺らした時とはだいぶ違う。”
+        /// <https://twitter.com/cinosura_/status/1063106430947930112>
+        /// </remarks>
+        internal static readonly VRC_AvatarDescriptor.AnimationSet DefaultAnimationSetValue
+            = VRC_AvatarDescriptor.AnimationSet.Female;
 
         /// <summary>
         /// Cats Blender PluginでVRChat用に生成されるまばたきのシェイプキー名。

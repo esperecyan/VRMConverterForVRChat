@@ -67,19 +67,17 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// クラスに含まれる処理を適用します。
         /// </summary>
         /// <param name="avatar"></param>
-        /// <param name="defaultAnimationSet"></param>
         /// <param name="swayingParametersConverter"></param>
         /// <returns></returns>
         internal static IEnumerable<Converter.Message> Apply(
             GameObject avatar,
-            VRC_AvatarDescriptor.AnimationSet defaultAnimationSet,
             ComponentsReplacer.SwayingObjectsConverterSetting swayingObjectsConverterSetting,
             ComponentsReplacer.SwayingParametersConverter swayingParametersConverter
         )
         {
             var messages = new List<Converter.Message>();
 
-            ConvertMeta(avatar: avatar, defaultAnimationSet: defaultAnimationSet);
+            ConvertMeta(avatar: avatar);
             ConvertVRMFirstPerson(avatar: avatar);
 
             var swayingObjectsConverter = Type.GetType(typeof(ComponentsReplacer).Namespace + ".SwayingObjectsConverter, Assembly-CSharp-Editor");
@@ -114,11 +112,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// キャラクターに関する情報を設定します。
         /// </summary>
         /// <param name="avatar"></param>
-        /// <param name="defaultAnimationSet"></param>
-        private static void ConvertMeta(GameObject avatar, VRC_AvatarDescriptor.AnimationSet defaultAnimationSet)
+        private static void ConvertMeta(GameObject avatar)
         {
             var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
-            avatarDescriptor.Animations = defaultAnimationSet;
+            avatarDescriptor.Animations = VRChatsBugsWorkaround.DefaultAnimationSetValue;
         }
 
         /// <summary>

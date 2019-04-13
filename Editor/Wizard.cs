@@ -44,12 +44,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         private Animator avatar;
 
         /// <summary>
-        /// アバターの<see cref="VRC_AvatarDescriptor.Animations"/>に設定する値。
-        /// </summary>
-        [SerializeField]
-        private VRC_AvatarDescriptor.AnimationSet defaultAnimationSet;
-
-        /// <summary>
         /// オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。
         /// </summary>
         [SerializeField, Localizable]
@@ -424,7 +418,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             IEnumerable<Converter.Message> messages = Converter.Convert(
                 prefabInstance: prefabInstance,
-                defaultAnimationSet: this.defaultAnimationSet,
                 swayingParametersConverter: this.swayingParametersConverter,
                 enableAutoEyeMovement: this.enableEyeMovement,
                 fixVRoidSlopingShoulders: this.fixVroidSlopingShoulders,
