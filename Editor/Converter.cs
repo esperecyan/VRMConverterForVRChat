@@ -42,7 +42,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="takingOverSwayingParameters">揺れ物のパラメータを変換せずDynamic Boneのデフォルト値を利用するなら<c>false</c>。</param>
         /// <param name="swayingParametersConverter"></param>
         /// <param name="enableAutoEyeMovement">オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。</param>
-        /// <param name="fixVRoidSlopingShoulders">VRoid Studioから出力されたモデルがなで肩になる問題について、ボーンのPositionを変更するなら<c>true</c>。</param>
+        /// <param name="addedShouldersPositionY">VRChat上でモデルがなで肩・いかり肩になる問題について、Shoulder/UpperArmボーンのPositionのYに加算する値。</param>
         /// <param name="changeMaterialsForWorldsNotHavingDirectionalLight">Directional Lightがないワールド向けにマテリアルを変更するなら <c>true</c>。</param>
         /// <returns>変換中に発生したメッセージ。</returns>
         public static IEnumerable<Converter.Message> Convert(
@@ -52,7 +52,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             bool takingOverSwayingParameters = true,
             ComponentsReplacer.SwayingParametersConverter swayingParametersConverter = null,
             bool enableAutoEyeMovement = true,
-            bool fixVRoidSlopingShoulders = true,
+            float addedShouldersPositionY = 0.0f,
             bool changeMaterialsForWorldsNotHavingDirectionalLight = true
         ) {
             var messages = new List<Converter.Message>();
@@ -68,7 +68,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             messages.AddRange(VRChatsBugsWorkaround.Apply(
                 avatar: prefabInstance,
                 enableAutoEyeMovement: enableAutoEyeMovement,
-                fixVRoidSlopingShoulders: fixVRoidSlopingShoulders,
+                addedShouldersPositionY: addedShouldersPositionY,
                 changeMaterialsForWorldsNotHavingDirectionalLight: changeMaterialsForWorldsNotHavingDirectionalLight
             ));
             prefabInstance.GetOrAddComponent<PipelineManager>();

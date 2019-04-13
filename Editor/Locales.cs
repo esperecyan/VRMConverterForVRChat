@@ -18,7 +18,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     { "Enable Eye Movement", "視線追従を有効化" },
                     { "Swaying Objects", "揺れ物" },
                     { "Take Over Swaying Parameters", "揺れパラメータ引き継ぎ" },
-                    { "Fix Vroid Sloping Shoulders", "VRoidのなで肩解消" },
+                    { "Shoulder Heights", "肩の高さ" },
                     { "Use Old Mtoon", "MToon 1.7を使用" },
                     { "Callback Functions", "コールバック関数" },
                     { "Not set “{0}” component.", "{0}コンポーネントが設定されていません。" },
@@ -51,7 +51,16 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             label.text = Gettext._(label.text);
-            EditorGUI.PropertyField(position, property, label);
+            switch (property.propertyType)
+            {
+                case SerializedPropertyType.Float:
+                    var attribute = (LocalizableAttribute)this.attribute;
+                    EditorGUI.Slider(position, property, attribute.min, attribute.max, label);
+                    break;
+                default:
+                    EditorGUI.PropertyField(position, property, label);
+                    break;
+            }
         }
 
         /// <summary>

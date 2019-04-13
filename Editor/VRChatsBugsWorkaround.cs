@@ -62,17 +62,32 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         internal static readonly int MaxAutoEyeMovementDegree = 30;
         
         /// <summary>
+        /// VRChat上でなで肩・いかり肩になる問題を解消するために変更する必要があるボーン。
+        /// </summary>
+        /// 参照:
+        /// VRoid studioで作ったモデルをVRChatにアップロードする際の注意点 — yupaがエンジニアになるまでを記録するブログ
+        /// <https://yu8as.hatenablog.com/entry/2018/08/25/004856>
+        /// 猫田あゆむ🐈VTuber｜仮想秘密結社「ネコミミナティ」さんのツイート: “何度もすみません。FBXのRigからBone座標を設定する場合は、ShoulderのY座標をチョイあげ（0.12...くらい）、Upper ArmのY座標を0にするといい感じになるそうです。もしかしたらコレVRoidのモデル特有の話かもしれないのですが・・・。… https://t.co/d7Jw7qoXBX”
+        /// <https://twitter.com/virtual_ayumu/status/1051146511197790208>
+        internal static readonly IEnumerable<HumanBodyBones> RequiredModifiedBonesForVRChat = new []{
+            HumanBodyBones.LeftShoulder,
+            HumanBodyBones.RightShoulder,
+            HumanBodyBones.LeftUpperArm,
+            HumanBodyBones.RightUpperArm
+        };
+
+        /// <summary>
         /// クラスに含まれる処理を適用します。
         /// </summary>
         /// <param name="avatar"></param>
         /// <param name="enableAutoEyeMovement">オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。</param>
-        /// <param name="fixVRoidSlopingShoulders">VRoid Studioから出力されたモデルがなで肩になる問題について、ボーンのPositionを変更するなら<c>true</c>。</param>
+        /// <param name="addedShouldersPositionY">VRChat上でモデルがなで肩・いかり肩になる問題について、Shoulder/UpperArmボーンのPositionのYに加算する値。</param>
         /// <param name="changeMaterialsForWorldsNotHavingDirectionalLight">Directional Lightがないワールド向けにマテリアルを変更するなら <c>true</c>。</param>
         /// <returns>変換中に発生したメッセージ。</returns>
         internal static IEnumerable<Converter.Message> Apply(
             GameObject avatar,
             bool enableAutoEyeMovement,
-            bool fixVRoidSlopingShoulders,
+            float addedShouldersPositionY,
             bool changeMaterialsForWorldsNotHavingDirectionalLight
         ) {
             var messages = new List<Converter.Message>();
@@ -87,9 +102,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             else {
                 VRChatsBugsWorkaround.DisableAutoEyeMovement(avatar: avatar);
             }
-            if (fixVRoidSlopingShoulders)
+            if (addedShouldersPositionY != 0.0f)
             {
-                VRChatsBugsWorkaround.FixVRoidSlopingShoulders(avatar: avatar);
+                VRChatsBugsWorkaround.AddShouldersPositionY(avatar: avatar, addedValue: addedShouldersPositionY);
             }
             if (changeMaterialsForWorldsNotHavingDirectionalLight)
             {
@@ -401,24 +416,22 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         }
 
         /// <summary>
-        /// VRoid Studioから出力されたモデルがなで肩になる問題について、ボーンのPositionを変更します。
+        /// VRChat上でモデルがなで肩・いかり肩になる問題について、ボーンのPositionを変更します。
         /// </summary>
         /// <param name="avatar"></param>
-        private static void FixVRoidSlopingShoulders(GameObject avatar)
+        private static void AddShouldersPositionY(GameObject avatar, float addedValue)
         {
-            IDictionary<HumanBodyBones, string> bonesAndNames = avatar.GetComponent<VRMHumanoidDescription>().Description.human
-                .ToDictionary(keySelector: boneLimit => boneLimit.humanBone, elementSelector: humanBone => humanBone.boneName);
-            if (VRoidUtility.RequiredModifiedBonesAndNamesForVRChat.All(boneAndName => bonesAndNames.Contains(item: boneAndName)))
-            {
-                ApplyAvatarDescription(avatar: avatar, humanDescriptionModifier: humanDescription => {
-                    List<SkeletonBone> skeltonBones = humanDescription.skeleton.ToList();
-                    foreach (string name in VRoidUtility.RequiredModifiedBonesAndNamesForVRChat.Values)
-                    {
-                        humanDescription.skeleton[skeltonBones.FindIndex(match: skeltonBone => skeltonBone.name == name)].position
-                            += VRoidUtility.AddedPositionValueForVRChat;
-                    }
-                });
-            }
+            ApplyAvatarDescription(avatar: avatar, humanDescriptionModifier: humanDescription => {
+                List<HumanBone> humanBones = humanDescription.human.ToList();
+                List<SkeletonBone> skeltonBones = humanDescription.skeleton.ToList();
+                foreach (HumanBodyBones bone in VRChatsBugsWorkaround.RequiredModifiedBonesForVRChat)
+                {
+                    var humanName = bone.ToString();
+                    string name = humanBones.Find(match: humanBone => humanBone.humanName == humanName).boneName;
+                    humanDescription.skeleton[skeltonBones.FindIndex(match: skeltonBone => skeltonBone.name == name)].position
+                        += new Vector3(0, addedValue, 0);
+                }
+            });
         }
 
         /// <summary>

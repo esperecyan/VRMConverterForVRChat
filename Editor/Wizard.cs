@@ -68,10 +68,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         private List<string> excludedSpringBoneComments = new List<string>();
 
         /// <summary>
-        /// VRoid Studioから出力されたモデルがなで肩になる問題について、ボーンのPositionを変更するなら<c>true</c>。
+        /// VRChat上でモデルがなで肩・いかり肩になる問題について、ボーンのPositionのYに加算する値。
         /// </summary>
-        [SerializeField, Localizable]
-        private bool fixVroidSlopingShoulders = true;
+        [SerializeField, Localizable(-0.1f, 0.1f)]
+        private float shoulderHeights;
 
         /// <summary>
         /// Directional Lightがないワールド向けにマテリアルを変更するなら <c>true</c>。
@@ -220,6 +220,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     {
                         fieldValue = bool.Parse(value);
                     }
+                    else if (type == typeof(float))
+                    {
+                        fieldValue = float.Parse(value);
+                    }
                     else if (type == typeof(string))
                     {
                         fieldValue = value;
@@ -253,7 +257,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 Type type = info.FieldType;
                 object fieldValue = info.GetValue(obj: this);
                 string value = "";
-                if (typeof(Enum).IsAssignableFrom(type) || type == typeof(bool) || type == typeof(string))
+                if (typeof(Enum).IsAssignableFrom(type) || type == typeof(bool) || type == typeof(float) || type == typeof(string))
                 {
                     value = fieldValue.ToString();
                 }
@@ -428,7 +432,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 takingOverSwayingParameters: this.takeOverSwayingParameters,
                 swayingParametersConverter: this.swayingParametersConverter,
                 enableAutoEyeMovement: this.enableEyeMovement,
-                fixVRoidSlopingShoulders: this.fixVroidSlopingShoulders,
+                addedShouldersPositionY: this.shoulderHeights,
                 changeMaterialsForWorldsNotHavingDirectionalLight: this.useOldMtoon
             );
 
