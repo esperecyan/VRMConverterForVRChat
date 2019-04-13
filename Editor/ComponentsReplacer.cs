@@ -33,14 +33,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <returns></returns>
         public delegate DynamicBoneParameters SwayingParametersConverter(SpringBoneParameters springBoneParameters, BoneInfo boneInfo);
 
-        /// <summary>
-        /// バーチャルキャストにおいて、該当ボーンの<see cref="VRMSpringBoneColliderGroup">が、他アバターの<see cref="VRMSpringBone.ColliderGroups">に設定される。
-        /// </summary>
-        public static HumanBodyBones[] BonesForCollisionWithOtherAvatarOnVirtualCast = {
-            HumanBodyBones.LeftHand,
-            HumanBodyBones.RightHand,
-        };
-
         static ComponentsReplacer()
         {
             EnableClassDependentDependingOptionalAsset();
