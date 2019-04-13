@@ -29,7 +29,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 RemoveUnusedColliderGroups(avatar: avatar);
                 dynamicBoneColliderGroups = ConvertVRMSpringBoneColliderGroups(avatar);
             }
-            ConvertVRMSpringBones(avatar: avatar, dynamicBoneColliderGroups: dynamicBoneColliderGroups, swayingParametersConverter: swayingParametersConverter);
+            ConvertVRMSpringBones(
+                avatar: avatar,
+                dynamicBoneColliderGroups: dynamicBoneColliderGroups,
+                swayingParametersConverter: swayingParametersConverter
+            );
 
             return GetMessagesAboutDynamicBoneLimits(avatar: avatar);
         }
@@ -125,10 +129,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 var dynamicBone = springBone.gameObject.AddComponent<DynamicBone>();
                 dynamicBone.m_Root = transform;
 
-                DynamicBoneParameters dynamicBoneParameters = (swayingParametersConverter ?? ComponentsReplacer.DefaultSwayingParametersConverter)(
-                    springBoneParameters: springBoneParameters,
-                    boneInfo: boneInfo
-                );
+                DynamicBoneParameters dynamicBoneParameters = null;
+                if (swayingParametersConverter != null)
+                {
+                    dynamicBoneParameters = swayingParametersConverter(
+                        springBoneParameters: springBoneParameters,
+                        boneInfo: boneInfo
+                    );
+                }
                 if (dynamicBoneParameters != null)
                 {
                     dynamicBone.m_Damping = dynamicBoneParameters.Damping;

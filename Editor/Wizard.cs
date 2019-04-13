@@ -56,6 +56,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         private ComponentsReplacer.SwayingObjectsConverterSetting swayingObjects;
 
         /// <summary>
+        /// 揺れ物のパラメータを引き継ぐなら<c>true</c>。
+        /// </summary>
+        [SerializeField, Localizable]
+        private bool takeOverSwayingParameters = true;
+
+        /// <summary>
         /// 除外する揺れ物の<see cref="VRMSpringBone.m_comment" />。
         /// </summary>
         [SerializeField, Localizable]
@@ -418,11 +424,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             IEnumerable<Converter.Message> messages = Converter.Convert(
                 prefabInstance: prefabInstance,
+                swayingObjectsConverterSetting: this.swayingObjects,
+                takingOverSwayingParameters: this.takeOverSwayingParameters,
                 swayingParametersConverter: this.swayingParametersConverter,
                 enableAutoEyeMovement: this.enableEyeMovement,
                 fixVRoidSlopingShoulders: this.fixVroidSlopingShoulders,
-                changeMaterialsForWorldsNotHavingDirectionalLight: this.useOldMtoon,
-                swayingObjectsConverterSetting: this.swayingObjects
+                changeMaterialsForWorldsNotHavingDirectionalLight: this.useOldMtoon
             );
 
             if (this.postConverting != null) {

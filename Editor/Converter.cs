@@ -38,20 +38,22 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// プレハブをVRChatへアップロード可能な状態にします。
         /// </summary>
         /// <param name="prefabPath">現在のシーンに存在するプレハブのインスタンス。</param>
+        /// <param name="swayingObjectsConverterSetting">揺れ物を変換するか否かの設定。</param>
+        /// <param name="takingOverSwayingParameters">揺れ物のパラメータを変換せずDynamic Boneのデフォルト値を利用するなら<c>false</c>。</param>
         /// <param name="swayingParametersConverter"></param>
         /// <param name="enableAutoEyeMovement">オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。</param>
         /// <param name="fixVRoidSlopingShoulders">VRoid Studioから出力されたモデルがなで肩になる問題について、ボーンのPositionを変更するなら<c>true</c>。</param>
         /// <param name="changeMaterialsForWorldsNotHavingDirectionalLight">Directional Lightがないワールド向けにマテリアルを変更するなら <c>true</c>。</param>
-        /// <param name="swayingObjectsConverterSettings">揺れ物を変換するか否かの設定。</param>
         /// <returns>変換中に発生したメッセージ。</returns>
         public static IEnumerable<Converter.Message> Convert(
             GameObject prefabInstance,
+            ComponentsReplacer.SwayingObjectsConverterSetting swayingObjectsConverterSetting
+                = default(ComponentsReplacer.SwayingObjectsConverterSetting),
+            bool takingOverSwayingParameters = true,
             ComponentsReplacer.SwayingParametersConverter swayingParametersConverter = null,
             bool enableAutoEyeMovement = true,
             bool fixVRoidSlopingShoulders = true,
-            bool changeMaterialsForWorldsNotHavingDirectionalLight = true,
-            ComponentsReplacer.SwayingObjectsConverterSetting swayingObjectsConverterSetting
-                = default(ComponentsReplacer.SwayingObjectsConverterSetting)
+            bool changeMaterialsForWorldsNotHavingDirectionalLight = true
         ) {
             var messages = new List<Converter.Message>();
             messages.AddRange(GeometryCorrector.Apply(avatar: prefabInstance));
@@ -59,7 +61,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             messages.AddRange(ComponentsReplacer.Apply(
                 avatar: prefabInstance,
                 swayingObjectsConverterSetting: swayingObjectsConverterSetting,
-                swayingParametersConverter: swayingParametersConverter
+                swayingParametersConverter: takingOverSwayingParameters
+                    ? swayingParametersConverter ?? ComponentsReplacer.DefaultSwayingParametersConverter
+                    : null
             ));
             messages.AddRange(VRChatsBugsWorkaround.Apply(
                 avatar: prefabInstance,
