@@ -156,7 +156,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     dynamicBone.m_Colliders = new List<DynamicBoneColliderBase>();
                     dynamicBone.m_Colliders.AddRange(springBone.ColliderGroups.SelectMany(colliderGroup => dynamicBoneColliderGroups[colliderGroup]).ToList());
                 }
-                dynamicBone.m_DistantDisable = true;
             }
         }
 
