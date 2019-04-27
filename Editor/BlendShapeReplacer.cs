@@ -385,24 +385,32 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         }
 
         /// <summary>
-        /// <see cref="VRC_AvatarDescriptor.CustomStandingAnims"/>を取得、または作成して返します。
+        /// <see cref="VRC_AvatarDescriptor.CustomStandingAnims"/>、および<see cref="VRC_AvatarDescriptor.CustomSittingAnims"/>を取得、または作成します。
         /// </summary>
         /// <param name="avatar"></param>
         /// <returns></returns>
-        private static AnimatorOverrideController GetOrAddCustomStandingAnims(GameObject avatar)
+        private static void GetOrAddCustomAnims(GameObject avatar)
         {
             var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
+            var template = AssetDatabase.LoadMainAssetAtPath(VRChatUtility.CustomAnimsTemplatePath);
 
             if (!avatarDescriptor.CustomStandingAnims)
             {
-                avatar.GetOrAddComponent<VRC_AvatarDescriptor>().CustomStandingAnims = Duplicator.DuplicateAssetToFolder<AnimatorOverrideController>(
-                    source: AssetDatabase.LoadMainAssetAtPath(VRChatUtility.CustomStandingAnimsPath),
+                avatarDescriptor.CustomStandingAnims = Duplicator.DuplicateAssetToFolder<AnimatorOverrideController>(
+                    source: template,
                     prefabInstance: avatar,
                     fileName: "CustomStandingAnims.overrideController"
                 );
             }
 
-            return avatarDescriptor.CustomStandingAnims;
+            if (!avatarDescriptor.CustomSittingAnims)
+            {
+                avatarDescriptor.CustomSittingAnims = Duplicator.DuplicateAssetToFolder<AnimatorOverrideController>(
+                    source: template,
+                    prefabInstance: avatar,
+                    fileName: "CustomSittingAnims.overrideController"
+                );
+            }
         }
 
         /// <summary>
@@ -412,7 +420,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="relativePathToBlinkMesh">
         private static void SetFeelings(GameObject avatar, string relativePathToBlinkMesh)
         {
-            AnimatorOverrideController customStandingAnims = GetOrAddCustomStandingAnims(avatar: avatar);
+            GetOrAddCustomAnims(avatar: avatar);
+
+            var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
 
             foreach (var preset in BlendShapeReplacer.MappingBlendShapeToVRChatAnim.Keys)
             {
@@ -421,8 +431,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     continue;
                 }
 
-                customStandingAnims[BlendShapeReplacer.MappingBlendShapeToVRChatAnim[preset].ToString()]
+                AnimationClip clip
                     = CreateFeeling(avatar: avatar, preset: preset, relativePathToBlinkMesh: relativePathToBlinkMesh);
+                string anim = BlendShapeReplacer.MappingBlendShapeToVRChatAnim[preset].ToString();
+                avatarDescriptor.CustomStandingAnims[anim] = clip;
+                avatarDescriptor.CustomSittingAnims[anim] = clip;
             }
         }
 
