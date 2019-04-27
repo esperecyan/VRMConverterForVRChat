@@ -225,7 +225,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             AvatarPerformanceStats statistics = AvatarPerformance.CalculatePerformanceStats(
                 avatarName: avatar.GetComponent<VRMMeta>().Meta.Title,
                 avatarObject: avatar
-            );Debug.Log(statistics.DynamicBoneAffectedTransformCount);
+            );
 
             if (statistics.DynamicBoneAffectedTransformCount
                 > AvatarPerformanceStats.MediumPeformanceStatLimits.DynamicBoneAffectedTransformCount)
