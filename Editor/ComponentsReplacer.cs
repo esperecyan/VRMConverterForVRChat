@@ -1,12 +1,8 @@
 using System;
 using System.Reflection;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using UnityEngine;
-using UnityEditor;
 using VRM;
-using UniGLTF;
 using VRCSDK2;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
@@ -14,7 +10,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
     /// <summary>
     /// キャラクター情報、視点、揺れ物に関する設定。
     /// </summary>
-    [InitializeOnLoad]
     public class ComponentsReplacer
     {
         /// <summary>
@@ -34,12 +29,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="boneInfo"></param>
         /// <returns></returns>
         public delegate DynamicBoneParameters SwayingParametersConverter(SpringBoneParameters springBoneParameters, BoneInfo boneInfo);
-
-        static ComponentsReplacer()
-        {
-            EnableClassDependentDependingOptionalAsset();
-            FixFindDynamicBoneTypesMethodOnAvatarPerformanceClass();
-        }
 
         /// <summary>
         /// <see cref="ComponentsReplacer.SwayingParametersConverter">の既定値。
@@ -88,50 +77,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
 
             return messages;
-        }
-
-        /// <summary>
-        /// Dynamic Boneアセットがインポートされていれば場合、同アセットに含まれるクラスを利用しているスクリプトファイルを有効化します。
-        /// </summary>
-        private static void EnableClassDependentDependingOptionalAsset()
-        {
-            if (Type.GetType("DynamicBone, Assembly-CSharp") != null
-                && Type.GetType(typeof(ComponentsReplacer).Namespace + ".SwayingObjectsConverter, Assembly-CSharp-Editor") == null)
-            {
-                var path = Path.Combine(Path.Combine(Converter.RootFolderPath, "Editor"), "SwayingObjectsConverter.cs");
-                AssetDatabase.MoveAsset(oldPath: path + ".bak", newPath: path);
-            }
-        }
-
-        /// <summary>
-        /// <see cref="AvatarPerformance"/>クラスを書き替えて、DynamicBoneに関するパフォーマンスが表示されないVRChat SDKのバグを修正します。
-        /// </summary>
-        /// <seealso cref="SwayingObjectsConverter.GetMessagesAboutDynamicBoneLimits"/>
-        /// <remarks>
-        /// 参照:
-        /// SDK avatar performance reports always report dynamic bone counts as 0 | Bug Reports | VRChat
-        /// <https://vrchat.canny.io/bug-reports/p/sdk-avatar-performance-reports-always-report-dynamic-bone-counts-as-0>
-        /// </remarks>
-        private static void FixFindDynamicBoneTypesMethodOnAvatarPerformanceClass()
-        {
-            string fullPath = UnityPath.FromUnityPath(VRChatUtility.AvatarPerformanceClassPath).FullPath;
-
-            string content = File.ReadAllText(path: fullPath, encoding: Encoding.UTF8);
-            if (content.Contains("DynamicBoneColliderBase"))
-            {
-                return;
-            }
-
-            string fixedContent = content.Replace(
-                oldValue: "System.Type dyBoneColliderType = Validation.GetTypeFromName(\"DynamicBoneCollider\");",
-                newValue: "System.Type dyBoneColliderType = Validation.GetTypeFromName(\"DynamicBoneColliderBase\");"
-            );
-            if (fixedContent == content)
-            {
-                return;
-            }
-            
-            File.WriteAllText(path: fullPath, contents: fixedContent, encoding: Encoding.UTF8);
         }
 
         /// <summary>

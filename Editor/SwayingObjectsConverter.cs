@@ -1,8 +1,13 @@
-﻿using System.Linq;
+using System;
+using System.Reflection;
+using System.Linq;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using UnityEngine;
 using UnityEditor;
 using VRM;
+using UniGLTF;
 using VRCSDK2;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
@@ -12,6 +17,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
     /// </summary>
     public class SwayingObjectsConverter
     {
+        private static readonly Type DynamicBoneType = Type.GetType("DynamicBone, Assembly-CSharp");
+        private static readonly Type DynamicBoneColliderType = Type.GetType("DynamicBoneCollider, Assembly-CSharp");
+        private static readonly Type DynamicBoneColliderBaseListType
+            = typeof(List<>).MakeGenericType(Type.GetType("DynamicBoneColliderBase, Assembly-CSharp"));
+
         internal static IEnumerable<Converter.Message> Apply(
             GameObject avatar,
             ComponentsReplacer.SwayingObjectsConverterSetting setting,
@@ -23,7 +33,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 return new List<Converter.Message>();
             }
 
-            IDictionary<VRMSpringBoneColliderGroup, IEnumerable<DynamicBoneColliderBase>> dynamicBoneColliderGroups = null;
+            IDictionary<VRMSpringBoneColliderGroup, IEnumerable<MonoBehaviour>> dynamicBoneColliderGroups = null;
             if (setting == ComponentsReplacer.SwayingObjectsConverterSetting.ConvertVrmSpringBonesAndVrmSpringBoneColliderGroups)
             {
                 RemoveUnusedColliderGroups(avatar: avatar);
@@ -36,6 +46,38 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             );
 
             return GetMessagesAboutDynamicBoneLimits(avatar: avatar);
+        }
+
+        /// <summary>
+        /// <see cref="AvatarPerformance"/>クラスを書き替えて、DynamicBoneに関するパフォーマンスが表示されないVRChat SDKのバグを修正します。
+        /// </summary>
+        /// <seealso cref="SwayingObjectsConverter.GetMessagesAboutDynamicBoneLimits"/>
+        /// <remarks>
+        /// 参照:
+        /// SDK avatar performance reports always report dynamic bone counts as 0 | Bug Reports | VRChat
+        /// <https://vrchat.canny.io/bug-reports/p/sdk-avatar-performance-reports-always-report-dynamic-bone-counts-as-0>
+        /// </remarks>
+        [InitializeOnLoadMethod]
+        private static void FixFindDynamicBoneTypesMethodOnAvatarPerformanceClass()
+        {
+            string fullPath = UnityPath.FromUnityPath(VRChatUtility.AvatarPerformanceClassPath).FullPath;
+
+            string content = File.ReadAllText(path: fullPath, encoding: Encoding.UTF8);
+            if (content.Contains("DynamicBoneColliderBase"))
+            {
+                return;
+            }
+
+            string fixedContent = content.Replace(
+                oldValue: "System.Type dyBoneColliderType = Validation.GetTypeFromName(\"DynamicBoneCollider\");",
+                newValue: "System.Type dyBoneColliderType = Validation.GetTypeFromName(\"DynamicBoneColliderBase\");"
+            );
+            if (fixedContent == content)
+            {
+                return;
+            }
+
+            File.WriteAllText(path: fullPath, contents: fixedContent, encoding: Encoding.UTF8);
         }
 
         /// <summary>
@@ -63,7 +105,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </summary>
         /// <param name="avatar"></param>
         /// <returns>キーに<see cref="VRMSpringBoneColliderGroup"/>、値に対応する<see cref="DynamicBoneCollider"/>のリストを持つジャグ配列。</returns>
-        private static IDictionary<VRMSpringBoneColliderGroup, IEnumerable<DynamicBoneColliderBase>> ConvertVRMSpringBoneColliderGroups(GameObject avatar)
+        private static IDictionary<VRMSpringBoneColliderGroup, IEnumerable<MonoBehaviour>> ConvertVRMSpringBoneColliderGroups(GameObject avatar)
         {
             return avatar.GetComponentsInChildren<VRMSpringBoneColliderGroup>().ToDictionary(
                 keySelector: colliderGroup => colliderGroup,
@@ -77,18 +119,18 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="colliderGroup"></param>
         /// <param name="bonesForCollisionWithOtherAvatar"></param>
         /// <returns>生成した<see cref="DynamicBoneCollider"/>のリスト。</returns>
-        private static IEnumerable<DynamicBoneColliderBase> ConvertVRMSpringBoneColliderGroup(
+        private static IEnumerable<MonoBehaviour> ConvertVRMSpringBoneColliderGroup(
             VRMSpringBoneColliderGroup colliderGroup
         )
         {
             var bone = colliderGroup.gameObject;
 
             return colliderGroup.Colliders.Select(collider => {
-                var dynamicBoneCollider = bone.AddComponent<DynamicBoneCollider>();
-                dynamicBoneCollider.m_Center = collider.Offset;
-                dynamicBoneCollider.m_Radius = collider.Radius;
-                return dynamicBoneCollider as DynamicBoneColliderBase;
-            }).ToList();
+                var dynamicBoneCollider = bone.AddComponent(DynamicBoneColliderType);
+                DynamicBoneColliderType.GetField("m_Center").SetValue(dynamicBoneCollider, collider.Offset);
+                DynamicBoneColliderType.GetField("m_Radius").SetValue(dynamicBoneCollider, collider.Radius);
+                return dynamicBoneCollider as MonoBehaviour;
+            });
         }
 
         /// <summary>
@@ -99,7 +141,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="swayingParametersConverter"></param>
         private static void ConvertVRMSpringBones(
             GameObject avatar,
-            IDictionary<VRMSpringBoneColliderGroup, IEnumerable<DynamicBoneColliderBase>> dynamicBoneColliderGroups,
+            IDictionary<VRMSpringBoneColliderGroup, IEnumerable<MonoBehaviour>> dynamicBoneColliderGroups,
             ComponentsReplacer.SwayingParametersConverter swayingParametersConverter
         )
         {
@@ -117,7 +159,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="swayingParametersConverter"></param>
         private static void ConvertVRMSpringBone(
             VRMSpringBone springBone,
-            IDictionary<VRMSpringBoneColliderGroup, IEnumerable<DynamicBoneColliderBase>> dynamicBoneColliderGroups,
+            IDictionary<VRMSpringBoneColliderGroup, IEnumerable<MonoBehaviour>> dynamicBoneColliderGroups,
             ComponentsReplacer.SwayingParametersConverter swayingParametersConverter
         )
         {
@@ -126,9 +168,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             foreach (var transform in springBone.RootBones)
             {
-                var dynamicBone = springBone.gameObject.AddComponent<DynamicBone>();
-                dynamicBone.m_Root = transform;
-                dynamicBone.m_Exclusions = new List<Transform>();
+                var dynamicBone = springBone.gameObject.AddComponent(DynamicBoneType);
+                DynamicBoneType.GetField("m_Root").SetValue(dynamicBone, transform);
+                DynamicBoneType.GetField("m_Exclusions").SetValue(dynamicBone, new List<Transform>());
 
                 DynamicBoneParameters dynamicBoneParameters = null;
                 if (swayingParametersConverter != null)
@@ -140,21 +182,33 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 }
                 if (dynamicBoneParameters != null)
                 {
-                    dynamicBone.m_Damping = dynamicBoneParameters.Damping;
-                    dynamicBone.m_DampingDistrib = dynamicBoneParameters.DampingDistrib;
-                    dynamicBone.m_Elasticity = dynamicBoneParameters.Elasticity;
-                    dynamicBone.m_ElasticityDistrib = dynamicBoneParameters.ElasticityDistrib;
-                    dynamicBone.m_Stiffness = dynamicBoneParameters.Stiffness;
-                    dynamicBone.m_StiffnessDistrib = dynamicBoneParameters.StiffnessDistrib;
-                    dynamicBone.m_Inert = dynamicBoneParameters.Inert;
-                    dynamicBone.m_InertDistrib = dynamicBoneParameters.InertDistrib;
+                    DynamicBoneType.GetField("m_Damping").SetValue(dynamicBone, dynamicBoneParameters.Damping);
+                    DynamicBoneType.GetField("m_DampingDistrib")
+                        .SetValue(dynamicBone, dynamicBoneParameters.DampingDistrib);
+                    DynamicBoneType.GetField("m_Elasticity").SetValue(dynamicBone, dynamicBoneParameters.Elasticity);
+                    DynamicBoneType.GetField("m_ElasticityDistrib")
+                        .SetValue(dynamicBone, dynamicBoneParameters.ElasticityDistrib);
+                    DynamicBoneType.GetField("m_Stiffness").SetValue(dynamicBone, dynamicBoneParameters.Stiffness);
+                    DynamicBoneType.GetField("m_StiffnessDistrib")
+                        .SetValue(dynamicBone, dynamicBoneParameters.StiffnessDistrib);
+                    DynamicBoneType.GetField("m_Inert").SetValue(dynamicBone, dynamicBoneParameters.Inert);
+                    DynamicBoneType.GetField("m_InertDistrib")
+                        .SetValue(dynamicBone, dynamicBoneParameters.InertDistrib);
                 }
 
-                dynamicBone.m_Gravity = springBone.m_gravityDir * springBone.m_gravityPower;
+                DynamicBoneType.GetField("m_Gravity")
+                    .SetValue(dynamicBone, springBone.m_gravityDir * springBone.m_gravityPower);
                 if (dynamicBoneColliderGroups != null)
                 {
-                    dynamicBone.m_Colliders = new List<DynamicBoneColliderBase>();
-                    dynamicBone.m_Colliders.AddRange(springBone.ColliderGroups.SelectMany(colliderGroup => dynamicBoneColliderGroups[colliderGroup]).ToList());
+                    var colliders = Activator.CreateInstance(type: DynamicBoneColliderBaseListType);
+                    MethodInfo addMethod = DynamicBoneColliderBaseListType.GetMethod("Add");
+                    foreach (var collider in springBone.ColliderGroups.SelectMany(
+                            colliderGroup => dynamicBoneColliderGroups[colliderGroup]
+                    ))
+                    {
+                        addMethod.Invoke(colliders, new[] { collider });
+                    }
+                    DynamicBoneType.GetField("m_Colliders").SetValue(dynamicBone, colliders);
                 }
             }
         }
