@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using UnityEngine;
 using VRM;
 
@@ -128,6 +128,37 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     }
                     return binding;
                 }).ToArray();
+            }
+        }
+
+        /// <summary>
+        /// 指定した<see cref="BlendShapeBinding"/>を置換します。
+        /// </summary>
+        /// <param name="blendShapeAvatar"></param>
+        /// <param name="oldBinding"></param>
+        /// <param name="newBinding"></param>
+        internal static void ReplaceBlendShapeBinding(
+            BlendShapeAvatar blendShapeAvatar,
+            BlendShapeBinding oldBinding,
+            BlendShapeBinding newBinding
+        ) {
+            foreach (BlendShapeClip clip in blendShapeAvatar.Clips)
+            {
+                if (!clip || clip.Values == null)
+                {
+                    continue;
+                }
+
+                for (var i = 0; i < clip.Values.Length; i++)
+                {
+                    BlendShapeBinding binding = clip.Values[i];
+                    if (!binding.Equals(oldBinding))
+                    {
+                        continue;
+                    }
+
+                    clip.Values[i] = newBinding;
+                }
             }
         }
     }

@@ -154,6 +154,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         };
 
         /// <summary>
+        /// ハンドサイン用にシェイプキーを複製したときに前置する文字列。
+        /// </summary>
+        private static readonly string FeelingsShapeKeyPrefix = "vrc.feelings.";
+
+        /// <summary>
         /// クラスに含まれる処理を適用します。
         /// </summary>
         /// <param name="avatar"></param>
@@ -302,8 +307,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 {
                     BlendShapeBinding binding = clip.Values[i];
 
-                    var blendShapeName = "blink-" + Random.value;
-                    if (!DuplicateBlendShape(avatar: avatar, binding: binding, newBlendShapeName: blendShapeName))
+                    Transform meshObject = avatar.transform.Find(name: binding.RelativePath);
+                    if (!meshObject)
+                    {
+                        continue;
+                    }
+
+                    var renderer = meshObject.GetComponent<SkinnedMeshRenderer>();
+                    if (!renderer || !renderer.sharedMesh)
                     {
                         continue;
                     }
@@ -568,11 +579,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 fileName: preset + ".anim"
             );
 
-            SetBlendShapeCurves(animationClip: anim, avatar: avatar, preset: preset, keys: new Dictionary<float, float> {
-                { 0, 1 },
-                { anim.length, 1 },
-            });
-
             if (!string.IsNullOrEmpty(relativePathToNeutralAndBlinkMesh))
             {
                 var curve = new AnimationCurve();
@@ -585,7 +591,18 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     propertyName: "m_Enabled",
                     curve: curve
                 );
+
+                BlendShapeReplacer.DuplicateShapeKeyToUnique(
+                    avatar: avatar,
+                    preset: preset,
+                    relativePathToNeutralAndBlinkMesh: relativePathToNeutralAndBlinkMesh
+                );
             }
+
+            SetBlendShapeCurves(animationClip: anim, avatar: avatar, preset: preset, keys: new Dictionary<float, float> {
+                { 0, 1 },
+                { anim.length, 1 },
+            });
 
             return anim;
         }
@@ -606,57 +623,73 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         }
 
         /// <summary>
-        /// 指定されたブレンドシェイプを複製します。
+        /// 指定されたブレンドシェイプに、<see cref="BlendShapePreset.Neutral"/>、および<see cref="BlendShapePreset.Blink"/>に含まれるシェイプキーと
+        /// 同一のシェイプキーが含まれていれば、そのシェイプキーを複製します。
         /// </summary>
         /// <param name="avatar"></param>
-        /// <param name="binding"></param>
-        /// <param name="newBlendShapeName"></param>
-        /// <returns>対応するメッシュが見つからなかった場合、<c>false</c> を返します。</returns>
-        private static bool DuplicateBlendShape(GameObject avatar, BlendShapeBinding binding, string newBlendShapeName)
+        /// <param name="preset"></param>
+        /// <param name="relativePathToNeutralAndBlinkMesh"></param>
+        private static void DuplicateShapeKeyToUnique(
+            GameObject avatar,
+            BlendShapePreset preset,
+            string relativePathToNeutralAndBlinkMesh
+        )
         {
-            Transform face = avatar.transform.Find(name: binding.RelativePath);
-            if (!face)
+            BlendShapeAvatar blendShapeAvatar = avatar.GetComponent<VRMBlendShapeProxy>().BlendShapeAvatar;
+
+            int[] neutralAndBlinkShapeKeyIndices = new[] { BlendShapePreset.Neutral, BlendShapePreset.Blink }
+                .Select(selector: blendShapePreset => blendShapeAvatar.GetClip(preset: blendShapePreset))
+                .SelectMany(selector: blendShapeClip => blendShapeClip.Values)
+                .Where(predicate: binding => binding.RelativePath == relativePathToNeutralAndBlinkMesh)
+                .Select(selector: binding => binding.Index)
+                .ToArray();
+
+            BlendShapeClip clip = blendShapeAvatar.GetClip(preset: preset);
+            Mesh mesh = avatar.transform.Find(name: relativePathToNeutralAndBlinkMesh)
+                .GetComponent<SkinnedMeshRenderer>().sharedMesh;
+            for (var i = 0; i < clip.Values.Length; i++)
             {
-                return false;
-            }
+                BlendShapeBinding binding = clip.Values[i];
+                if (binding.RelativePath != relativePathToNeutralAndBlinkMesh
+                    || !neutralAndBlinkShapeKeyIndices.Contains(binding.Index))
+                {
+                    continue;
+                }
 
-            var renderer = face.GetComponent<SkinnedMeshRenderer>();
-            if (!renderer)
-            {
-                return false;
-            }
+                var name = BlendShapeReplacer.FeelingsShapeKeyPrefix + mesh.GetBlendShapeName(binding.Index);
+                var frameCount = mesh.GetBlendShapeFrameCount(shapeIndex: binding.Index);
+                for (var j = 0; j < frameCount; j++)
+                {
+                    var deltaVertices = new Vector3[mesh.vertexCount];
+                    var deltaNormals = new Vector3[mesh.vertexCount];
+                    var deltaTangents = new Vector3[mesh.vertexCount];
 
-            Mesh mesh = renderer.sharedMesh;
+                    mesh.GetBlendShapeFrameVertices(
+                        shapeIndex: binding.Index,
+                        frameIndex: j,
+                        deltaVertices: deltaVertices,
+                        deltaNormals: deltaNormals,
+                        deltaTangents: deltaTangents
+                    );
 
-            var frameCount = mesh.GetBlendShapeFrameCount(shapeIndex: binding.Index);
-            for (var i = 0; i < frameCount; i++)
-            {
-                var deltaVertices = new Vector3[mesh.vertexCount];
-                var deltaNormals = new Vector3[mesh.vertexCount];
-                var deltaTangents = new Vector3[mesh.vertexCount];
+                    mesh.AddBlendShapeFrame(
+                        shapeName: name,
+                        frameWeight: mesh.GetBlendShapeFrameWeight(shapeIndex: binding.Index, frameIndex: j),
+                        deltaVertices: deltaVertices,
+                        deltaNormals: deltaNormals,
+                        deltaTangents: deltaTangents
+                    );
+                }
 
-                mesh.GetBlendShapeFrameVertices(
-                    shapeIndex: binding.Index,
-                    frameIndex: i,
-                    deltaVertices: deltaVertices,
-                    deltaNormals: deltaNormals,
-                    deltaTangents: deltaTangents
+                EditorUtility.SetDirty(target: mesh);
+
+                binding.Index = mesh.GetBlendShapeIndex(blendShapeName: name);
+                VRMUtility.ReplaceBlendShapeBinding(
+                    blendShapeAvatar: blendShapeAvatar,
+                    oldBinding: clip.Values[i],
+                    newBinding: binding
                 );
-
-                mesh.AddBlendShapeFrame(
-                    shapeName: newBlendShapeName,
-                    frameWeight: mesh.GetBlendShapeFrameWeight(shapeIndex: binding.Index, frameIndex: i),
-                    deltaVertices: deltaVertices,
-                    deltaNormals: deltaNormals,
-                    deltaTangents: deltaTangents
-                );
             }
-
-            EditorUtility.SetDirty(target: mesh);
-
-            binding.Index = mesh.GetBlendShapeIndex(blendShapeName: newBlendShapeName);
-
-            return true;
         }
     }
 }
