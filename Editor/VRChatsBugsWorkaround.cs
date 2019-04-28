@@ -60,7 +60,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <https://jellyfish-qrage.hatenablog.com/entry/2018/07/25/034610>
         /// </remarks>
         internal static readonly int MaxAutoEyeMovementDegree = 30;
-        
+
         /// <summary>
         /// VRChat上でなで肩・いかり肩になる問題を解消するために変更する必要があるボーン。
         /// </summary>
@@ -74,6 +74,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             HumanBodyBones.RightShoulder,
             HumanBodyBones.LeftUpperArm,
             HumanBodyBones.RightUpperArm
+        };
+
+        /// 『セシル変身アプリ』の目ボーンのパス。
+        /// </summary>
+        internal static readonly IDictionary<HumanBodyBones, string> CecilHenShinEyeBonePaths = new Dictionary<HumanBodyBones, string>() {
+            { HumanBodyBones.LeftEye,  "Armature/Hips/Spine/Spine1/Spine2/Neck/Head/MeRoot/Me_L/LeftEyeRoot/LeftEye"   },
+            { HumanBodyBones.RightEye, "Armature/Hips/Spine/Spine1/Spine2/Neck/Head/MeRoot/Me_R/RightEyeRoot/RightEye" },
         };
 
         /// <summary>
@@ -96,6 +103,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             VRChatsBugsWorkaround.EnableAnimationOvrride(avatar: avatar);
             if (enableAutoEyeMovement)
             {
+                VRChatsBugsWorkaround.SetEyeBonesForCecilHenShin(avatar: avatar);
                 VRChatsBugsWorkaround.EnableAutoEyeMovement(avatar: avatar);
                 VRChatsBugsWorkaround.ApplyAutoEyeMovementDegreeMapping(avatar: avatar);
             }
@@ -186,6 +194,37 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
             
             avatarDescription.human = avatarDescription.human.Concat(addedBoneLimits).ToArray();
+            ApplyAvatarDescription(avatar: avatar);
+        }
+
+        /// <summary>
+        /// 『セシル変身アプリ』で出力されたモデルに<see cref="HumanBodyBones.LeftEye"/>、<see cref="HumanBodyBones.RightEye"/>を設定します。
+        /// </summary>
+        /// <param name="avatar"></param>
+        private static void SetEyeBonesForCecilHenShin(GameObject avatar)
+        {
+            AvatarDescription avatarDescription = avatar.GetComponent<VRMHumanoidDescription>().Description;
+
+            List<BoneLimit> boneLimits = avatarDescription.human.ToList();
+
+            var eyeHumanBones = new[] { HumanBodyBones.LeftEye, HumanBodyBones.RightEye };
+
+            foreach (HumanBodyBones humanBone in eyeHumanBones) {
+                string path = VRChatsBugsWorkaround.CecilHenShinEyeBonePaths[humanBone];
+
+                if (!string.IsNullOrEmpty(boneLimits.FirstOrDefault(predicate: boneLimit => boneLimit.humanBone == humanBone).boneName)
+                    || !avatar.transform.Find(path))
+                {
+                    return;
+                }
+
+                boneLimits.Add(new BoneLimit {
+                    humanBone = humanBone,
+                    boneName = path.Split('/').Last(),
+                });
+            }
+
+            avatarDescription.human = boneLimits.ToArray();
             ApplyAvatarDescription(avatar: avatar);
         }
 
