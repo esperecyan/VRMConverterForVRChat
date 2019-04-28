@@ -365,19 +365,19 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                         switch (index)
                         {
                             case 0:
-                                boneWeight.weight0 = eyeBoneWeight;
                                 boneWeight.boneIndex1 = headBoneIndex;
-                                boneWeight.weight1 = headBoneWeight;
+                                boneWeight.weight1 = boneWeight.weight0 * headBoneWeight;
+                                boneWeight.weight0 *= eyeBoneWeight;
                                 break;
                             case 1:
-                                boneWeight.weight1 = eyeBoneWeight;
                                 boneWeight.boneIndex2 = headBoneIndex;
-                                boneWeight.weight2 = headBoneWeight;
+                                boneWeight.weight2 = boneWeight.weight1 * headBoneWeight;
+                                boneWeight.weight1 *= eyeBoneWeight;
                                 break;
                             case 2:
-                                boneWeight.weight2 = eyeBoneWeight;
                                 boneWeight.boneIndex3 = headBoneIndex;
-                                boneWeight.weight3 = headBoneWeight;
+                                boneWeight.weight3 = boneWeight.weight2 * headBoneWeight;
+                                boneWeight.weight2 *= eyeBoneWeight;
                                 break;
                         }
                     }
