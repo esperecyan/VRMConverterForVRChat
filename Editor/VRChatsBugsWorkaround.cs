@@ -329,7 +329,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             Transform headBone = avatar.GetComponent<VRMFirstPerson>().FirstPersonBone;
             var eyeBones = new[] { HumanBodyBones.RightEye, HumanBodyBones.LeftEye }
-                .Select(id => avatar.GetComponent<Animator>().GetBoneTransform(humanBoneId: id));
+                .SelectMany(id => avatar.GetComponent<Animator>().GetBoneTransform(humanBoneId: id).GetComponentsInChildren<Transform>());
 
             foreach (var renderer in avatar.GetComponentsInChildren<SkinnedMeshRenderer>())
             {
