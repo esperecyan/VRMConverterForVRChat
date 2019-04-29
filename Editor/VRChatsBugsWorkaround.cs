@@ -360,6 +360,16 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 return;
             }
 
+            var animator = avatar.GetComponent<Animator>();
+            Transform[] eyes = new[] { HumanBodyBones.RightEye, HumanBodyBones.LeftEye }
+                .Select(id => animator.GetBoneTransform(humanBoneId: id))
+                .Where(transform => transform)
+                .ToArray();
+            if (eyes.Length == 0)
+            {
+                return;
+            }
+
             float minDegree = new[] { lookAtBoneApplyer.HorizontalOuter, lookAtBoneApplyer.HorizontalInner, lookAtBoneApplyer.VerticalDown, lookAtBoneApplyer.VerticalUp }
                 .Select(mapper => mapper.CurveYRangeDegree)
                 .Min();
@@ -367,8 +377,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             float headBoneWeight = 1 - eyeBoneWeight;
 
             Transform headBone = avatar.GetComponent<VRMFirstPerson>().FirstPersonBone;
-            var eyeBones = new[] { HumanBodyBones.RightEye, HumanBodyBones.LeftEye }
-                .SelectMany(id => avatar.GetComponent<Animator>().GetBoneTransform(humanBoneId: id).GetComponentsInChildren<Transform>());
+            var eyeBones = eyes.SelectMany(eye => eye.GetComponentsInChildren<Transform>());
 
             foreach (var renderer in avatar.GetComponentsInChildren<SkinnedMeshRenderer>())
             {
