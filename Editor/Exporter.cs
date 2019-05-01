@@ -14,7 +14,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
     internal class Exporter
     {
         private static readonly Regex ExcludedFilePathPattern
-            = new Regex(pattern: @"/(?:Exporter\.cs|SwayingObjectsConverter\.cs|MToon-.+\.shader)$");
+            = new Regex(pattern: @"/(?:Exporter\.cs|MToon-.+\.shader)$");
 
         private static readonly Regex ExcludedFilePathPatternInUniVRM = new Regex(pattern: @"/[^/]+-[^/]+\.shader$");
 
@@ -23,9 +23,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         [MenuItem(itemName: "Assets/Export " + Converter.Name, isValidateFunction: false, priority: 30)]
         private static void Export()
         {
-            string swayingObjectsConverterPath = UnityPath.FromUnityPath(Converter.RootFolderPath).Child("Editor/SwayingObjectsConverter.cs").Value;
-            AssetDatabase.CopyAsset(swayingObjectsConverterPath, swayingObjectsConverterPath + ".bak");
-
             string[] allAssetPathNames = AssetDatabase.GetAllAssetPaths();
 
             IEnumerable<string> assetPathNames = allAssetPathNames
