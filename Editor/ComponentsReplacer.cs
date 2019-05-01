@@ -55,7 +55,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         private static readonly Type DynamicBoneType = Type.GetType("DynamicBone, Assembly-CSharp");
         private static readonly Type DynamicBoneColliderType = Type.GetType("DynamicBoneCollider, Assembly-CSharp");
         private static readonly Type DynamicBoneColliderBaseListType
-            = typeof(List<>).MakeGenericType(Type.GetType("DynamicBoneColliderBase, Assembly-CSharp"));
+            = Type.GetType("System.Collections.Generic.List`1[[DynamicBoneColliderBase, Assembly-CSharp]]");
 
         /// <summary>
         /// クラスに含まれる処理を適用します。
