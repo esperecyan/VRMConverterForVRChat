@@ -20,6 +20,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     { "Take Over Swaying Parameters", "揺れパラメータ引き継ぎ" },
                     { "Shoulder Heights", "肩の高さ" },
                     { "Use Old Mtoon", "MToon 1.7を使用" },
+                    { "Fix Prone Avatar Position", "伏せアバターの位置ズレ補正" },
                     { "Callback Functions", "コールバック関数" },
                     { "Not set “{0}” component.", "{0}コンポーネントが設定されていません。" },
                     { "VRMSpringBones with the below Comments do not exist.", "以下のCommentを持つVRMSpringBoneは存在しません。" },

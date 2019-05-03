@@ -503,42 +503,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         }
 
         /// <summary>
-        /// <see cref="VRC_AvatarDescriptor.CustomStandingAnims"/>、および<see cref="VRC_AvatarDescriptor.CustomSittingAnims"/>を作成します。
-        /// </summary>
-        /// <param name="avatar"></param>
-        /// <returns></returns>
-        private static void AddCustomAnims(GameObject avatar)
-        {
-            var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
-            var template = AssetDatabase.LoadMainAssetAtPath(VRChatUtility.CustomAnimsTemplatePath);
-
-            if (!avatarDescriptor.CustomStandingAnims)
-            {
-                avatarDescriptor.CustomStandingAnims = Duplicator.DuplicateAssetToFolder<AnimatorOverrideController>(
-                    source: template,
-                    prefabInstance: avatar,
-                    fileName: "CustomStandingAnims.overrideController"
-                );
-            }
-
-            if (!avatarDescriptor.CustomSittingAnims)
-            {
-                avatarDescriptor.CustomSittingAnims = Duplicator.DuplicateAssetToFolder<AnimatorOverrideController>(
-                    source: template,
-                    prefabInstance: avatar,
-                    fileName: "CustomSittingAnims.overrideController"
-                );
-            }
-        }
-
-        /// <summary>
         /// 手の形に喜怒哀楽を割り当てます。
         /// </summary>
         /// <param name="avatar"></param>
         /// <param name="relativePathToNeutralAndBlinkMesh"></param>
         private static void SetFeelings(GameObject avatar, string relativePathToNeutralAndBlinkMesh)
         {
-            AddCustomAnims(avatar: avatar);
+            VRChatUtility.AddCustomAnims(avatar: avatar);
 
             var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
 

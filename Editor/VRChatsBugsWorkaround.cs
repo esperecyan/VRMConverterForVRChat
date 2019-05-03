@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using UnityEditor.Animations;
 using VRM;
 using UniHumanoid;
 using UniGLTF;
@@ -84,18 +85,25 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         };
 
         /// <summary>
+        /// VRChatで伏せ姿勢に使用するアニメーション名。
+        /// </summary>
+        private static readonly IEnumerable<string> ProneVRChatAnims = new[] { "PRONEIDLE", "PRONEFWD" };
+
+        /// <summary>
         /// クラスに含まれる処理を適用します。
         /// </summary>
         /// <param name="avatar"></param>
         /// <param name="enableAutoEyeMovement">オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。</param>
         /// <param name="addedShouldersPositionY">VRChat上でモデルがなで肩・いかり肩になる問題について、Shoulder/UpperArmボーンのPositionのYに加算する値。</param>
         /// <param name="changeMaterialsForWorldsNotHavingDirectionalLight">Directional Lightがないワールド向けにマテリアルを変更するなら <c>true</c>。</param>
+        /// <param name="fixProneAvatarPosition">伏せたときのアバターの位置が、自分視点と他者視点で異なるVRChatのバグに対処するなら <c>true</c>。</param>
         /// <returns>変換中に発生したメッセージ。</returns>
         internal static IEnumerable<Converter.Message> Apply(
             GameObject avatar,
             bool enableAutoEyeMovement,
             float addedShouldersPositionY,
-            bool changeMaterialsForWorldsNotHavingDirectionalLight
+            bool changeMaterialsForWorldsNotHavingDirectionalLight,
+            bool fixProneAvatarPosition
         ) {
             var messages = new List<Converter.Message>();
             
@@ -129,6 +137,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     ),
                     type = MessageType.Warning,
                 });
+            }
+            if (fixProneAvatarPosition)
+            {
+                VRChatsBugsWorkaround.FixProneAvatarPosition(avatar: avatar);
             }
 
             return messages;
@@ -652,6 +664,45 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             else
             {
                 return definedRenderQueue + "+" + (renderQueue - (int)definedRenderQueue);
+            }
+        }
+
+        /// <summary>
+        /// 伏せ姿勢のときに、アバターの位置が自分視点と他者視点でズレるバグについて、位置を補正します。
+        /// </summary>
+        /// <param name="avatar"></param>
+        /// <remarks>
+        /// 参照:
+        /// Fix the prone animation head position | Bug Reports | VRChat
+        /// <https://vrchat.canny.io/bug-reports/p/fix-the-prone-animation-head-position>
+        /// ぐらさんのツイート: “うつ伏せや不思議なポーズでVR睡眠している方へ 非フルトラやデスクトップ勢でもちゃんと仰向けになってVR睡眠出来るんです！ (アニメーションで表情とか弄った事ある方向け。) (位置ズレ問題解消出来たので投稿します。一緒に寝てくれる人増えてほしいな。。。)… https://t.co/C8oQcYcqx5”
+        /// <https://twitter.com/tsuntegura/status/1096715678491398144>
+        /// </remarks>
+        private static void FixProneAvatarPosition(GameObject avatar)
+        {
+            VRChatUtility.AddCustomAnims(avatar: avatar);
+
+            var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
+
+            Vector3 gap = avatarDescriptor.ViewPosition
+                - avatar.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips).position;
+            float zGap = gap.y - gap.z;
+
+            foreach (string anim in VRChatsBugsWorkaround.ProneVRChatAnims)
+            {
+                AnimationClip clip = Duplicator.DuplicateAssetToFolder<AnimationClip>(
+                    source: UnityPath.FromUnityPath(Converter.RootFolderPath).Child("Editor").Child(anim + ".anim")
+                        .LoadAsset<AnimationClip>(),
+                    prefabInstance: avatar,
+                    fileName: anim + "-position-fixed.anim"
+                );
+
+                var curve = new AnimationCurve();
+                curve.AddKey(time: 0, value: -zGap);
+                curve.AddKey(time: clip.length, value: -zGap);
+                clip.SetCurve(relativePath: "", type: typeof(Transform), propertyName: "localPosition.z", curve: curve);
+
+                avatarDescriptor.CustomStandingAnims[anim] = clip;
             }
         }
     }

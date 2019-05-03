@@ -3,6 +3,7 @@ using System.IO;
 using UnityEngine;
 using UnityEditor;
 using VRC.Core;
+using VRCSDK2;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
 {
@@ -99,6 +100,35 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         internal static string GetSupportedUnityVersion()
         {
             return RemoteConfig.HasKey("sdkUnityVersion") ? RemoteConfig.GetString("sdkUnityVersion") : "";
+        }
+
+        /// <summary>
+        /// <see cref="VRC_AvatarDescriptor.CustomStandingAnims"/>、および<see cref="VRC_AvatarDescriptor.CustomSittingAnims"/>を作成します。
+        /// </summary>
+        /// <param name="avatar"></param>
+        /// <returns></returns>
+        internal static void AddCustomAnims(GameObject avatar)
+        {
+            var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
+            var template = AssetDatabase.LoadMainAssetAtPath(VRChatUtility.CustomAnimsTemplatePath);
+
+            if (!avatarDescriptor.CustomStandingAnims)
+            {
+                avatarDescriptor.CustomStandingAnims = Duplicator.DuplicateAssetToFolder<AnimatorOverrideController>(
+                    source: template,
+                    prefabInstance: avatar,
+                    fileName: "CustomStandingAnims.overrideController"
+                );
+            }
+
+            if (!avatarDescriptor.CustomSittingAnims)
+            {
+                avatarDescriptor.CustomSittingAnims = Duplicator.DuplicateAssetToFolder<AnimatorOverrideController>(
+                    source: template,
+                    prefabInstance: avatar,
+                    fileName: "CustomSittingAnims.overrideController"
+                );
+            }
         }
     }
 }
