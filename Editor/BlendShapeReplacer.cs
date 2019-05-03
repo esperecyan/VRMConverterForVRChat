@@ -272,14 +272,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <returns>設定を行った場合、対象の<c>avatar</c>から対象のメッシュまでの相対パスを返します。</returns>
         private static string SetNeutralAndBlink(GameObject avatar)
         {
-            var controllerTemplate
-                = UnityPath.FromUnityPath(Converter.RootFolderPath).Child("Editor").Child("blink.controller").LoadAsset<AnimatorController>();
-
-            var neutralAndBlinkController = Duplicator.DuplicateAssetToFolder<AnimatorController>(
-                source: controllerTemplate,
-                prefabInstance: avatar
-            );
-            var animationClip = UnityPath.FromAsset(neutralAndBlinkController).LoadAsset<AnimationClip>();
+            AnimatorController neutralAndBlinkController
+                = BlendShapeReplacer.CreateSingleAnimatorController(avatar: avatar, name: "blink");
+            AnimationClip animationClip = neutralAndBlinkController.animationClips[0];
 
             var relativePath = "";
 
@@ -409,12 +404,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             // 親にまばたき干渉回避用のコントローラーを入れる
             Transform parent = neutralAndBlinkMesh.parent;
-            var blinkStopperController = Duplicator.DuplicateAssetToFolder<AnimatorController>(
-                source: controllerTemplate,
-                prefabInstance: avatar,
-                fileName: "blink-stopper.controller"
-            );
-            animationClip = AssetDatabase.LoadAssetAtPath<AnimationClip>(assetPath: AssetDatabase.GetAssetPath(blinkStopperController));
+
+
+            AnimatorController blinkStopperController
+                = BlendShapeReplacer.CreateSingleAnimatorController(avatar: avatar, name: "blink-stopper");
+            animationClip = blinkStopperController.animationClips[0];
             var curve = new AnimationCurve();
             foreach (var pair in BlendShapeReplacer.NeutralAndBlinkStopperWeights)
             {
@@ -431,6 +425,44 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             animator.enabled = false;
 
             return relativePath;
+        }
+
+        /// <summary>
+        /// 単一アニメーションループ用に、空のコントローラーとアニメーションクリップを作成します。
+        /// </summary>
+        /// <remarks>
+        /// 保存先にすでにアニメーションクリップが存在する場合、空にして返します。
+        /// </remarks>
+        /// <param name="avatar"></param>
+        /// <param name="name"></param>
+        private static AnimatorController CreateSingleAnimatorController(GameObject avatar, string name)
+        {
+            var path = Duplicator.DetermineAssetPath(
+                prefabPath: AssetDatabase.GetAssetPath(PrefabUtility.GetPrefabParent(avatar)),
+                type: typeof(AnimatorController),
+                fileName: name
+            );
+            var controllerPath = path + ".controller";
+            var clipPath = path + ".anim";
+
+            var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(controllerPath);
+            var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(clipPath);
+            if (controller && clip)
+            {
+                clip.ClearCurves();
+                return controller;
+            }
+
+            AssetDatabase.MoveAssetToTrash(controllerPath);
+            AssetDatabase.MoveAssetToTrash(clipPath);
+
+            clip = new AnimationClip();
+            AnimationClipSettings settings = AnimationUtility.GetAnimationClipSettings(clip);
+            settings.loopTime = true;
+            AnimationUtility.SetAnimationClipSettings(clip, settings);
+            AssetDatabase.CreateAsset(clip, clipPath);
+
+            return AnimatorController.CreateAnimatorControllerAtPathWithClip(controllerPath, clip);
         }
 
         /// <summary>

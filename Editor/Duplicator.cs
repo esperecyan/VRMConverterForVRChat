@@ -46,17 +46,15 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         }
 
         /// <summary>
-        /// アセットをプレハブが置かれているディレクトリの直下のフォルダへ複製します。
+        /// アセットの種類に応じて、保存先を決定します。
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="source">複製元のオブジェクト。</param>
         /// <param name="prefabPath">「Assets/」から始まるプレハブのパス。</param>
-        /// <param name="fileName">ファイル名が複製元と異なる場合に指定。</param>
-        /// <returns></returns>
-        internal static T DuplicateAssetToFolder<T>(UnityEngine.Object source, string prefabPath, string fileName = "") where T : UnityEngine.Object
+        /// <param name="type">アセットの種類。</param>
+        /// <param name="fileName">ファイル名。</param>
+        /// <returns>「Assets/」から始まるパス。</returns>
+        internal static string DetermineAssetPath(string prefabPath, Type type, string fileName = "")
         {
             var destinationFolderUnityPath = UnityPath.FromUnityPath(prefabPath);
-            Type type = typeof(T);
             foreach (KeyValuePair<Type, string> typeAndSuffix in Duplicator.FolderNameSuffixes)
             {
                 if (typeAndSuffix.Key.IsAssignableFrom(type))
@@ -68,6 +66,19 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             destinationFolderUnityPath.EnsureFolder();
 
+            return destinationFolderUnityPath.Child(fileName).Value;
+        }
+
+        /// <summary>
+        /// アセットをプレハブが置かれているディレクトリの直下のフォルダへ複製します。
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source">複製元のオブジェクト。</param>
+        /// <param name="prefabPath">「Assets/」から始まるプレハブのパス。</param>
+        /// <param name="fileName">ファイル名が複製元と異なる場合に指定。</param>
+        /// <returns></returns>
+        internal static T DuplicateAssetToFolder<T>(UnityEngine.Object source, string prefabPath, string fileName = "") where T : UnityEngine.Object
+        {
             string destinationFileName;
             if (string.IsNullOrEmpty(fileName))
             {
@@ -86,7 +97,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 destinationFileName = fileName;
             }
 
-            string destinationPath = destinationFolderUnityPath.Child(destinationFileName).Value;
+            string destinationPath
+                = Duplicator.DetermineAssetPath(prefabPath: prefabPath, type: typeof(T), fileName: destinationFileName);
             Duplicator.DuplicateAsset(source: source, destinationPath: destinationPath);
 
             return AssetDatabase.LoadAssetAtPath<T>(destinationPath);
