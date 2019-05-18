@@ -83,7 +83,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// 伏せたときのアバターの位置が、自分視点と他者視点で異なるVRChatのバグに対処するなら <c>true</c>。
         /// </summary>
         [SerializeField, Localizable]
-        private bool fixProneAvatarPosition = true;
+        private bool fixProneAvatarPosition = false;
 
         /// <summary>
         /// 各種コールバック関数のユーザー設定値。
@@ -358,6 +358,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     EditorGUILayout.HelpBox(string.Format(Gettext._("Not set “{0}” component."), type), MessageType.Error);
                     isValid = false;
                 }
+            }
+
+            if (this.fixProneAvatarPosition)
+            {
+                EditorGUILayout.HelpBox(Gettext._("There is a possibility that the workaround “Fix Prone Avatar Position” causes the below issues, particularly in models been output from “VRoid Studio” or “Cecil HenShin Application.\n"
+                    + "• The dynamic bones will randomly vibrate.\n"
+                    + "• The avatar’s meshes(including meshes not applying dynamic bones) blink and disappear.\n"
+                    + "* These increase with time."), MessageType.Error);
             }
 
             IEnumerable<string> excludedSpringBoneComments = this.excludedSpringBoneComments.Except(new[] { "" });

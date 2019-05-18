@@ -55,7 +55,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             bool enableAutoEyeMovement = true,
             float addedShouldersPositionY = 0.0f,
             bool changeMaterialsForWorldsNotHavingDirectionalLight = true,
-            bool fixProneAvatarPosition = true
+            bool fixProneAvatarPosition = false
         ) {
             var messages = new List<Converter.Message>();
             messages.AddRange(GeometryCorrector.Apply(avatar: prefabInstance));
