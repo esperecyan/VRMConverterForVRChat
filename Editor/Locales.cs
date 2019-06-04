@@ -21,16 +21,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     { "Shoulder Heights", "肩の高さ" },
                     { "Use Old Mtoon", "MToon 1.7を使用" },
                     { "Fix Prone Avatar Position", "伏せアバターの位置ズレ補正" },
-                    {
-                        "There is a possibility that the workaround “Fix Prone Avatar Position” causes the below issues, particularly in models been output from “VRoid Studio” or “Cecil HenShin Application.\n"
-                            + "• The dynamic bones will randomly vibrate.\n"
-                            + "• The avatar’s meshes(including meshes not applying dynamic bones) blink and disappear.\n"
-                            + "* These increase with time.",
-                        "「伏せアバターの位置ズレ補正」は、とくに「VRoid Studio」「セシル変身アプリ」から出力されたモデルで、次のような問題を引き起こす可能性が高いです。\n\n"
-                            + "• Dynamic Bone が不規則に振動します。\n"
-                            + "• アバターのメッシュが、Dynamic Bone と関係がないものも含めて、点滅して消えます。\n"
-                            + "※これらの症状は時間の経過で悪化します。"
-                    },
                     { "Callback Functions", "コールバック関数" },
                     { "Not set “{0}” component.", "{0}コンポーネントが設定されていません。" },
                     { "VRMSpringBones with the below Comments do not exist.", "以下のCommentを持つVRMSpringBoneは存在しません。" },

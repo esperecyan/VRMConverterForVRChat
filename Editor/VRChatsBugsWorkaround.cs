@@ -675,8 +675,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// 参照:
         /// Fix the prone animation head position | Bug Reports | VRChat
         /// <https://vrchat.canny.io/bug-reports/p/fix-the-prone-animation-head-position>
-        /// ぐらさんのツイート: “うつ伏せや不思議なポーズでVR睡眠している方へ 非フルトラやデスクトップ勢でもちゃんと仰向けになってVR睡眠出来るんです！ (アニメーションで表情とか弄った事ある方向け。) (位置ズレ問題解消出来たので投稿します。一緒に寝てくれる人増えてほしいな。。。)… https://t.co/C8oQcYcqx5”
-        /// <https://twitter.com/tsuntegura/status/1096715678491398144>
+        /// Sigさんのツイート: “VRChatにて、フルボディトラッキングじゃないけど寝たい！って人向けのモーションをアップデート。腕もある程度動かせます 画像を参考に導入し、あとはリアルの床に寝るだけ。 VR睡眠の沼に落ちよう！ ・目線のずれを若干修正 ・体や手の指が微妙に揺れるように https://t.co/DDEoOQNLnk … #VRChat… https://t.co/Cd0QKipSO7”
+        /// <https://twitter.com/sleepyslowsheep/status/1035007669537406977>
         /// </remarks>
         private static void FixProneAvatarPosition(GameObject avatar)
         {
@@ -700,7 +700,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 var curve = new AnimationCurve();
                 curve.AddKey(time: 0, value: -zGap);
                 curve.AddKey(time: clip.length, value: -zGap);
-                clip.SetCurve(relativePath: "", type: typeof(Transform), propertyName: "localPosition.z", curve: curve);
+                clip.SetCurve(relativePath: "", type: typeof(Animator), propertyName: "RootT.z", curve: curve);
 
                 avatarDescriptor.CustomStandingAnims[anim] = clip;
             }
