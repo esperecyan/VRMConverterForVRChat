@@ -74,12 +74,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         private float shoulderHeights;
 
         /// <summary>
-        /// Directional Lightがないワールド向けにマテリアルを変更するなら <c>true</c>。
-        /// </summary>
-        [SerializeField, Localizable]
-        private bool useOldMtoon = true;
-
-        /// <summary>
         /// 伏せたときのアバターの位置が、自分視点と他者視点で異なるVRChatのバグに対処するなら <c>true</c>。
         /// </summary>
         [SerializeField, Localizable]
@@ -439,7 +433,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 swayingParametersConverter: this.swayingParametersConverter,
                 enableAutoEyeMovement: this.enableEyeMovement,
                 addedShouldersPositionY: this.shoulderHeights,
-                changeMaterialsForWorldsNotHavingDirectionalLight: this.useOldMtoon,
                 fixProneAvatarPosition: this.fixProneAvatarPosition
             );
 

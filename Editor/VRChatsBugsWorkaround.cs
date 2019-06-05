@@ -95,14 +95,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="avatar"></param>
         /// <param name="enableAutoEyeMovement">オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。</param>
         /// <param name="addedShouldersPositionY">VRChat上でモデルがなで肩・いかり肩になる問題について、Shoulder/UpperArmボーンのPositionのYに加算する値。</param>
-        /// <param name="changeMaterialsForWorldsNotHavingDirectionalLight">Directional Lightがないワールド向けにマテリアルを変更するなら <c>true</c>。</param>
         /// <param name="fixProneAvatarPosition">伏せたときのアバターの位置が、自分視点と他者視点で異なるVRChatのバグに対処するなら <c>true</c>。</param>
         /// <returns>変換中に発生したメッセージ。</returns>
         internal static IEnumerable<Converter.Message> Apply(
             GameObject avatar,
             bool enableAutoEyeMovement,
             float addedShouldersPositionY,
-            bool changeMaterialsForWorldsNotHavingDirectionalLight,
             bool fixProneAvatarPosition
         ) {
             var messages = new List<Converter.Message>();
@@ -121,10 +119,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             if (addedShouldersPositionY != 0.0f)
             {
                 VRChatsBugsWorkaround.AddShouldersPositionY(avatar: avatar, addedValue: addedShouldersPositionY);
-            }
-            if (changeMaterialsForWorldsNotHavingDirectionalLight)
-            {
-                VRChatsBugsWorkaround.ChangeMaterialsForWorldsNotHavingDirectionalLight(avatar: avatar);
             }
             IEnumerable<string> convertingFailedMaterialNames = VRChatsBugsWorkaround.ApplyRenderQueues(avatar: avatar);
             if (convertingFailedMaterialNames.Count() > 0)
@@ -492,35 +486,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                         += new Vector3(0, addedValue, 0);
                 }
             });
-        }
-
-        /// <summary>
-        /// Directional Lightがないワールド向けに、マテリアルにMToonが設定されている場合、MToon-1.7へ変更します。
-        /// </summary>
-        /// <param name="avatar"></param>
-        /// <remarks>
-        /// 参照:
-        /// まじかる☆しげぽん@VRoidさんのツイート: “UniVRM0.49に含まれるMToonは、これまでDirectionalLightで暗くなってもキャラが暗くならなかったのが修正されたので、VRChatのようなDirectionalLightが無い環境だと逆にこういう風になってしまうっぽいです。#VRoid https://t.co/3OQ2uLvfOx”
-        /// <https://twitter.com/m_sigepon/status/1091418527775391744>
-        /// さんたーPさんのツイート: “僕としては VRChat に持っていくなら MToon for VRChat みたいな派生 MToon シェーダを作るのが最善かと思います。パラメータは使い回しで、DirectionalLight が～といった VRChat の特殊な状況に対応するための処理を入れた MToon を。… https://t.co/4AHjkaqxaY”
-        /// <https://twitter.com/santarh/status/1088340412765356032>
-        /// </remarks>
-        private static void ChangeMaterialsForWorldsNotHavingDirectionalLight(GameObject avatar)
-        {
-            foreach (var renderer in avatar.GetComponentsInChildren<Renderer>())
-            {
-                foreach (Material material in renderer.sharedMaterials)
-                {
-                    if (!material || material.shader.name != "VRM/MToon")
-                    {
-                        continue;
-                    }
-
-                    int renderQueue = material.renderQueue;
-                    material.shader = Shader.Find("VRChat/MToon-1.7");
-                    material.renderQueue = renderQueue;
-                }
-            }
         }
 
         /// <summary>

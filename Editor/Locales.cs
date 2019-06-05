@@ -19,7 +19,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     { "Swaying Objects", "揺れ物" },
                     { "Take Over Swaying Parameters", "揺れパラメータ引き継ぎ" },
                     { "Shoulder Heights", "肩の高さ" },
-                    { "Use Old Mtoon", "MToon 1.7を使用" },
                     { "Fix Prone Avatar Position", "伏せアバターの位置ズレ補正" },
                     { "Callback Functions", "コールバック関数" },
                     { "Not set “{0}” component.", "{0}コンポーネントが設定されていません。" },

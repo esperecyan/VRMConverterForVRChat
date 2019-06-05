@@ -43,7 +43,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="swayingParametersConverter"></param>
         /// <param name="enableAutoEyeMovement">オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。</param>
         /// <param name="addedShouldersPositionY">VRChat上でモデルがなで肩・いかり肩になる問題について、Shoulder/UpperArmボーンのPositionのYに加算する値。</param>
-        /// <param name="changeMaterialsForWorldsNotHavingDirectionalLight">Directional Lightがないワールド向けにマテリアルを変更するなら <c>true</c>。</param>
         /// <param name="fixProneAvatarPosition">伏せたときのアバターの位置が、自分視点と他者視点で異なるVRChatのバグに対処するなら <c>true</c>。</param>
         /// <returns>変換中に発生したメッセージ。</returns>
         public static IEnumerable<Converter.Message> Convert(
@@ -54,7 +53,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             ComponentsReplacer.SwayingParametersConverter swayingParametersConverter = null,
             bool enableAutoEyeMovement = true,
             float addedShouldersPositionY = 0.0f,
-            bool changeMaterialsForWorldsNotHavingDirectionalLight = true,
             bool fixProneAvatarPosition = true
         ) {
             var messages = new List<Converter.Message>();
@@ -71,7 +69,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 avatar: prefabInstance,
                 enableAutoEyeMovement: enableAutoEyeMovement,
                 addedShouldersPositionY: addedShouldersPositionY,
-                changeMaterialsForWorldsNotHavingDirectionalLight: changeMaterialsForWorldsNotHavingDirectionalLight,
                 fixProneAvatarPosition: fixProneAvatarPosition
             ));
             prefabInstance.GetOrAddComponent<PipelineManager>();
