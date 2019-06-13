@@ -96,12 +96,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="enableAutoEyeMovement">オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。</param>
         /// <param name="addedShouldersPositionY">VRChat上でモデルがなで肩・いかり肩になる問題について、Shoulder/UpperArmボーンのPositionのYに加算する値。</param>
         /// <param name="fixProneAvatarPosition">伏せたときのアバターの位置が、自分視点と他者視点で異なるVRChatのバグに対処するなら <c>true</c>。</param>
+        /// <param name="moveEyeBoneToFrontForEyeMovement"></param>
         /// <returns>変換中に発生したメッセージ。</returns>
         internal static IEnumerable<Converter.Message> Apply(
             GameObject avatar,
             bool enableAutoEyeMovement,
             float addedShouldersPositionY,
-            bool fixProneAvatarPosition
+            bool fixProneAvatarPosition,
+            float moveEyeBoneToFrontForEyeMovement
         ) {
             var messages = new List<Converter.Message>();
             
@@ -111,15 +113,20 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             {
                 VRChatsBugsWorkaround.SetEyeBonesForCecilHenShin(avatar: avatar);
                 VRChatsBugsWorkaround.EnableAutoEyeMovement(avatar: avatar);
-                VRChatsBugsWorkaround.ApplyAutoEyeMovementDegreeMapping(avatar: avatar);
+                if (!VRChatsBugsWorkaround.ApplyAutoEyeMovementDegreeMapping(avatar: avatar))
+                {
+                    moveEyeBoneToFrontForEyeMovement = 0.0f;
+                }
             }
             else {
                 VRChatsBugsWorkaround.DisableAutoEyeMovement(avatar: avatar);
+                moveEyeBoneToFrontForEyeMovement = 0.0f;
             }
-            if (addedShouldersPositionY != 0.0f)
-            {
-                VRChatsBugsWorkaround.AddShouldersPositionY(avatar: avatar, addedValue: addedShouldersPositionY);
-            }
+            VRChatsBugsWorkaround.AddShouldersPositionYAndEyesPositionZ(
+                avatar: avatar,
+                addedValueToShoulders: addedShouldersPositionY,
+                addedValueToEyes: moveEyeBoneToFrontForEyeMovement
+            );
             IEnumerable<string> convertingFailedMaterialNames = VRChatsBugsWorkaround.ApplyRenderQueues(avatar: avatar);
             if (convertingFailedMaterialNames.Count() > 0)
             {
@@ -358,12 +365,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// 海行プログラムさんのツイート: “自前でスキンメッシュをどうこうするにあたって役に立ったUnityマニュアルのコード。bindposeってのを各ボーンに設定しないといけないんだけど、ボーンのtransform.worldToLocalMatrixを入れればＯＫ　　https://t.co/I2qKb6uQ8a”
         /// <https://twitter.com/kaigyoPG/status/807648864081616896>
         /// </remarks>
-        private static void ApplyAutoEyeMovementDegreeMapping(GameObject avatar)
+        /// <returns>塗り直しを行った場合は <c>true</c> を返します。</returns>
+        private static bool ApplyAutoEyeMovementDegreeMapping(GameObject avatar)
         {
             var lookAtBoneApplyer = avatar.GetComponent<VRMLookAtBoneApplyer>();
             if (!lookAtBoneApplyer)
             {
-                return;
+                return false;
             }
 
             var animator = avatar.GetComponent<Animator>();
@@ -373,7 +381,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 .ToArray();
             if (eyes.Length == 0)
             {
-                return;
+                return false;
             }
 
             float minDegree = new[] { lookAtBoneApplyer.HorizontalOuter, lookAtBoneApplyer.HorizontalInner, lookAtBoneApplyer.VerticalDown, lookAtBoneApplyer.VerticalUp }
@@ -439,6 +447,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                                 return boneWeight;
                 }).ToArray();
             }
+
+            return true;
         }
 
         /// <summary>
@@ -471,19 +481,48 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
         /// <summary>
         /// VRChat上でモデルがなで肩・いかり肩になる問題について、ボーンのPositionを変更します。
+        /// また、オートアイムーブメント有効化に伴うウェイト塗り直しで黒目が白目に沈む問題を回避するため、ボーンのPositionを変更します。
         /// </summary>
+        /// <remarks>
+        /// 参照:
+        /// ふわふわのクラゲさんのツイート: “書き間違いだとした場合は沈み方にもよりますが、瞳メッシュの位置とボーンの回転軸の位置関係が近すぎることが原因と思われます。単なる幾何学的問題なのでこれを100さんが見落としてるというのは考えづらいですが。… ”
+        /// <https://twitter.com/DD_JellyFish/status/1139051774352871424>
+        /// </remarks>
         /// <param name="avatar"></param>
-        private static void AddShouldersPositionY(GameObject avatar, float addedValue)
-        {
+        /// <param name="addedValueToShoulders"></param>
+        /// <param name="addedValueToEyes"></param>
+        private static void AddShouldersPositionYAndEyesPositionZ(
+            GameObject avatar,
+            float addedValueToShoulders,
+            float addedValueToEyes
+        ) {
+            if (addedValueToShoulders == 0.0f && addedValueToEyes == 0.0f)
+            {
+                return;
+            }
+
             ApplyAvatarDescription(avatar: avatar, humanDescriptionModifier: humanDescription => {
                 List<HumanBone> humanBones = humanDescription.human.ToList();
                 List<SkeletonBone> skeltonBones = humanDescription.skeleton.ToList();
-                foreach (HumanBodyBones bone in VRChatsBugsWorkaround.RequiredModifiedBonesForVRChat)
+                if (addedValueToShoulders != 0.0f)
                 {
-                    var humanName = bone.ToString();
-                    string name = humanBones.Find(match: humanBone => humanBone.humanName == humanName).boneName;
-                    humanDescription.skeleton[skeltonBones.FindIndex(match: skeltonBone => skeltonBone.name == name)].position
-                        += new Vector3(0, addedValue, 0);
+                    foreach (HumanBodyBones bone in VRChatsBugsWorkaround.RequiredModifiedBonesForVRChat)
+                    {
+                        var humanName = bone.ToString();
+                        string name = humanBones.Find(match: humanBone => humanBone.humanName == humanName).boneName;
+                        humanDescription.skeleton[skeltonBones.FindIndex(match: skeltonBone => skeltonBone.name == name)].position
+                            += new Vector3(0, addedValueToShoulders, 0);
+                    }
+                }
+                if (addedValueToEyes != 0.0f)
+                {
+                    foreach (HumanBodyBones bone in new[] { HumanBodyBones.LeftEye, HumanBodyBones.RightEye })
+                    {
+                        var humanName = bone.ToString();
+                        string name = humanBones.Find(match: humanBone => humanBone.humanName == humanName).boneName;
+                        humanDescription.skeleton[skeltonBones.FindIndex(match: skeltonBone => skeltonBone.name == name)].position
+                            += new Vector3(0, 0, addedValueToEyes);
+                    }
                 }
             });
         }

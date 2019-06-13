@@ -30,7 +30,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <summary>
         /// ダイアログの最小サイズ。
         /// </summary>
-        private static readonly Vector2 MinSize = new Vector2(x: 800, y: 350);
+        private static readonly Vector2 MinSize = new Vector2(x: 800, y: 400);
 
         /// <summary>
         /// リストにおける一段回分の字下げ幅。
@@ -48,6 +48,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </summary>
         [SerializeField, Localizable]
         private bool enableEyeMovement = true;
+
+        /// <summary>
+        /// オートアイムーブメント有効化時、目ボーンのPositionのZに加算する値。
+        /// </summary>
+        [SerializeField, Localizable(0, 0.1f)]
+        private float moveEyeBoneToFrontForEyeMovement;
 
         /// <summary>
         /// 揺れ物を変換するか否かの設定。
@@ -433,7 +439,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 swayingParametersConverter: this.swayingParametersConverter,
                 enableAutoEyeMovement: this.enableEyeMovement,
                 addedShouldersPositionY: this.shoulderHeights,
-                fixProneAvatarPosition: this.fixProneAvatarPosition
+                fixProneAvatarPosition: this.fixProneAvatarPosition,
+                moveEyeBoneToFrontForEyeMovement: this.moveEyeBoneToFrontForEyeMovement
             );
 
             if (this.postConverting != null) {

@@ -16,6 +16,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             Gettext.SetLocalizedTexts(localizedTexts: new Dictionary<string, IDictionary<string, string>> {
                 { "ja", new Dictionary<string, string> {
                     { "Enable Eye Movement", "視線追従を有効化" },
+                    { "Move Eye Bone To Front For Eye Movement", "目ボーンを手前に移動(視線用)" },
                     { "Swaying Objects", "揺れ物" },
                     { "Take Over Swaying Parameters", "揺れパラメータ引き継ぎ" },
                     { "Shoulder Heights", "肩の高さ" },
