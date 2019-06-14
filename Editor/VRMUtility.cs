@@ -10,6 +10,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
     internal class VRMUtility
     {
         /// <summary>
+        /// <see cref="BlendShapeBinding.Weight"/>の最高値。
+        /// </summary>
+        internal static readonly float MaxBlendShapeBindingWeight = 100;
+
+        /// <summary>
         /// 指定されたブレンドシェイプの最初の<see cref="BlendShapeBinding"/>について、対応するSkinned Mesh Rendererコンポーネントを返します。
         /// </summary>
         /// <param name="avatar"></param>

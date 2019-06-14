@@ -31,31 +31,107 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             { BlendShapePreset.Fun, VRChatUtility.Anim.ROCKNROLL },
         };
 
+        ///
         /// <summary>
-        /// <see cref="VRC_AvatarDescriptor.VisemeBlendShapes"/>に対応する、Cats Blender PluginでVRChat用に生成されるシェイプキー名。
+        /// <see cref="VRC_AvatarDescriptor.VisemeBlendShapes"/>に対応する、生成するシェイプキー名と生成するための値。
         /// </summary>
         /// <remarks>
-        /// 参照:
         /// cats-blender-plugin/viseme.py at master · michaeldegroot/cats-blender-plugin
-        /// <https://github.com/michaeldegroot/cats-blender-plugin/blob/master/tools/viseme.py>
+        /// <https://github.com/michaeldegroot/cats-blender-plugin/blob/0.13.3/tools/viseme.py>
+        /// 
+        /// MIT License
+        /// 
+        /// Copyright (c) 2017 GiveMeAllYourCats
+        /// 
+        /// Permission is hereby granted, free of charge, to any person obtaining a copy
+        /// of this software and associated documentation files (the 'Software'), to deal
+        /// in the Software without restriction, including without limitation the rights
+        /// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        /// copies of the Software, and to permit persons to whom the Software is
+        /// furnished to do so, subject to the following conditions:
+        /// 
+        /// The above copyright notice and this permission notice shall be included in
+        /// all copies or substantial portions of the Software.
+        /// 
+        /// THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        /// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        /// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        /// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        /// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        /// SOFTWARE.
+        /// 
+        /// Code author: GiveMeAllYourCats
+        /// Repo: https://github.com/michaeldegroot/cats-blender-plugin
+        /// Edits by: GiveMeAllYourCats, Hotox
         /// </remarks>
-        private static readonly string[] OrderedVisemusGeneratedByCatsBlenderPlugin = {
-            "vrc.v_sil",
-            "vrc.v_pp",
-            "vrc.v_ff",
-            "vrc.v_th",
-            "vrc.v_dd",
-            "vrc.v_kk",
-            "vrc.v_ch",
-            "vrc.v_ss",
-            "vrc.v_nn",
-            "vrc.v_rr",
-            "vrc.v_aa",
-            "vrc.v_e",
-            "vrc.v_ih",
-            "vrc.v_oh",
-            "vrc.v_ou",
+        private static readonly KeyValuePair<string, IDictionary<BlendShapePreset, float>>[] VisemeShapeKeyNamesAndValues = {
+            new KeyValuePair<string, IDictionary<BlendShapePreset, float>>(
+                "vrc.v_sil",
+                new Dictionary<BlendShapePreset, float>(){ { BlendShapePreset.A, 0f } }
+            ),
+            new KeyValuePair<string, IDictionary<BlendShapePreset, float>>(
+                "vrc.v_pp",
+                new Dictionary<BlendShapePreset, float>(){ { BlendShapePreset.A, 0.0004f }, { BlendShapePreset.O, 0.0004f } }
+            ),
+            new KeyValuePair<string, IDictionary<BlendShapePreset, float>>(
+                "vrc.v_ff",
+                new Dictionary<BlendShapePreset, float>(){ { BlendShapePreset.A, 0.2f }, { BlendShapePreset.I, 0.4f } }
+            ),
+            new KeyValuePair<string, IDictionary<BlendShapePreset, float>>(
+                "vrc.v_th",
+                new Dictionary<BlendShapePreset, float>(){ { BlendShapePreset.A, 0.4f }, { BlendShapePreset.O, 0.15f } }
+            ),
+            new KeyValuePair<string, IDictionary<BlendShapePreset, float>>(
+                "vrc.v_dd",
+                new Dictionary<BlendShapePreset, float>(){ { BlendShapePreset.A, 0.3f }, { BlendShapePreset.I, 0.7f } }
+            ),
+            new KeyValuePair<string, IDictionary<BlendShapePreset, float>>(
+                "vrc.v_kk",
+                new Dictionary<BlendShapePreset, float>(){ { BlendShapePreset.A, 0.7f }, { BlendShapePreset.I, 0.4f } }
+            ),
+            new KeyValuePair<string, IDictionary<BlendShapePreset, float>>(
+                "vrc.v_ch",
+                new Dictionary<BlendShapePreset, float>(){ { BlendShapePreset.I, 0.9996f } }
+            ),
+            new KeyValuePair<string, IDictionary<BlendShapePreset, float>>(
+                "vrc.v_ss",
+                new Dictionary<BlendShapePreset, float>(){ { BlendShapePreset.I, 0.8f } }
+            ),
+            new KeyValuePair<string, IDictionary<BlendShapePreset, float>>(
+                "vrc.v_nn",
+                new Dictionary<BlendShapePreset, float>(){ { BlendShapePreset.A, 0.2f }, { BlendShapePreset.I, 0.7f } }
+            ),
+            new KeyValuePair<string, IDictionary<BlendShapePreset, float>>(
+                "vrc.v_rr",
+                new Dictionary<BlendShapePreset, float>(){ { BlendShapePreset.I, 0.5f }, { BlendShapePreset.O, 0.3f } }
+            ),
+            new KeyValuePair<string, IDictionary<BlendShapePreset, float>>(
+                "vrc.v_aa",
+                new Dictionary<BlendShapePreset, float>(){ { BlendShapePreset.A, 0.9998f } }
+            ),
+            new KeyValuePair<string, IDictionary<BlendShapePreset, float>>(
+                "vrc.v_e",
+                new Dictionary<BlendShapePreset, float>(){ { BlendShapePreset.I, 0.7f }, { BlendShapePreset.O, 0.3f } }
+            ),
+            new KeyValuePair<string, IDictionary<BlendShapePreset, float>>(
+                "vrc.v_ih",
+                new Dictionary<BlendShapePreset, float>(){ { BlendShapePreset.A, 0.5f }, { BlendShapePreset.I, 0.2f } }
+            ),
+            new KeyValuePair<string, IDictionary<BlendShapePreset, float>>(
+                "vrc.v_oh",
+                new Dictionary<BlendShapePreset, float>(){ { BlendShapePreset.A, 0.2f }, { BlendShapePreset.O, 0.8f } }
+            ),
+            new KeyValuePair<string, IDictionary<BlendShapePreset, float>>(
+                "vrc.v_ou",
+                new Dictionary<BlendShapePreset, float>(){ { BlendShapePreset.O, 0.9994f } }
+            ),
         };
+
+        /// <summary>
+        /// Unityにおけるブレンドシェイプフレームのウェイトの最高値。
+        /// </summary>
+        private static readonly float MaxBlendShapeFrameWeight = 100;
 
         /// <summary>
         /// まばたきの間隔。キーに秒、値にブレンドシェイプのウェイト (1が閉眼)。
@@ -186,72 +262,141 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// リップシンクの設定を行います。
         /// </summary>
         /// <remarks>
-        /// <see cref="BlendShapeReplacer.OrderedVisemusGeneratedByCatsBlenderPlugin"/>が存在する場合、VRMの設定を無視します。
+        /// <see cref="BlendShapePreset.A"/>、<see cref="BlendShapePreset.I"/>、<see cref="BlendShapePreset.O"/>が
+        /// 同一のメッシュ上に存在しない、または単一のフレームを持つシェイプキーが存在しない場合、設定を行いません。
+        /// 生成するシェイプキー名と同じシェイプキーが存在する場合、それを利用します。
         /// </remarks>
         /// <param name="avatar"></param>
         private static void SetLipSync(GameObject avatar)
         {
-            var renderer = VRMUtility.GetFirstSkinnedMeshRenderer(avatar: avatar, preset: BlendShapePreset.A);
-            if (!renderer)
+            var blendShapeProxy = avatar.GetComponent<VRMBlendShapeProxy>();
+            if (!blendShapeProxy)
             {
                 return;
             }
-            var mesh = renderer.sharedMesh;
 
-            if (BlendShapeReplacer.OrderedVisemusGeneratedByCatsBlenderPlugin.Except(GetBlendShapeNames(mesh)).Count() == 0)
+            BlendShapeAvatar blendShapeAvatar = blendShapeProxy.BlendShapeAvatar;
+            if (!blendShapeAvatar)
             {
-                var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
-                avatarDescriptor.lipSync = VRC_AvatarDescriptor.LipSyncStyle.VisemeBlendShape;
-                avatarDescriptor.VisemeSkinnedMesh = renderer;
-                avatarDescriptor.VisemeBlendShapes = BlendShapeReplacer.OrderedVisemusGeneratedByCatsBlenderPlugin;
+                return;
             }
-            else
+
+            var presetsAndShapeKeyIndicesAndWeightsList = new Dictionary<BlendShapePreset, IDictionary<int, float>>();
+            SkinnedMeshRenderer faceRenderer = null;
+            foreach (var preset in new[] { BlendShapePreset.A, BlendShapePreset.I, BlendShapePreset.O })
             {
-                var names = new Dictionary<BlendShapePreset, string> {
-                    { BlendShapePreset.A, "" },
-                    { BlendShapePreset.I, "" },
-                    { BlendShapePreset.U, "" },
-                    { BlendShapePreset.E, "" },
-                    { BlendShapePreset.O, "" },
-                };
-                renderer = null;
-                foreach (var preset in names.Keys.ToArray())
+                var clip = blendShapeAvatar.GetClip(preset: preset);
+                if (!clip)
                 {
-                    var r = VRMUtility.GetFirstSkinnedMeshRenderer(avatar: avatar, preset: preset);
-                    if (!r || renderer && r != renderer)
-                    {
-                        return;
-                    }
-                    renderer = r;
-                    names[preset] = VRMUtility.GetFirstBlendShapeBindingName(avatar: avatar, preset: preset);
+                    return;
                 }
 
+                var indecesAndWeights = clip.Values
+                    .Select(binding => {
+                        var invalid = new KeyValuePair<int, float>(-1, 0);
 
-                var neutralRenderer = VRMUtility.GetFirstSkinnedMeshRenderer(avatar: avatar, preset: BlendShapePreset.Neutral);
+                        Transform obj = avatar.transform.Find(name: binding.RelativePath);
+                        if (!obj)
+                        {
+                            return invalid;
+                        }
 
-                var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
-                avatarDescriptor.lipSync = VRC_AvatarDescriptor.LipSyncStyle.VisemeBlendShape;
-                avatarDescriptor.VisemeSkinnedMesh = renderer;
-                avatarDescriptor.VisemeBlendShapes = new string[]{
-                    neutralRenderer && neutralRenderer == renderer
-                        ? VRMUtility.GetFirstBlendShapeBindingName(avatar: avatar, preset: BlendShapePreset.Neutral)
-                        : names[BlendShapePreset.E],
-                    names[BlendShapePreset.E],
-                    names[BlendShapePreset.E],
-                    names[BlendShapePreset.A],
-                    names[BlendShapePreset.A],
-                    names[BlendShapePreset.A],
-                    names[BlendShapePreset.A],
-                    names[BlendShapePreset.I],
-                    names[BlendShapePreset.A],
-                    names[BlendShapePreset.A],
-                    names[BlendShapePreset.A],
-                    names[BlendShapePreset.E],
-                    names[BlendShapePreset.A],
-                    names[BlendShapePreset.O],
-                    names[BlendShapePreset.U],
-                };
+                        var renderer = obj.GetComponent<SkinnedMeshRenderer>();
+                        if (!renderer)
+                        {
+                            return invalid;
+                        }
+                        Mesh mesh = renderer.sharedMesh;
+                        if (!mesh)
+                        {
+                            return invalid;
+                        }
+
+                        if (!faceRenderer)
+                        {
+                            faceRenderer = renderer;
+                        }
+                        if (renderer != faceRenderer)
+                        {
+                            return invalid;
+                        }
+
+                        int index = binding.Index;
+                        if (index >= mesh.blendShapeCount || mesh.GetBlendShapeFrameCount(index) > 1)
+                        {
+                            return invalid;
+                        }
+                        return new KeyValuePair<int, float>(
+                            index,
+                            binding.Weight / VRMUtility.MaxBlendShapeBindingWeight
+                        );
+                    })
+                    .Where(indexAndWeight => indexAndWeight.Value >= 0)
+                    .ToDictionary(indexAndWeight => indexAndWeight.Key, indexAndWeight => indexAndWeight.Value);
+
+                if (indecesAndWeights.Count() == 0)
+                {
+                    return;
+                }
+
+                presetsAndShapeKeyIndicesAndWeightsList[preset] = indecesAndWeights;
             }
+
+            Mesh faceMesh = faceRenderer.sharedMesh;
+            int faceMeshVertexCount = faceMesh.vertexCount;
+
+            IDictionary<int, Vector3[]> shapeKeyIndicesAndVertices = presetsAndShapeKeyIndicesAndWeightsList
+                .SelectMany(presetAndIndices => presetAndIndices.Value.Keys)
+                .Distinct()
+                .ToDictionary(keySelector: shapeKeyIndex => shapeKeyIndex, elementSelector: shapeKeyIndex => {
+                    var deltaVertices = new Vector3[faceMeshVertexCount];
+                    faceMesh.GetBlendShapeFrameVertices(shapeKeyIndex, 0, deltaVertices, null, null);
+                    return deltaVertices;
+                });
+
+            foreach (var newNameAndValues in BlendShapeReplacer.VisemeShapeKeyNamesAndValues)
+            {
+                if (faceMesh.GetBlendShapeIndex(newNameAndValues.Key) != -1)
+                {
+                    continue;
+                }
+
+                Vector3[] deltaVertices = null;
+                foreach (Vector3[] vertices in newNameAndValues.Value.SelectMany(presetAndWeight =>
+                    presetsAndShapeKeyIndicesAndWeightsList[presetAndWeight.Key].Select(
+                        shapeKeyIndexAndWeight => shapeKeyIndicesAndVertices[shapeKeyIndexAndWeight.Key]
+                            .Select(vertix => vertix * shapeKeyIndexAndWeight.Value * presetAndWeight.Value)
+                            .ToArray()
+                    )
+                ))
+                {
+                    if (deltaVertices == null)
+                    {
+                        deltaVertices = vertices;
+                        continue;
+                    }
+
+                    for (var i = 0; i < deltaVertices.Length; i++)
+                    {
+                        deltaVertices[i] += vertices[i];
+                    }
+                }
+
+                faceMesh.AddBlendShapeFrame(
+                    newNameAndValues.Key,
+                    BlendShapeReplacer.MaxBlendShapeFrameWeight,
+                    deltaVertices,
+                    null,
+                    null
+                );
+            }
+            EditorUtility.SetDirty(target: faceMesh);
+
+            var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
+            avatarDescriptor.lipSync = VRC_AvatarDescriptor.LipSyncStyle.VisemeBlendShape;
+            avatarDescriptor.VisemeSkinnedMesh = faceRenderer;
+            avatarDescriptor.VisemeBlendShapes
+                = BlendShapeReplacer.VisemeShapeKeyNamesAndValues.Select(nameAndValues => nameAndValues.Key).ToArray();
         }
 
         /// <summary>
