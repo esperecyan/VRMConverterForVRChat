@@ -30,7 +30,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <summary>
         /// ダイアログの最小サイズ。
         /// </summary>
-        private static readonly Vector2 MinSize = new Vector2(x: 800, y: 400);
+        private static readonly Vector2 MinSize = new Vector2(x: 800, y: 350);
 
         /// <summary>
         /// リストにおける一段回分の字下げ幅。
@@ -48,12 +48,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </summary>
         [SerializeField, Localizable]
         private bool enableEyeMovement = true;
-
-        /// <summary>
-        /// オートアイムーブメント有効化時、目ボーンのPositionのZに加算する値。
-        /// </summary>
-        [SerializeField, Localizable(0, 0.1f)]
-        private float moveEyeBoneToFrontForEyeMovement;
 
         /// <summary>
         /// 揺れ物を変換するか否かの設定。
@@ -425,6 +419,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             var prefab = AssetDatabase.LoadMainAssetAtPath(this.destinationPath) as GameObject;
             var prefabInstance = PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(this.destinationPath)) as GameObject;
+            prefabInstance.transform.SetAsLastSibling();
 
             foreach (VRMSpringBone springBone in this.GetSpringBonesWithComments(prefab: prefabInstance, comments: this.excludedSpringBoneComments)
                 .SelectMany(springBone => springBone))
@@ -439,8 +434,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 swayingParametersConverter: this.swayingParametersConverter,
                 enableAutoEyeMovement: this.enableEyeMovement,
                 addedShouldersPositionY: this.shoulderHeights,
-                fixProneAvatarPosition: this.fixProneAvatarPosition,
-                moveEyeBoneToFrontForEyeMovement: this.moveEyeBoneToFrontForEyeMovement
+                fixProneAvatarPosition: this.fixProneAvatarPosition
             );
 
             if (this.postConverting != null) {
