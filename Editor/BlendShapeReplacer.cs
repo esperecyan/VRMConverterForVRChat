@@ -167,8 +167,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </summary>
         private static readonly Dictionary<float, float> NeutralWeights = new Dictionary<float, float> {
             {  0.00f, 0 },
-            {  1.50f, 0 },
-            {  1.51f, 1 },
+            {  1f / 60 * 3, 0 },
+            {  1f / 60 * 4, 1 },
 
             {  3.50f, 1 },
             {  3.55f, 0 },
@@ -194,8 +194,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         private static readonly Dictionary<float, BlendShapePreset> NeutralAndBlinkWeights
             = new Dictionary<float, BlendShapePreset> {
                 {  0.00f, 0 },
-                {  1.50f, 0 },
-                {  1.51f, BlendShapePreset.Neutral },
+                {  1f / 60 * 3, 0 },
+                {  1f / 60 * 4, BlendShapePreset.Neutral },
 
                 {  3.50f, BlendShapePreset.Neutral },
                 {  3.55f, BlendShapePreset.Blink },
@@ -215,18 +215,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             };
 
         /// <summary>
-        /// <see cref="BlendShapePreset.Neutral"/>、および<see cref="BlendShapePreset.Blink"/>干渉防止用のAnimatorコンポーネントを設定するオブジェクト名。
-        /// </summary>
-        private static readonly string NeutralAndBlinkStopperObjectName = "vrc.blink-stopper";
-
-        /// <summary>
-        /// <see cref="BlendShapePreset.Neutral"/>、および<see cref="BlendShapePreset.Blink"/>干渉防止用のアニメーションクリップの設定値。キーに秒、値に有効無効。
+        /// <see cref="BlendShapePreset.Neutral"/>、および<see cref="BlendShapePreset.Blink"/>干渉防止用のアニメーションの設定値。キーに秒、値に有効無効。
         /// </summary>
         private static readonly Dictionary<float, float> NeutralAndBlinkStopperWeights = new Dictionary<float, float> {
             {  0.00f, 0 },
-            {  0.10f, 0 },
-            {  0.11f, 1 },
-            {  1.00f, 1 },
+            {  1f / 60 * 2, 0 },
+            {  1f / 60 * 3, 1 },
         };
 
         /// <summary>
@@ -412,6 +406,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <http://www.hushimero.xyz/entry/vrchat-EyeTracking#%E5%A4%A7%E5%8F%A3%E9%96%8B%E3%81%91%E3%82%8B%E5%95%8F%E9%A1%8C%E3%81%AE%E8%A7%A3%E6%B1%BA>
         /// 技術勢の元怒さんのツイート: “自動まばたきはまばたきシェイプキーを、まばたき防止のほうは自動まばたきのエナブルONOFFを操作してますね。 欲しければサンプル渡せますよ。… ”
         /// <https://twitter.com/gend_VRchat/status/1100155987216879621>
+        /// momoma/ナル@VRChatter/VTuberさんのツイート: “3F目にBehavior 1のキーを追加したら重複しなくなったわ、なるほどな… ”
+        /// <https://twitter.com/momoma_creative/status/1137917887262339073>
         /// </remarks>
         /// <param name="avatar"></param>
         /// <returns>設定を行った場合、対象の<c>avatar</c>から対象のメッシュまでの相対パスを返します。</returns>
@@ -462,22 +458,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     if (string.IsNullOrEmpty(relativePath))
                     {
                         relativePath = binding.RelativePath;
-
-                        if (!relativePath.Contains("/"))
-                        {
-                            // メッシュがルート直下に存在すれば
-                            Transform dummyObject
-                                = new GameObject(name: BlendShapeReplacer.NeutralAndBlinkStopperObjectName).transform;
-                            dummyObject.parent = avatar.transform;
-                            avatar.transform.Find(relativePath).parent = dummyObject.transform;
-                            VRMUtility.ReplaceBlendShapeRelativePaths(
-                                avatar: avatar,
-                                oldPath: relativePath,
-                                newPath: dummyObject.name + "/" + relativePath
-                            );
-                            binding = clip.Values[i];
-                            relativePath = dummyObject.name + "/" + relativePath;
-                        }
                     }
                     else if (relativePath != binding.RelativePath) {
                         continue;
@@ -507,7 +487,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                                         weight = 0;
                                         break;
                                 }
-                                animationCurve.AddKey(pair.Key, weight);
+                                animationCurve.AddKey(new Keyframe(pair.Key, weight));
                             }
 
                             animationClip.SetCurve(
@@ -546,28 +526,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             Transform neutralAndBlinkMesh = avatar.transform.Find(name: relativePath);
             neutralAndBlinkMesh.gameObject.AddComponent<Animator>().runtimeAnimatorController
                 = neutralAndBlinkController;
-
-            // 親にまばたき干渉回避用のコントローラーを入れる
-            Transform parent = neutralAndBlinkMesh.parent;
-
-
-            AnimatorController blinkStopperController
-                = BlendShapeReplacer.CreateSingleAnimatorController(avatar: avatar, name: "blink-stopper");
-            animationClip = blinkStopperController.animationClips[0];
-            var curve = new AnimationCurve();
-            foreach (var pair in BlendShapeReplacer.NeutralAndBlinkStopperWeights)
-            {
-                curve.AddKey(new Keyframe(pair.Key, pair.Value));
-            }
-            animationClip.SetCurve(
-                relativePath: neutralAndBlinkMesh.name,
-                type: typeof(Behaviour),
-                propertyName: "m_Enabled",
-                curve: curve
-            );
-            var animator = parent.gameObject.AddComponent<Animator>();
-            animator.runtimeAnimatorController = blinkStopperController;
-            animator.enabled = false;
 
             return relativePath;
         }
@@ -668,7 +626,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             var curve = new AnimationCurve();
             foreach (var pair in keys)
             {
-                curve.AddKey(time: pair.Key, value: pair.Value * binding.Weight);
+                curve.AddKey(new Keyframe(pair.Key, pair.Value * binding.Weight));
             }
 
             animationClip.SetCurve(
@@ -730,11 +688,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             if (!string.IsNullOrEmpty(relativePathToNeutralAndBlinkMesh))
             {
                 var curve = new AnimationCurve();
-                curve.AddKey(time: 0, value: 1);
-                curve.AddKey(time: anim.length, value: 1);
-                string[] path = relativePathToNeutralAndBlinkMesh.Split(separator: '/');
+                foreach (var timeAndValue in BlendShapeReplacer.NeutralAndBlinkStopperWeights)
+                {
+                    curve.AddKey(new Keyframe(timeAndValue.Key, timeAndValue.Value));
+                }
                 anim.SetCurve(
-                    relativePath: string.Join(separator: "/", value: path, startIndex: 0, count: path.Length - 1),
+                    relativePath: relativePathToNeutralAndBlinkMesh,
                     type: typeof(Behaviour),
                     propertyName: "m_Enabled",
                     curve: curve
