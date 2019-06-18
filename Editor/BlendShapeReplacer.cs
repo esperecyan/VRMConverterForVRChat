@@ -371,17 +371,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="avatar"></param>
         private static void SetLipSync(GameObject avatar)
         {
-            var blendShapeProxy = avatar.GetComponent<VRMBlendShapeProxy>();
-            if (!blendShapeProxy)
-            {
-                return;
-            }
-
-            BlendShapeAvatar blendShapeAvatar = blendShapeProxy.BlendShapeAvatar;
-            if (!blendShapeAvatar)
-            {
-                return;
-            }
+            BlendShapeAvatar blendShapeAvatar = avatar.GetComponent<VRMBlendShapeProxy>().BlendShapeAvatar;
 
             var presetsAndShapeKeyIndicesAndWeightsList = new Dictionary<BlendShapePreset, IDictionary<int, float>>();
             SkinnedMeshRenderer faceRenderer = null;
