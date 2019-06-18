@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using UniGLTF;
 using VRM;
-using VRCSDK2;
 using VRC.Core;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat

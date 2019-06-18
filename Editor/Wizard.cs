@@ -8,7 +8,6 @@ using UnityEngine;
 using UnityEditor;
 using UniGLTF;
 using VRM;
-using VRCSDK2;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
 {

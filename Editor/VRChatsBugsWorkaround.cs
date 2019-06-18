@@ -7,8 +7,6 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEditor;
-using UnityEditor.SceneManagement;
-using UnityEditor.Animations;
 using VRM;
 using UniHumanoid;
 using UniGLTF;
