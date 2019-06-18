@@ -38,7 +38,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// プレハブをVRChatへアップロード可能な状態にします。
         /// </summary>
         /// <param name="prefabPath">現在のシーンに存在するプレハブのインスタンス。</param>
-        /// <param name="swayingObjectsConverterSetting">揺れ物を変換するか否かの設定。</param>
+        /// <param name="swayingObjectsConverterSetting">揺れ物を変換するか否かの設定。<c>forQuest</c> が <c>true</c> の場合は無視されます。</param>
         /// <param name="takingOverSwayingParameters">揺れ物のパラメータを変換せずDynamic Boneのデフォルト値を利用するなら<c>false</c>。</param>
         /// <param name="swayingParametersConverter"></param>
         /// <param name="enableAutoEyeMovement">オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。</param>
@@ -64,7 +64,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             messages.AddRange(BlendShapeReplacer.Apply(avatar: prefabInstance, forQuest: forQuest));
             messages.AddRange(ComponentsReplacer.Apply(
                 avatar: prefabInstance,
-                swayingObjectsConverterSetting: swayingObjectsConverterSetting,
+                swayingObjectsConverterSetting: forQuest
+                    ? ComponentsReplacer.SwayingObjectsConverterSetting.RemoveSwayingObjects
+                    : swayingObjectsConverterSetting,
                 swayingParametersConverter: takingOverSwayingParameters
                     ? swayingParametersConverter ?? ComponentsReplacer.DefaultSwayingParametersConverter
                     : null
