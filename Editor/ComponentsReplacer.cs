@@ -2,8 +2,6 @@ using System;
 using System.Reflection;
 using System.Linq;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using UnityEngine;
 using UnityEditor;
 using VRM;
@@ -116,38 +114,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
             var firstPerson = avatar.GetComponent<VRMFirstPerson>();
             avatarDescriptor.ViewPosition = firstPerson.FirstPersonBone.position + firstPerson.FirstPersonOffset - avatar.transform.localPosition;
-        }
-
-        /// <summary>
-        /// <see cref="AvatarPerformance"/>クラスを書き替えて、DynamicBoneに関するパフォーマンスが表示されないVRChat SDKのバグを修正します。
-        /// </summary>
-        /// <seealso cref="ComponentsReplacer.GetMessagesAboutDynamicBoneLimits"/>
-        /// <remarks>
-        /// 参照:
-        /// SDK avatar performance reports always report dynamic bone counts as 0 | Bug Reports | VRChat
-        /// <https://vrchat.canny.io/bug-reports/p/sdk-avatar-performance-reports-always-report-dynamic-bone-counts-as-0>
-        /// </remarks>
-        [InitializeOnLoadMethod]
-        private static void FixFindDynamicBoneTypesMethodOnAvatarPerformanceClass()
-        {
-            string fullPath = UnityPath.FromUnityPath(VRChatUtility.AvatarPerformanceClassPath).FullPath;
-
-            string content = File.ReadAllText(path: fullPath, encoding: Encoding.UTF8);
-            if (content.Contains("DynamicBoneColliderBase"))
-            {
-                return;
-            }
-
-            string fixedContent = content.Replace(
-                oldValue: "System.Type dyBoneColliderType = Validation.GetTypeFromName(\"DynamicBoneCollider\");",
-                newValue: "System.Type dyBoneColliderType = Validation.GetTypeFromName(\"DynamicBoneColliderBase\");"
-            );
-            if (fixedContent == content)
-            {
-                return;
-            }
-
-            File.WriteAllText(path: fullPath, contents: fixedContent, encoding: Encoding.UTF8);
         }
 
         /// <summary>
@@ -286,6 +252,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <summary>
         /// DynamicBoneの制限の既定値を超えていた場合、警告メッセージを返します。
         /// </summary>
+        /// <seealso cref="AvatarPerformance.AnalyzeDynamicBone"/>
         /// <param name="prefabInstance"></param>
         /// <returns></returns>
         private static IEnumerable<Converter.Message> GetMessagesAboutDynamicBoneLimits(GameObject avatar)
@@ -296,24 +263,25 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 avatarObject: avatar
             );
 
-            if (statistics.DynamicBoneAffectedTransformCount
-                > AvatarPerformanceStats.MediumPeformanceStatLimits.DynamicBoneAffectedTransformCount)
+            AvatarPerformanceStatsLevel mediumPerformanceStatLimits
+                = VRChatUtility.AvatarPerformanceStatsLevelSets["PC"].Medium;
+
+            if (statistics.DynamicBoneSimulatedBoneCount > mediumPerformanceStatLimits.DynamicBoneSimulatedBoneCount)
             {
                 messages.Add(new Converter.Message
                 {
                     message = string.Format(
-                        Gettext._("The “Dynamic Bone Affected Transform Count” is {0}."),
-                        statistics.DynamicBoneAffectedTransformCount
+                        Gettext._("The “Dynamic Bone Simulated Bone Count” is {0}."),
+                        statistics.DynamicBoneSimulatedBoneCount
                     ) + string.Format(
                         Gettext._("If this value exceeds {0}, the default user setting disable all Dynamic Bones."),
-                        AvatarPerformanceStats.MediumPeformanceStatLimits.DynamicBoneAffectedTransformCount
+                        mediumPerformanceStatLimits.DynamicBoneSimulatedBoneCount
                     ),
                     type = MessageType.Warning,
                 });
             }
 
-            if (statistics.DynamicBoneCollisionCheckCount
-                > AvatarPerformanceStats.MediumPeformanceStatLimits.DynamicBoneCollisionCheckCount)
+            if (statistics.DynamicBoneCollisionCheckCount > mediumPerformanceStatLimits.DynamicBoneCollisionCheckCount)
             {
                 messages.Add(new Converter.Message
                 {
@@ -322,7 +290,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                         statistics.DynamicBoneCollisionCheckCount
                     ) + string.Format(
                         Gettext._("If this value exceeds {0}, the default user setting disable all Dynamic Bones."),
-                        AvatarPerformanceStats.MediumPeformanceStatLimits.DynamicBoneCollisionCheckCount
+                        mediumPerformanceStatLimits.DynamicBoneCollisionCheckCount
                     ),
                     type = MessageType.Warning,
                 });

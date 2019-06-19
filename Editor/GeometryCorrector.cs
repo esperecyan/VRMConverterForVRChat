@@ -20,14 +20,17 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             AvatarPerformanceStats statistics
                 = AvatarPerformance.CalculatePerformanceStats(avatarName: avatar.GetComponent<VRMMeta>().Meta.Title, avatarObject: avatar);
 
-            if (statistics.PolyCount > AvatarPerformanceStats.BadPeformanceStatLimits.PolyCount)
+            AvatarPerformanceStatsLevel badPerformanceStatLimits
+                = VRChatUtility.AvatarPerformanceStatsLevelSets["PC"].Bad;
+
+            if (statistics.PolyCount > badPerformanceStatLimits.PolyCount)
             {
                 messages.Add(new Converter.Message
                 {
                     message = string.Format(
                         Gettext._("The number of polygons is {0}. If a number of polygons exceeds {1}, you can not upload."),
                         statistics.PolyCount,
-                        AvatarPerformanceStats.BadPeformanceStatLimits.PolyCount
+                        badPerformanceStatLimits.PolyCount
                     ),
                     type = MessageType.Error,
                 });

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEditor;
@@ -67,9 +68,17 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         internal static readonly string CustomAnimsTemplatePath = "Assets/VRCSDK/Examples/Sample Assets/Animation/CustomOverrideEmpty.overrideController";
 
         /// <summary>
-        /// <see cref="AvatarPerformance"/>クラスが記述されているファイルのパス。
+        /// プラットフォームごとの<see cref="AvatarPerformanceStatsLevelSet"/>。
         /// </summary>
-        internal static readonly string AvatarPerformanceClassPath = "Assets/VRCSDK/Dependencies/VRChat/Scripts/AvatarPerformance.cs";
+        internal static IDictionary<string, AvatarPerformanceStatsLevelSet> AvatarPerformanceStatsLevelSets
+            = new Dictionary<string, AvatarPerformanceStatsLevelSet>() {
+                { "PC", Resources.Load<AvatarPerformanceStatsLevelSet>(
+                    "PerformanceStatsLevels/Windows/AvatarPerformanceStatLevels_Windows"
+                ) },
+                { "Quest", Resources.Load<AvatarPerformanceStatsLevelSet>(
+                    "PerformanceStatsLevels/Quest/AvatarPerformanceStatLevels_Quest"
+                ) },
+            };
 
         /// <summary>
         /// <see cref="VRC_SdkControlPanel.AnalyzeGeometry"/>を実行します。
