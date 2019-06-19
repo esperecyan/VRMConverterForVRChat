@@ -42,7 +42,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="addedShouldersPositionY">VRChat上でモデルがなで肩・いかり肩になる問題について、Shoulder/UpperArmボーンのPositionのYに加算する値。</param>
         /// <param name="fixProneAvatarPosition">伏せたときのアバターの位置が、自分視点と他者視点で異なるVRChatのバグに対処するなら <c>true</c>。</param>
         /// <param name="moveEyeBoneToFrontForEyeMovement">オートアイムーブメント有効化時、目ボーンのPositionのZに加算する値。</param>
-        /// <param name="forQuest">Quest版用アバター向けに、Animatorを使わずにまたばきを設定するなら <c>true</c>。</param>
+        /// <param name="forQuest">Quest版用アバター向けに変換するなら <c>true</c>。</param>
         /// <returns>変換中に発生したメッセージ。</returns>
         public static IEnumerable<Converter.Message> Convert(
             GameObject prefabInstance,

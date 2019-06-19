@@ -402,18 +402,73 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             );
 
             AvatarPerformanceStatsLevel badPerformanceStatLimits
-                = VRChatUtility.AvatarPerformanceStatsLevelSets["PC"].Bad;
+                = VRChatUtility.AvatarPerformanceStatsLevelSets[this.forQuest ? "Quest" : "PC"].Bad;
 
             if (statistics.PolyCount > badPerformanceStatLimits.PolyCount)
             {
-                EditorGUILayout.HelpBox(string.Format(
-                    Gettext._("The number of polygons is {0}. If a number of polygons exceeds {1}, you can not upload."),
-                    statistics.PolyCount,
-                    badPerformanceStatLimits.PolyCount
-                ), MessageType.Error);
+                EditorGUILayout.HelpBox(string.Format(Gettext._("The number of polygons is {0}."), statistics.PolyCount)
+                    + string.Format(
+                        Gettext._("If a number of polygons exceeds {0}, you can not upload."),
+                        badPerformanceStatLimits.PolyCount
+                    ), MessageType.Error);
             }
 
+            if (!this.forQuest)
+            {
+                return true;
+            }
+
+            AvatarPerformanceStatsLevel performanceStatLimits
+                = VRChatUtility.AvatarPerformanceStatsLevelSets["Quest"].Medium;
+
+            Wizard.ShowQuestLimitationsErrorMessageIfExceeds(
+                current: statistics.PolyCount,
+                limit: performanceStatLimits.PolyCount,
+                message: Gettext._("The number of polygons is {0}.")
+            );
+
+            Wizard.ShowQuestLimitationsErrorMessageIfExceeds(
+                current: statistics.SkinnedMeshCount,
+                limit: performanceStatLimits.SkinnedMeshCount,
+                message: Gettext._("The number of Skinned Mesh Renderer components is {0}.")
+            );
+
+            Wizard.ShowQuestLimitationsErrorMessageIfExceeds(
+                current: statistics.MeshCount,
+                limit: performanceStatLimits.MeshCount,
+                message: Gettext._("The number of (non-Skinned) Mesh Renderer components is {0}.")
+            );
+
+            Wizard.ShowQuestLimitationsErrorMessageIfExceeds(
+                current: statistics.MaterialCount,
+                limit: performanceStatLimits.MaterialCount,
+                message: Gettext._("The number of material slots (sub-meshes) is {0}.")
+            );
+
+            Wizard.ShowQuestLimitationsErrorMessageIfExceeds(
+                current: statistics.BoneCount,
+                limit: performanceStatLimits.BoneCount,
+                message: Gettext._("The number of Bones is {0}.")
+            );
+
             return true;
+        }
+
+        /// <summary>
+        /// Questの制限値を超える場合にエラーメッセージを表示します。
+        /// </summary>
+        /// <param name="current">対象の値。</param>
+        /// <param name="limit">制限値。</param>
+        /// <param name="message">エラーメッセージ。</param>
+        private static void ShowQuestLimitationsErrorMessageIfExceeds(int current, int limit, string message)
+        {
+            if (current > limit)
+            {
+                EditorGUILayout.HelpBox(string.Format(message, current) + string.Format(
+                    Gettext._("If this value exceeds {0}, the avatar will not shown under the default user setting."),
+                    limit
+                ), MessageType.Error);
+            }
         }
 
         private void OnWizardCreate()
