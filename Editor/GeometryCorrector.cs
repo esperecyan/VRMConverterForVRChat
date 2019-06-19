@@ -17,25 +17,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         {
             var messages = new List<Converter.Message>();
 
-            AvatarPerformanceStats statistics
-                = AvatarPerformance.CalculatePerformanceStats(avatarName: avatar.GetComponent<VRMMeta>().Meta.Title, avatarObject: avatar);
-
-            AvatarPerformanceStatsLevel badPerformanceStatLimits
-                = VRChatUtility.AvatarPerformanceStatsLevelSets["PC"].Bad;
-
-            if (statistics.PolyCount > badPerformanceStatLimits.PolyCount)
-            {
-                messages.Add(new Converter.Message
-                {
-                    message = string.Format(
-                        Gettext._("The number of polygons is {0}. If a number of polygons exceeds {1}, you can not upload."),
-                        statistics.PolyCount,
-                        badPerformanceStatLimits.PolyCount
-                    ),
-                    type = MessageType.Error,
-                });
-            }
-
             float shoulderHeight = (avatar.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.LeftUpperArm).transform.position - avatar.transform.position).y;
             if (shoulderHeight <= 0)
             {

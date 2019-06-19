@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEditor;
 using UniGLTF;
 using VRM;
+using VRCSDK2;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
 {
@@ -388,6 +389,28 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     version,
                     VRChatUtility.DownloadURL
                 ), MessageType.Warning);
+            }
+
+            if (!isValid)
+            {
+                return true;
+            }
+
+            AvatarPerformanceStats statistics = AvatarPerformance.CalculatePerformanceStats(
+                avatarName: avatar.GetComponent<VRMMeta>().Meta.Title,
+                avatarObject: this.avatar.gameObject
+            );
+
+            AvatarPerformanceStatsLevel badPerformanceStatLimits
+                = VRChatUtility.AvatarPerformanceStatsLevelSets["PC"].Bad;
+
+            if (statistics.PolyCount > badPerformanceStatLimits.PolyCount)
+            {
+                EditorGUILayout.HelpBox(string.Format(
+                    Gettext._("The number of polygons is {0}. If a number of polygons exceeds {1}, you can not upload."),
+                    statistics.PolyCount,
+                    badPerformanceStatLimits.PolyCount
+                ), MessageType.Error);
             }
 
             return true;
