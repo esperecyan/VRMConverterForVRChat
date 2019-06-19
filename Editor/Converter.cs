@@ -45,6 +45,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="addedShouldersPositionY">VRChat上でモデルがなで肩・いかり肩になる問題について、Shoulder/UpperArmボーンのPositionのYに加算する値。</param>
         /// <param name="fixProneAvatarPosition">伏せたときのアバターの位置が、自分視点と他者視点で異なるVRChatのバグに対処するなら <c>true</c>。</param>
         /// <param name="moveEyeBoneToFrontForEyeMovement">オートアイムーブメント有効化時、目ボーンのPositionのZに加算する値。</param>
+        /// <param name="forQuest">Quest版用アバター向けに、Animatorを使わずにまたばきを設定するなら <c>true</c>。</param>
         /// <returns>変換中に発生したメッセージ。</returns>
         public static IEnumerable<Converter.Message> Convert(
             GameObject prefabInstance,
@@ -55,11 +56,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             bool enableAutoEyeMovement = true,
             float addedShouldersPositionY = 0.0f,
             bool fixProneAvatarPosition = true,
-            float moveEyeBoneToFrontForEyeMovement = 0.0f
+            float moveEyeBoneToFrontForEyeMovement = 0.0f,
+            bool forQuest = false
         ) {
             var messages = new List<Converter.Message>();
             messages.AddRange(GeometryCorrector.Apply(avatar: prefabInstance));
-            BlendShapeReplacer.Apply(avatar: prefabInstance);
+            messages.AddRange(BlendShapeReplacer.Apply(avatar: prefabInstance, forQuest: forQuest));
             messages.AddRange(ComponentsReplacer.Apply(
                 avatar: prefabInstance,
                 swayingObjectsConverterSetting: swayingObjectsConverterSetting,
@@ -72,7 +74,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 enableAutoEyeMovement: enableAutoEyeMovement,
                 addedShouldersPositionY: addedShouldersPositionY,
                 fixProneAvatarPosition: fixProneAvatarPosition,
-                moveEyeBoneToFrontForEyeMovement: moveEyeBoneToFrontForEyeMovement
+                moveEyeBoneToFrontForEyeMovement: moveEyeBoneToFrontForEyeMovement,
+                forQuest: forQuest
             ));
             prefabInstance.GetOrAddComponent<PipelineManager>();
             ComponentsRemover.Apply(avatar: prefabInstance);

@@ -38,21 +38,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             = VRC_AvatarDescriptor.AnimationSet.Female;
 
         /// <summary>
-        /// Cats Blender PluginでVRChat用に生成されるまばたきのシェイプキー名。
-        /// </summary>
-        /// <remarks>
-        /// 参照:
-        /// cats-blender-plugin/eyetracking.py at master · michaeldegroot/cats-blender-plugin
-        /// <https://github.com/michaeldegroot/cats-blender-plugin/blob/master/tools/eyetracking.py>
-        /// </remarks>
-        private static readonly string[] OrderedBlinkGeneratedByCatsBlenderPlugin = {
-            "vrc.blink_left",
-            "vrc.blink_right",
-            "vrc.lowerlid_left",
-            "vrc.lowerlid_right"
-        };
-        
-        /// <summary>
         /// オートアイムーブメントにおける目のボーンの回転角度の最大値。
         /// </summary>
         /// <remarks>
@@ -97,13 +82,15 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="addedShouldersPositionY">VRChat上でモデルがなで肩・いかり肩になる問題について、Shoulder/UpperArmボーンのPositionのYに加算する値。</param>
         /// <param name="fixProneAvatarPosition">伏せたときのアバターの位置が、自分視点と他者視点で異なるVRChatのバグに対処するなら <c>true</c>。</param>
         /// <param name="moveEyeBoneToFrontForEyeMovement"></param>
+        /// <param name="forQuest"></param>
         /// <returns>変換中に発生したメッセージ。</returns>
         internal static IEnumerable<Converter.Message> Apply(
             GameObject avatar,
             bool enableAutoEyeMovement,
             float addedShouldersPositionY,
             bool fixProneAvatarPosition,
-            float moveEyeBoneToFrontForEyeMovement
+            float moveEyeBoneToFrontForEyeMovement,
+            bool forQuest
         ) {
             var messages = new List<Converter.Message>();
             
@@ -112,13 +99,20 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             if (enableAutoEyeMovement)
             {
                 VRChatsBugsWorkaround.SetEyeBonesForCecilHenShin(avatar: avatar);
+            }
+            if (enableAutoEyeMovement || forQuest)
+            {
                 VRChatsBugsWorkaround.EnableAutoEyeMovement(avatar: avatar);
+            }
+            if (enableAutoEyeMovement)
+            {
                 if (!VRChatsBugsWorkaround.ApplyAutoEyeMovementDegreeMapping(avatar: avatar))
                 {
                     moveEyeBoneToFrontForEyeMovement = 0.0f;
                 }
             }
-            else {
+            else
+            {
                 VRChatsBugsWorkaround.DisableAutoEyeMovement(avatar: avatar);
                 moveEyeBoneToFrontForEyeMovement = 0.0f;
             }
@@ -291,7 +285,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             // ダミーのまばたき用ブレンドシェイプの作成
             var renderer = avatar.transform.Find(name: VRChatUtility.AutoBlinkMeshPath).gameObject.GetOrAddComponent<SkinnedMeshRenderer>();
             Mesh mesh = renderer.sharedMesh;
-            if (mesh && mesh.blendShapeCount >= VRChatsBugsWorkaround.OrderedBlinkGeneratedByCatsBlenderPlugin.Length) {
+            if (mesh && mesh.blendShapeCount >= BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.Count()) {
                 return;
             }
 
@@ -304,15 +298,15 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 renderer.sharedMaterials = new Material[0];
             }
             
-            foreach (var name in VRChatsBugsWorkaround.OrderedBlinkGeneratedByCatsBlenderPlugin.Skip(count: mesh.blendShapeCount)) {
-                VRChatsBugsWorkaround.CreateDummyBlendShape(mesh: mesh, name: name);
+            foreach (var name in BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.Skip(count: mesh.blendShapeCount)) {
+                BlendShapeReplacer.AddDummyShapeKey(mesh: mesh, name: name);
             }
             
             EditorUtility.SetDirty(target: mesh);
         }
 
         /// <summary>
-        /// オートアイムーブメントが有効化される条件が揃っていれば、破壊します。
+        /// オートアイムーブメントが有効化される条件が揃っていれば、目ボーンの関連付けを外します。
         /// </summary>
         /// <param name="avatar"></param>
         private static void DisableAutoEyeMovement(GameObject avatar)
@@ -326,7 +320,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             var renderer = avatar.transform.Find(name: VRChatUtility.AutoBlinkMeshPath).gameObject.GetOrAddComponent<SkinnedMeshRenderer>();
             Mesh mesh = renderer.sharedMesh;
-            if (!mesh || mesh.blendShapeCount < VRChatsBugsWorkaround.OrderedBlinkGeneratedByCatsBlenderPlugin.Length)
+            if (!mesh || mesh.blendShapeCount < BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.Count())
             {
                 return;
             }
@@ -462,22 +456,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             mesh.name = "dummy-for-auto-eye-movement";
             mesh.vertices = new[] { new Vector3(0, 0, 0) };
             return mesh;
-        }
-
-        /// <summary>
-        /// ダミーのブレンドシェイプを作成します。
-        /// </summary>
-        /// <param name="mesh"></param>
-        /// <param name="name"></param>
-        private static void CreateDummyBlendShape(Mesh mesh, string name)
-        {
-            mesh.AddBlendShapeFrame(
-                shapeName: name,
-                frameWeight: 0,
-                deltaVertices: new Vector3[mesh.vertexCount],
-                deltaNormals: new Vector3[mesh.vertexCount],
-                deltaTangents: new Vector3[mesh.vertexCount]
-            );
         }
 
         /// <summary>

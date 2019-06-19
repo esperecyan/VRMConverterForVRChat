@@ -137,6 +137,42 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         }
 
         /// <summary>
+        /// 指定したパスに一致する<see cref="BlendShapeClip">のindexに指定値を加算します。
+        /// </summary>
+        /// <param name="avatar"></param>
+        /// <param name="relativePath"></param>
+        /// <param name="difference"></param>
+        internal static void ShiftBlendShapeIndices(GameObject avatar, string relativePath, int difference)
+        {
+            var blendShapeProxy = avatar.GetComponent<VRMBlendShapeProxy>();
+            if (!blendShapeProxy)
+            {
+                return;
+            }
+
+            if (!blendShapeProxy.BlendShapeAvatar || blendShapeProxy.BlendShapeAvatar.Clips == null)
+            {
+                return;
+            }
+
+            foreach (BlendShapeClip clip in blendShapeProxy.BlendShapeAvatar.Clips)
+            {
+                if (!clip || clip.Values == null)
+                {
+                    continue;
+                }
+
+                clip.Values = clip.Values.Select(binding => {
+                    if (binding.RelativePath == relativePath)
+                    {
+                        binding.Index += difference;
+                    }
+                    return binding;
+                }).ToArray();
+            }
+        }
+
+        /// <summary>
         /// 指定した<see cref="BlendShapeBinding"/>を置換します。
         /// </summary>
         /// <param name="blendShapeAvatar"></param>

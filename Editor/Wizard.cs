@@ -50,6 +50,20 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         private bool enableEyeMovement = true;
 
         /// <summary>
+        /// VRChat上でモデルがなで肩・いかり肩になる問題について、ボーンのPositionのYに加算する値。
+        /// </summary>
+        [SerializeField, Localizable(-0.1f, 0.1f)]
+        private float shoulderHeights;
+
+        /// <summary>
+        /// 伏せたときのアバターの位置が、自分視点と他者視点で異なるVRChatのバグに対処するなら <c>true</c>。
+        /// </summary>
+        [SerializeField, Localizable]
+        private bool fixProneAvatarPosition = true;
+
+        [Header("For PC")]
+
+        /// <summary>
         /// 揺れ物を変換するか否かの設定。
         /// </summary>
         [SerializeField, Localizable]
@@ -67,17 +81,15 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         [SerializeField, Localizable]
         private List<string> excludedSpringBoneComments = new List<string>();
 
-        /// <summary>
-        /// VRChat上でモデルがなで肩・いかり肩になる問題について、ボーンのPositionのYに加算する値。
-        /// </summary>
-        [SerializeField, Localizable(-0.1f, 0.1f)]
-        private float shoulderHeights;
+        [Header("For Quest")]
 
         /// <summary>
-        /// 伏せたときのアバターの位置が、自分視点と他者視点で異なるVRChatのバグに対処するなら <c>true</c>。
+        /// Quest向けに変換するなら <c>true</c>。
         /// </summary>
         [SerializeField, Localizable]
-        private bool fixProneAvatarPosition = true;
+        private bool forQuest = false;
+
+        [Header("Callback")]
 
         /// <summary>
         /// 各種コールバック関数のユーザー設定値。
@@ -434,7 +446,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 swayingParametersConverter: this.swayingParametersConverter,
                 enableAutoEyeMovement: this.enableEyeMovement,
                 addedShouldersPositionY: this.shoulderHeights,
-                fixProneAvatarPosition: this.fixProneAvatarPosition
+                fixProneAvatarPosition: this.fixProneAvatarPosition,
+                forQuest: this.forQuest
             );
 
             if (this.postConverting != null) {
