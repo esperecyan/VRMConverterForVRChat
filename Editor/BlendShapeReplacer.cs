@@ -243,35 +243,27 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// クラスに含まれる処理を適用します。
         /// </summary>
         /// <param name="avatar"></param>
+        /// <param name="clips"></param>
         /// <param name="forQuest"></param>
-        internal static IEnumerable<Converter.Message> Apply(GameObject avatar, bool forQuest)
-        {
+        internal static IEnumerable<Converter.Message> Apply(
+            GameObject avatar,
+            IEnumerable<VRMBlendShapeClip> clips,
+            bool forQuest
+        ) {
             var messages = new List<Converter.Message>();
 
-            var blendShapeProxy = avatar.GetComponent<VRMBlendShapeProxy>();
-            if (!blendShapeProxy)
-            {
-                return messages;
-            }
+            SetLipSync(avatar: avatar, clips: clips);
 
-            if (!blendShapeProxy.BlendShapeAvatar)
-            {
-                return messages;
-            }
-
-            SetLipSync(avatar: avatar);
-
-            string relativePathToNeutralAndBlinkMesh = "";
             if (forQuest)
             {
-                SetNeutralAndBlinkForQuest(avatar: avatar);
+                SetNeutralAndBlinkForQuest(avatar: avatar, clips: clips);
             }
             else
             {
-                relativePathToNeutralAndBlinkMesh = SetNeutralAndBlink(avatar: avatar);
+                SetNeutralAndBlink(avatar: avatar, clips: clips);
             }
 
-            SetFeelings(avatar: avatar, relativePathToNeutralAndBlinkMesh: relativePathToNeutralAndBlinkMesh);
+            SetFeelings(avatar: avatar, clips: clips);
 
             return messages;
         }
@@ -293,124 +285,45 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         }
 
         /// <summary>
-        /// 指定したBlendShapeClipに対応するメッシュのインデックスとウェイトを取得します。
-        /// </summary>
-        /// <param name="avatar"></param>
-        /// <param name="preset"></param>
-        /// <param name="renderer"></param>
-        /// <returns>ウェイトは0〜1。</returns>
-        private static Dictionary<int, float> GetShapeKeyIndecesAndWeights(
-            GameObject avatar,
-            BlendShapePreset preset,
-            ref SkinnedMeshRenderer renderer
-        )
-        {
-            var clip = avatar.GetComponent<VRMBlendShapeProxy>().BlendShapeAvatar.GetClip(preset: preset);
-            if (!clip)
-            {
-                return new Dictionary<int, float>();
-            }
-
-            var targetRenderer = renderer;
-            var indecesAndWeights = clip.Values
-                .Select(binding => {
-                    var invalid = new KeyValuePair<int, float>(-1, 0);
-
-                    Transform obj = avatar.transform.Find(name: binding.RelativePath);
-                    if (!obj)
-                    {
-                        return invalid;
-                    }
-
-                    var skinnedMeshRederer = obj.GetComponent<SkinnedMeshRenderer>();
-                    if (!skinnedMeshRederer)
-                    {
-                        return invalid;
-                    }
-                    Mesh mesh = skinnedMeshRederer.sharedMesh;
-                    if (!mesh)
-                    {
-                        return invalid;
-                    }
-
-                    if (!targetRenderer)
-                    {
-                        targetRenderer = skinnedMeshRederer;
-                    }
-                    if (skinnedMeshRederer != targetRenderer)
-                    {
-                        return invalid;
-                    }
-
-                    int index = binding.Index;
-                    if (index >= mesh.blendShapeCount || mesh.GetBlendShapeFrameCount(index) > 1)
-                    {
-                        return invalid;
-                    }
-                    return new KeyValuePair<int, float>(
-                        index,
-                        binding.Weight / VRMUtility.MaxBlendShapeBindingWeight
-                    );
-                })
-                .Where(indexAndWeight => indexAndWeight.Value >= 0)
-                .ToDictionary(indexAndWeight => indexAndWeight.Key, indexAndWeight => indexAndWeight.Value);
-
-            renderer = targetRenderer;
-
-            return indecesAndWeights;
-        }
-
-        /// <summary>
         /// リップシンクの設定を行います。
         /// </summary>
         /// <remarks>
         /// <see cref="BlendShapePreset.A"/>、<see cref="BlendShapePreset.I"/>、<see cref="BlendShapePreset.O"/>が
-        /// 同一のメッシュ上に存在しない、または単一のフレームを持つシェイプキーが存在しない場合、設定を行いません。
+        /// 単一のフレームを持つシェイプキーが存在しない場合、設定を行いません。
         /// 生成するシェイプキー名と同じシェイプキーが存在する場合、それを利用します。
         /// </remarks>
         /// <param name="avatar"></param>
-        private static void SetLipSync(GameObject avatar)
+        /// <param name="clips"></param>
+        private static void SetLipSync(GameObject avatar, IEnumerable<VRMBlendShapeClip> clips)
         {
-            BlendShapeAvatar blendShapeAvatar = avatar.GetComponent<VRMBlendShapeProxy>().BlendShapeAvatar;
+            Transform transform = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath);
+            var renderer = transform.GetComponent<SkinnedMeshRenderer>();
+            Mesh mesh = renderer.sharedMesh;
 
-            var presetsAndShapeKeyIndicesAndWeightsList = new Dictionary<BlendShapePreset, IDictionary<int, float>>();
-            SkinnedMeshRenderer faceRenderer = null;
             foreach (var preset in new[] { BlendShapePreset.A, BlendShapePreset.I, BlendShapePreset.O })
             {
-                Dictionary<int,float> indecesAndWeights = BlendShapeReplacer
-                    .GetShapeKeyIndecesAndWeights(avatar: avatar, preset: preset, renderer: ref faceRenderer);
-
-                var clip = blendShapeAvatar.GetClip(preset: preset);
-                if (!clip)
+                if (!clips.FirstOrDefault(c => c.Preset == preset))
                 {
                     return;
                 }
-
-                if (indecesAndWeights.Count() == 0)
-                {
-                    return;
-                }
-
-                presetsAndShapeKeyIndicesAndWeightsList[preset] = indecesAndWeights;
             }
 
-            Mesh faceMesh = faceRenderer.sharedMesh;
-            int faceMeshVertexCount = faceMesh.vertexCount;
-
-            IEnumerable<BlendShape> shapeKeys = BlendShapeReplacer.GetAllShapeKeys(mesh: faceMesh);
+            IEnumerable<BlendShape> shapeKeys = BlendShapeReplacer.GetAllShapeKeys(mesh: mesh);
 
             foreach (var newNameAndValues in BlendShapeReplacer.VisemeShapeKeyNamesAndValues)
             {
-                if (faceMesh.GetBlendShapeIndex(newNameAndValues.Key) != -1)
+                if (mesh.GetBlendShapeIndex(newNameAndValues.Key) != -1)
                 {
                     continue;
                 }
 
                 Vector3[] deltaVertices = null;
                 foreach (Vector3[] vertices in newNameAndValues.Value.SelectMany(presetAndWeight =>
-                    presetsAndShapeKeyIndicesAndWeightsList[presetAndWeight.Key].Select(
-                        shapeKeyIndexAndWeight => shapeKeys.ElementAt(shapeKeyIndexAndWeight.Key).Positions
-                            .Select(vertix => vertix * shapeKeyIndexAndWeight.Value * presetAndWeight.Value)
+                    clips.First(clip => clip.Preset == presetAndWeight.Key).ShapeKeyValues.Select(
+                        shapeKeyNameAndWeight => shapeKeys
+                            .First(shapeKey => shapeKey.Name == shapeKeyNameAndWeight.Key)
+                            .Positions
+                            .Select(vertix => vertix * (shapeKeyNameAndWeight.Value / VRMUtility.MaxBlendShapeBindingWeight * presetAndWeight.Value))
                             .ToArray()
                     )
                 ))
@@ -427,7 +340,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     }
                 }
 
-                faceMesh.AddBlendShapeFrame(
+                mesh.AddBlendShapeFrame(
                     newNameAndValues.Key,
                     BlendShapeReplacer.MaxBlendShapeFrameWeight,
                     deltaVertices,
@@ -435,11 +348,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     null
                 );
             }
-            EditorUtility.SetDirty(target: faceMesh);
+            EditorUtility.SetDirty(target: mesh);
 
             var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
             avatarDescriptor.lipSync = VRC_AvatarDescriptor.LipSyncStyle.VisemeBlendShape;
-            avatarDescriptor.VisemeSkinnedMesh = faceRenderer;
+            avatarDescriptor.VisemeSkinnedMesh = renderer;
             avatarDescriptor.VisemeBlendShapes
                 = BlendShapeReplacer.VisemeShapeKeyNamesAndValues.Select(nameAndValues => nameAndValues.Key).ToArray();
         }
@@ -448,8 +361,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <see cref="BlendShapePreset.Neutral"/>、および<see cref="BlendShapePreset.Blink"/>を変換します。
         /// </summary>
         /// <remarks>
-        /// VRChatのプログラム側で行われる自動まばたきの無効化は行いません。
-        /// 
         /// 参照:
         /// 最新版（10/02時点）自動まばたきの実装【VRChat技術情報】 — VRChatパブリックログ
         /// <https://jellyfish-qrage.hatenablog.com/entry/2018/10/02/152316>
@@ -461,67 +372,36 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <https://twitter.com/momoma_creative/status/1137917887262339073>
         /// </remarks>
         /// <param name="avatar"></param>
-        /// <returns>設定を行った場合、対象の<c>avatar</c>から対象のメッシュまでの相対パスを返します。</returns>
-        private static string SetNeutralAndBlink(GameObject avatar)
+        /// <param name="clips"></param>
+        private static void SetNeutralAndBlink(GameObject avatar, IEnumerable<VRMBlendShapeClip> clips)
         {
             AnimatorController neutralAndBlinkController
                 = BlendShapeReplacer.CreateSingleAnimatorController(avatar: avatar, name: "blink");
             AnimationClip animationClip = neutralAndBlinkController.animationClips[0];
 
-            var relativePath = "";
-
+            VRMBlendShapeClip blinkClip = null;
             foreach (var preset in new[] { BlendShapePreset.Blink, BlendShapePreset.Neutral })
             {
-                BlendShapeClip clip = VRMUtility.GetBlendShapeClip(avatar: avatar, preset: preset);
-                if (!clip || clip.Values == null)
+                VRMBlendShapeClip clip = clips.FirstOrDefault(c => c.Preset == preset);
+                if (!clip)
                 {
                     continue;
                 }
 
-
-                var blinkBindings = new BlendShapeBinding[] { };
-                if (preset == BlendShapePreset.Neutral)
+                if (preset == BlendShapePreset.Blink)
                 {
-                    BlendShapeClip blinkClip
-                        = VRMUtility.GetBlendShapeClip(avatar: avatar, preset: BlendShapePreset.Blink);
-                    if (blinkClip && blinkClip.Values != null)
-                    {
-                        blinkBindings = blinkClip.Values;
-                    }
+                    blinkClip = clip;
                 }
 
-                for (var i = 0; i < clip.Values.Length; i++)
+                foreach (KeyValuePair<string, float> shapeKeyNameAndWeight in clip.ShapeKeyValues)
                 {
-                    BlendShapeBinding binding = clip.Values[i];
-
-                    Transform meshObject = avatar.transform.Find(name: binding.RelativePath);
-                    if (!meshObject)
-                    {
-                        continue;
-                    }
-
-                    var renderer = meshObject.GetComponent<SkinnedMeshRenderer>();
-                    if (!renderer || !renderer.sharedMesh)
-                    {
-                        continue;
-                    }
-
-                    if (string.IsNullOrEmpty(relativePath))
-                    {
-                        relativePath = binding.RelativePath;
-                    }
-                    else if (relativePath != binding.RelativePath) {
-                        continue;
-                    }
-
                     var keys = BlendShapeReplacer.BlinkWeights;
                     if (preset == BlendShapePreset.Neutral)
                     {
-                        BlendShapeBinding overlappingBinding
-                            = blinkBindings.FirstOrDefault(predicate: blinkBinding => blinkBinding.Equals(binding));
-                        if (!overlappingBinding.Equals(default(BlendShapeBinding)))
+                        if (blinkClip && blinkClip.ShapeKeyValues.ContainsKey(shapeKeyNameAndWeight.Key))
                         {
                             // NEUTRALとBlinkが同一のシェイプキーを参照していた場合
+                            float blinkShapeKeyWeight = blinkClip.ShapeKeyValues[shapeKeyNameAndWeight.Key];
                             var animationCurve = new AnimationCurve();
                             foreach (var pair in BlendShapeReplacer.NeutralAndBlinkWeights)
                             {
@@ -529,10 +409,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                                 switch (pair.Value)
                                 {
                                     case BlendShapePreset.Neutral:
-                                        weight = binding.Weight;
+                                        weight = shapeKeyNameAndWeight.Value;
                                         break;
                                     case BlendShapePreset.Blink:
-                                        weight = overlappingBinding.Weight;
+                                        weight = blinkShapeKeyWeight;
                                         break;
                                     default:
                                         weight = 0;
@@ -544,7 +424,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                             animationClip.SetCurve(
                                 relativePath: "",
                                 type: typeof(SkinnedMeshRenderer),
-                                propertyName: "blendShape." + renderer.sharedMesh.GetBlendShapeName(binding.Index),
+                                propertyName: "blendShape." + shapeKeyNameAndWeight.Key,
                                 curve: animationCurve
                             );
                             continue;
@@ -555,8 +435,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
                     SetBlendShapeCurve(
                         animationClip: animationClip,
-                        avatar: avatar,
-                        binding: binding,
+                        shapeKeyName: shapeKeyNameAndWeight.Key,
+                        shapeKeyWeight: shapeKeyNameAndWeight.Value,
                         keys: keys,
                         setRelativePath: false
                     );
@@ -570,31 +450,51 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 }
             }
 
-            if (string.IsNullOrEmpty(relativePath)) {
-                return "";
+            Transform transform = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath);
+            transform.gameObject.AddComponent<Animator>().runtimeAnimatorController = neutralAndBlinkController;
+
+            // VRChat側の自動まばたきを回避
+            Mesh mesh = transform.GetSharedMesh();
+            IEnumerable<BlendShape> shapeKeys = BlendShapeReplacer.GetAllShapeKeys(mesh: mesh);
+            mesh.ClearBlendShapes();
+            foreach (string name in BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin)
+            {
+                BlendShapeReplacer.AddDummyShapeKey(mesh: mesh, name: name);
             }
+            foreach (BlendShape shapeKey in shapeKeys)
+            {
+                if (BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.Contains(shapeKey.Name))
+                {
+                    continue;
+                }
 
-            Transform neutralAndBlinkMesh = avatar.transform.Find(name: relativePath);
-            neutralAndBlinkMesh.gameObject.AddComponent<Animator>().runtimeAnimatorController
-                = neutralAndBlinkController;
-
-            return relativePath;
+                mesh.AddBlendShapeFrame(
+                    shapeKey.Name,
+                    BlendShapeReplacer.MaxBlendShapeFrameWeight,
+                    shapeKey.Positions.ToArray(),
+                    shapeKey.Normals.ToArray(),
+                    shapeKey.Tangents.ToArray()
+                );
+            }
+            EditorUtility.SetDirty(target: mesh);
         }
 
         /// <summary>
         /// 指定されたシェイプキーを合成し、新しいシェイプキーを作成します。
         /// </summary>
-        /// <param name="indicesAndWeights">シェイプキーのインデックスと0〜1のウェイトの連想配列。</param>
+        /// <param name="namesAndWeights">シェイプキー名と0〜100のウェイトの連想配列。</param>
         /// <param name="shapeKeys"><see cref="BlendShapeReplacer.GetAllShapeKeys"/>の戻り値。</param>
         /// <returns></returns>
         private static Vector3[] GenerateShapeKey(
-            IDictionary<int, float> indicesAndWeights,
+            IDictionary<string, float> namesAndWeights,
             IEnumerable<BlendShape> shapeKeys
+
         ) {
             Vector3[] deltaVertices = null;
-            foreach (KeyValuePair<int, float> indexAndWeight in indicesAndWeights)
+            foreach (KeyValuePair<string, float> nameAndWeight in namesAndWeights)
             {
-                Vector3[] vertices = shapeKeys.ElementAt(indexAndWeight.Key).Positions.ToArray();
+                Vector3[] vertices
+                    = shapeKeys.First(shapeKey => shapeKey.Name == nameAndWeight.Key).Positions.ToArray();
                 if (deltaVertices == null)
                 {
                     deltaVertices = new Vector3[vertices.Length];
@@ -602,7 +502,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
                 for (var i = 0; i < deltaVertices.Length; i++)
                 {
-                    deltaVertices[i] += vertices[i] * indexAndWeight.Value;
+                    deltaVertices[i] += vertices[i] * (nameAndWeight.Value / VRMUtility.MaxBlendShapeBindingWeight);
                 }
             }
             return deltaVertices;
@@ -617,104 +517,53 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// それらのキーが存在せず、<see cref="BlendShapePreset.Blink_L"/>、<see cref="BlendShapePreset.Blink_R"/>がいずれも設定されていればそれを優先します。
         /// </remarks>
         /// <param name="avatar"></param>
-        private static void SetNeutralAndBlinkForQuest(GameObject avatar)
+        /// <param name="clips"></param>
+        private static void SetNeutralAndBlinkForQuest(GameObject avatar, IEnumerable<VRMBlendShapeClip> clips)
         {
-            var clip = VRMUtility.GetBlendShapeClip(avatar: avatar, preset: BlendShapePreset.Neutral);
-            if (clip.Values != null)
+            Transform transform = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath);
+            var renderer = transform.GetComponent<SkinnedMeshRenderer>();
+            Mesh mesh = renderer.sharedMesh;
+
+            var clip = clips.FirstOrDefault(c => c.Preset == BlendShapePreset.Neutral);
+            if (clip)
             {
-                foreach (BlendShapeBinding binding in clip.Values) {
-                    Transform transform = avatar.transform.Find(binding.RelativePath);
-                    if (!transform)
-                    {
-                        continue;
-                    }
-
-                    var renderer = transform.GetComponent<SkinnedMeshRenderer>();
-                    if (!renderer)
-                    {
-                        continue;
-                    }
-
-                    Mesh mesh = renderer.sharedMesh;
-                    if (!mesh || binding.Index > mesh.blendShapeCount)
-                    {
-                        continue;
-                    }
-
-                    renderer.SetBlendShapeWeight(binding.Index, binding.Weight);
-                }
-            }
-
-            SkinnedMeshRenderer faceRenderer
-                = VRMUtility.GetFirstSkinnedMeshRenderer(avatar: avatar, preset: BlendShapePreset.Blink);
-            if (!faceRenderer)
-            {
-                return;
-            }
-
-            Mesh faceMesh = faceRenderer.sharedMesh;
-            if (!faceMesh)
-            {
-                return;
-            }
-
-            string relativePath = faceRenderer.transform.RelativePathFrom(root: avatar.transform);
-            if (relativePath != VRChatUtility.AutoBlinkMeshPath)
-            {
-                Transform sameNameTransform = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath);
-                if (sameNameTransform)
-                {
-                    sameNameTransform.name = VRChatUtility.AutoBlinkMeshPath + "-" + VRChatUtility.AutoBlinkMeshPath;
-                    VRMUtility.ReplaceBlendShapeRelativePaths(
-                        avatar: avatar,
-                        oldPath: VRChatUtility.AutoBlinkMeshPath,
-                        newPath: sameNameTransform.name
+                foreach (KeyValuePair<string, float> shapeKeyNameAndWeight in clip.ShapeKeyValues) {
+                    renderer.SetBlendShapeWeight(
+                        mesh.GetBlendShapeIndex(shapeKeyNameAndWeight.Key),
+                        shapeKeyNameAndWeight.Value
                     );
                 }
-
-                faceRenderer.name = VRChatUtility.AutoBlinkMeshPath;
-                faceRenderer.transform.parent = avatar.transform;
-                VRMUtility.ReplaceBlendShapeRelativePaths(
-                    avatar: avatar,
-                    oldPath: relativePath,
-                    newPath: VRChatUtility.AutoBlinkMeshPath
-                );
             }
 
-            if (BlendShapeReplacer.GetBlendShapeNames(mesh: faceMesh)
+            if (BlendShapeReplacer.GetBlendShapeNames(mesh: mesh)
                 .Take(BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.Count())
                 .SequenceEqual(BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin))
             {
                 return;
             }
 
-            var presetsAndShapeKeyIndecesAndWeights
-                = new BlendShapePreset[] { BlendShapePreset.Blink, BlendShapePreset.Blink_L, BlendShapePreset.Blink_R }
-                    .ToDictionary(keySelector: preset => preset, elementSelector: preset => BlendShapeReplacer
-                        .GetShapeKeyIndecesAndWeights(avatar: avatar, preset: preset, renderer: ref faceRenderer));
-
-            IEnumerable<BlendShape> shapeKeys = BlendShapeReplacer.GetAllShapeKeys(mesh: faceMesh);
-            faceMesh.ClearBlendShapes();
+            IEnumerable<BlendShape> shapeKeys = BlendShapeReplacer.GetAllShapeKeys(mesh: mesh);
+            mesh.ClearBlendShapes();
 
             var dummyShapeKeyNames = new List<string>();
-            if (presetsAndShapeKeyIndecesAndWeights[BlendShapePreset.Blink_L].Count() > 0
-                && presetsAndShapeKeyIndecesAndWeights[BlendShapePreset.Blink_R].Count() > 0)
+            if (clips.FirstOrDefault(c => c.Preset == BlendShapePreset.Blink_L)
+                && clips.FirstOrDefault(c => c.Preset == BlendShapePreset.Blink_R))
             {
-                faceMesh.AddBlendShapeFrame(
+                mesh.AddBlendShapeFrame(
                     BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.ElementAt(0),
                     BlendShapeReplacer.MaxBlendShapeFrameWeight,
                     BlendShapeReplacer.GenerateShapeKey(
-                        indicesAndWeights: presetsAndShapeKeyIndecesAndWeights[BlendShapePreset.Blink_L],
+                        namesAndWeights: clips.First(c => c.Preset == BlendShapePreset.Blink_L).ShapeKeyValues,
                         shapeKeys: shapeKeys
                     ),
                     null,
                     null
                 );
-                faceMesh.AddBlendShapeFrame(
+                mesh.AddBlendShapeFrame(
                     BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.ElementAt(1),
                     BlendShapeReplacer.MaxBlendShapeFrameWeight,
                     BlendShapeReplacer.GenerateShapeKey(
-                        indicesAndWeights: presetsAndShapeKeyIndecesAndWeights[BlendShapePreset.Blink_R],
+                        namesAndWeights: clips.First(c => c.Preset == BlendShapePreset.Blink_R).ShapeKeyValues,
                         shapeKeys: shapeKeys
                     ),
                     null,
@@ -723,11 +572,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
             else
             {
-                faceMesh.AddBlendShapeFrame(
+                mesh.AddBlendShapeFrame(
                     BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.ElementAt(0),
                     BlendShapeReplacer.MaxBlendShapeFrameWeight,
                     BlendShapeReplacer.GenerateShapeKey(
-                        indicesAndWeights: presetsAndShapeKeyIndecesAndWeights[BlendShapePreset.Blink],
+                        namesAndWeights: clips.First(c => c.Preset == BlendShapePreset.Blink).ShapeKeyValues,
                         shapeKeys: shapeKeys
                     ),
                     null,
@@ -738,7 +587,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             dummyShapeKeyNames.AddRange(BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.Skip(2));
             foreach (string name in dummyShapeKeyNames)
             {
-                BlendShapeReplacer.AddDummyShapeKey(mesh: faceMesh, name: name);
+                BlendShapeReplacer.AddDummyShapeKey(mesh: mesh, name: name);
             }
 
             foreach (BlendShape shapeKey in shapeKeys)
@@ -748,7 +597,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     continue;
                 }
 
-                faceMesh.AddBlendShapeFrame(
+                mesh.AddBlendShapeFrame(
                     shapeKey.Name,
                     BlendShapeReplacer.MaxBlendShapeFrameWeight,
                     shapeKey.Positions.ToArray(),
@@ -757,13 +606,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 );
             }
 
-            EditorUtility.SetDirty(target: faceMesh);
-
-            VRMUtility.ShiftBlendShapeIndices(
-                avatar: avatar,
-                relativePath: VRChatUtility.AutoBlinkMeshPath,
-                difference: BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.Count()
-            );
+            EditorUtility.SetDirty(target: mesh);
         }
 
         /// <summary>
@@ -836,20 +679,22 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// アニメーションクリップに、指定されたブレンドシェイプを追加します。
         /// </summary>
         /// <param name="animationClip"></param>
-        /// <param name="avatar"></param>
-        /// <param name="preset"></param>
+        /// <param name="clip"></param>
         /// <param name="keys"></param>
-        private static void SetBlendShapeCurves(AnimationClip animationClip, GameObject avatar, BlendShapePreset preset, IDictionary<float, float> keys)
-        {
-            BlendShapeClip clip = VRMUtility.GetBlendShapeClip(avatar: avatar, preset: preset);
-            if (!clip)
+        private static void SetBlendShapeCurves(
+            AnimationClip animationClip,
+            VRMBlendShapeClip clip,
+            IDictionary<float, float> keys
+        ) {
+            foreach (KeyValuePair<string, float> nameAndWeight in clip.ShapeKeyValues)
             {
-                return;
-            }
-
-            foreach (BlendShapeBinding binding in clip.Values)
-            {
-                SetBlendShapeCurve(animationClip: animationClip, avatar: avatar, binding: binding, keys: keys);
+                SetBlendShapeCurve(
+                    animationClip: animationClip,
+                    shapeKeyName: nameAndWeight.Key,
+                    shapeKeyWeight: nameAndWeight.Value,
+                    keys: keys,
+                    setRelativePath: true
+                );
             }
 
             foreach (MaterialValueBinding binding in clip.MaterialValues)
@@ -864,39 +709,27 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// アニメーションクリップに、指定されたブレンドシェイプを追加します。
         /// </summary>
         /// <param name="animationClip"></param>
-        /// <param name="avatar"></param>
-        /// <param name="binding"></param>
+        /// <param name="shapeKeyName"></param>
+        /// <param name="shapeKeyWeight">0〜100。</param>
         /// <param name="keys"></param>
         /// <param name="setRelativePath"></param>
         private static void SetBlendShapeCurve(
             AnimationClip animationClip,
-            GameObject avatar,
-            BlendShapeBinding binding,
+            string shapeKeyName,
+            float shapeKeyWeight,
             IDictionary<float, float> keys,
-            bool setRelativePath = true
+            bool setRelativePath
         ) {
-            Transform face = avatar.transform.Find(name: binding.RelativePath);
-            if (!face)
-            {
-                return;
-            }
-
-            var renderer = face.GetComponent<SkinnedMeshRenderer>();
-            if (!renderer)
-            {
-                return;
-            }
-
             var curve = new AnimationCurve();
             foreach (var pair in keys)
             {
-                curve.AddKey(new Keyframe(pair.Key, pair.Value * binding.Weight));
+                curve.AddKey(new Keyframe(pair.Key, pair.Value * shapeKeyWeight));
             }
 
             animationClip.SetCurve(
-                relativePath: setRelativePath ? binding.RelativePath : "",
+                relativePath: setRelativePath ? VRChatUtility.AutoBlinkMeshPath : "",
                 type: typeof(SkinnedMeshRenderer),
-                propertyName: "blendShape." + renderer.sharedMesh.GetBlendShapeName(binding.Index),
+                propertyName: "blendShape." + shapeKeyName,
                 curve: curve
             );
         }
@@ -905,8 +738,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// 手の形に喜怒哀楽を割り当てます。
         /// </summary>
         /// <param name="avatar"></param>
-        /// <param name="relativePathToNeutralAndBlinkMesh"></param>
-        private static void SetFeelings(GameObject avatar, string relativePathToNeutralAndBlinkMesh)
+        /// <param name="clips"></param>
+        private static void SetFeelings(GameObject avatar, IEnumerable<VRMBlendShapeClip> clips)
         {
             VRChatUtility.AddCustomAnims(avatar: avatar);
 
@@ -914,19 +747,16 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             foreach (var preset in BlendShapeReplacer.MappingBlendShapeToVRChatAnim.Keys)
             {
-                if (string.IsNullOrEmpty(VRMUtility.GetFirstBlendShapeBindingName(avatar: avatar, preset: preset)))
+                VRMBlendShapeClip blendShapeClip = clips.FirstOrDefault(c => c.Preset == preset);
+                if (!blendShapeClip)
                 {
                     continue;
                 }
 
-                AnimationClip clip = CreateFeeling(
-                    avatar: avatar,
-                    preset: preset,
-                    relativePathToNeutralAndBlinkMesh: relativePathToNeutralAndBlinkMesh
-                );
+                AnimationClip animationClip = CreateFeeling(avatar: avatar, preset: preset, clips: ref clips);
                 string anim = BlendShapeReplacer.MappingBlendShapeToVRChatAnim[preset].ToString();
-                avatarDescriptor.CustomStandingAnims[anim] = clip;
-                avatarDescriptor.CustomSittingAnims[anim] = clip;
+                avatarDescriptor.CustomStandingAnims[anim] = animationClip;
+                avatarDescriptor.CustomSittingAnims[anim] = animationClip;
             }
         }
 
@@ -935,12 +765,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </summary>
         /// <param name="avatar"></param>
         /// <param name="preset"></param>
-        /// <param name="relativePathToNeutralAndBlinkMesh"></param>
+        /// <param name="clips"></param>
         /// <returns></returns>
         private static AnimationClip CreateFeeling(
             GameObject avatar,
             BlendShapePreset preset,
-            string relativePathToNeutralAndBlinkMesh
+            ref IEnumerable<VRMBlendShapeClip> clips
         ) {
             var anim = Duplicator.DuplicateAssetToFolder<AnimationClip>(
                 source: UnityPath.FromUnityPath(Converter.RootFolderPath).Child("Editor")
@@ -949,7 +779,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 fileName: preset + ".anim"
             );
 
-            if (!string.IsNullOrEmpty(relativePathToNeutralAndBlinkMesh))
+            Transform transform = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath);
+            if (transform.GetComponent<Animator>())
             {
                 var curve = new AnimationCurve();
                 foreach (var timeAndValue in BlendShapeReplacer.NeutralAndBlinkStopperWeights)
@@ -957,23 +788,23 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     curve.AddKey(new Keyframe(timeAndValue.Key, timeAndValue.Value));
                 }
                 anim.SetCurve(
-                    relativePath: relativePathToNeutralAndBlinkMesh,
+                    relativePath: VRChatUtility.AutoBlinkMeshPath,
                     type: typeof(Behaviour),
                     propertyName: "m_Enabled",
                     curve: curve
                 );
 
-                BlendShapeReplacer.DuplicateShapeKeyToUnique(
-                    avatar: avatar,
-                    preset: preset,
-                    relativePathToNeutralAndBlinkMesh: relativePathToNeutralAndBlinkMesh
-                );
+                clips = BlendShapeReplacer.DuplicateShapeKeyToUnique(avatar: avatar, preset: preset, clips: clips);
             }
 
-            SetBlendShapeCurves(animationClip: anim, avatar: avatar, preset: preset, keys: new Dictionary<float, float> {
-                { 0, 1 },
-                { anim.length, 1 },
-            });
+            SetBlendShapeCurves(
+                animationClip: anim,
+                clip: clips.First(clip => clip.Preset == preset),
+                keys: new Dictionary<float, float> {
+                    { 0, 1 },
+                    { anim.length, 1 },
+                }
+            );
 
             return anim;
         }
@@ -999,45 +830,42 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </summary>
         /// <param name="avatar"></param>
         /// <param name="preset"></param>
-        /// <param name="relativePathToNeutralAndBlinkMesh"></param>
-        private static void DuplicateShapeKeyToUnique(
+        /// <param name="clips"></param>
+        /// <returns>置換後のVRMのブレンドシェイプ一覧。</returns>
+        private static IEnumerable<VRMBlendShapeClip> DuplicateShapeKeyToUnique(
             GameObject avatar,
             BlendShapePreset preset,
-            string relativePathToNeutralAndBlinkMesh
+            IEnumerable<VRMBlendShapeClip> clips
         )
         {
-            BlendShapeAvatar blendShapeAvatar = avatar.GetComponent<VRMBlendShapeProxy>().BlendShapeAvatar;
-
-            int[] neutralAndBlinkShapeKeyIndices = new[] { BlendShapePreset.Neutral, BlendShapePreset.Blink }
-                .Select(selector: blendShapePreset => blendShapeAvatar.GetClip(preset: blendShapePreset))
-                .SelectMany(selector: blendShapeClip => blendShapeClip.Values)
-                .Where(predicate: binding => binding.RelativePath == relativePathToNeutralAndBlinkMesh)
-                .Select(selector: binding => binding.Index)
+            string[] neutralAndBlinkShapeKeyNames = new[] { BlendShapePreset.Neutral, BlendShapePreset.Blink }
+                .Select(selector: blendShapePreset => clips.FirstOrDefault(c => c.Preset == blendShapePreset))
+                .SelectMany(selector: blendShapeClip =>
+                    blendShapeClip ? blendShapeClip.ShapeKeyValues : new Dictionary<string, float>())
+                .Select(selector: nameAndWeight => nameAndWeight.Key)
                 .ToArray();
 
-            BlendShapeClip clip = blendShapeAvatar.GetClip(preset: preset);
-            Mesh mesh = avatar.transform.Find(name: relativePathToNeutralAndBlinkMesh)
-                .GetComponent<SkinnedMeshRenderer>().sharedMesh;
-            for (var i = 0; i < clip.Values.Length; i++)
+            VRMBlendShapeClip clip = clips.FirstOrDefault(c => c.Preset == preset);
+            Mesh mesh = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath).GetSharedMesh();
+            foreach (KeyValuePair<string, float> nameAndWeight in clip.ShapeKeyValues)
             {
-                BlendShapeBinding binding = clip.Values[i];
-                if (binding.RelativePath != relativePathToNeutralAndBlinkMesh
-                    || !neutralAndBlinkShapeKeyIndices.Contains(binding.Index))
+                if (neutralAndBlinkShapeKeyNames.Contains(nameAndWeight.Key))
                 {
                     continue;
                 }
 
-                var name = BlendShapeReplacer.FeelingsShapeKeyPrefix + mesh.GetBlendShapeName(binding.Index);
-                var frameCount = mesh.GetBlendShapeFrameCount(shapeIndex: binding.Index);
-                for (var j = 0; j < frameCount; j++)
+                var name = BlendShapeReplacer.FeelingsShapeKeyPrefix + nameAndWeight.Key;
+                var index = mesh.GetBlendShapeIndex(nameAndWeight.Key);
+                var frameCount = mesh.GetBlendShapeFrameCount(index);
+                for (var i = 0; i < frameCount; i++)
                 {
                     var deltaVertices = new Vector3[mesh.vertexCount];
                     var deltaNormals = new Vector3[mesh.vertexCount];
                     var deltaTangents = new Vector3[mesh.vertexCount];
 
                     mesh.GetBlendShapeFrameVertices(
-                        shapeIndex: binding.Index,
-                        frameIndex: j,
+                        shapeIndex: index,
+                        frameIndex: i,
                         deltaVertices: deltaVertices,
                         deltaNormals: deltaNormals,
                         deltaTangents: deltaTangents
@@ -1045,7 +873,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
                     mesh.AddBlendShapeFrame(
                         shapeName: name,
-                        frameWeight: mesh.GetBlendShapeFrameWeight(shapeIndex: binding.Index, frameIndex: j),
+                        frameWeight: mesh.GetBlendShapeFrameWeight(shapeIndex: index, frameIndex: i),
                         deltaVertices: deltaVertices,
                         deltaNormals: deltaNormals,
                         deltaTangents: deltaTangents
@@ -1054,13 +882,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
                 EditorUtility.SetDirty(target: mesh);
 
-                binding.Index = mesh.GetBlendShapeIndex(blendShapeName: name);
-                VRMUtility.ReplaceBlendShapeBinding(
-                    blendShapeAvatar: blendShapeAvatar,
-                    oldBinding: clip.Values[i],
-                    newBinding: binding
-                );
+                clips = VRMUtility.ReplaceShapeKeyName(clips: clips, oldName: nameAndWeight.Key, newName: name);
             }
+
+            return clips;
         }
     }
 }

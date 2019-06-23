@@ -1,13 +1,15 @@
 using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 using VRM;
+using UniGLTF;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
 {
     /// <summary>
     /// VRM関連の処理など。
     /// </summary>
-    internal class VRMUtility
+    public class VRMUtility
     {
         /// <summary>
         /// <see cref="BlendShapeBinding.Weight"/>の最高値。
@@ -15,192 +17,97 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         internal static readonly float MaxBlendShapeBindingWeight = 100;
 
         /// <summary>
-        /// 指定されたブレンドシェイプの最初の<see cref="BlendShapeBinding"/>について、対応するSkinned Mesh Rendererコンポーネントを返します。
+        /// VRMのブレンドシェイプを、シェイプキー名ベースで取得します。
         /// </summary>
         /// <param name="avatar"></param>
-        /// <param name="preset"></param>
         /// <returns></returns>
-        internal static SkinnedMeshRenderer GetFirstSkinnedMeshRenderer(GameObject avatar, BlendShapePreset preset)
+        public static IEnumerable<VRMBlendShapeClip> GetAllVRMBlendShapeClips(GameObject avatar)
         {
-            var clip = GetBlendShapeClip(avatar: avatar, preset: preset);
-            if (!clip)
-            {
-                return null;
-            }
+            var clips = new List<VRMBlendShapeClip>();
 
-            BlendShapeBinding[] bindings = clip.Values;
-            if (bindings.Length == 0)
-            {
-                return null;
-            }
-
-            var binding = bindings[0];
-            Transform face = avatar.transform.Find(name: binding.RelativePath);
-            if (!face)
-            {
-                return null;
-            }
-
-            return face.GetComponent<SkinnedMeshRenderer>();
-        }
-
-        /// <summary>
-        /// 指定されたブレンドシェイプの最初の<see cref="BlendShapeBinding"/>について、対応するSkinned Mesh Rendererコンポーネント中のブレンドシェイプ名を返します。
-        /// </summary>
-        /// <param name="avatar"></param>
-        /// <param name="preset"></param>
-        /// <returns>対応するブレンドシェイプ名が見つからなければ空文字列を返します。</returns>
-        internal static string GetFirstBlendShapeBindingName(GameObject avatar, BlendShapePreset preset)
-        {
-            var renderer = GetFirstSkinnedMeshRenderer(avatar: avatar, preset: preset);
-            if (!renderer)
-            {
-                return "";
-            }
-
-            var clip = GetBlendShapeClip(avatar: avatar, preset: preset);
-            if (!clip)
-            {
-                return "";
-            }
-
-            BlendShapeBinding[] bindings = clip.Values;
-            if (bindings.Length == 0)
-            {
-                return "";
-            }
-
-            Mesh mesh = renderer.sharedMesh;
-            if (mesh.blendShapeCount <= bindings[0].Index) {
-                return "";
-            }
-
-            return mesh.GetBlendShapeName(shapeIndex: bindings[0].Index);
-        }
-
-        /// <summary>
-        /// 指定したブレンドシェイプに対応する<see cref="BlendShapeClip">を返します。
-        /// </summary>
-        /// <param name="avatar"></param>
-        /// <param name="preset"></param>
-        /// <returns></returns>
-        internal static BlendShapeClip GetBlendShapeClip(GameObject avatar, BlendShapePreset preset)
-        {
             var blendShapeProxy = avatar.GetComponent<VRMBlendShapeProxy>();
             if (!blendShapeProxy)
             {
-                return null;
+                return clips;
             }
 
             BlendShapeAvatar blendShapeAvatar = blendShapeProxy.BlendShapeAvatar;
             if (!blendShapeAvatar)
             {
-                return null;
+                return clips;
             }
 
-            return blendShapeAvatar.GetClip(preset: preset);
-        }
-
-        /// <summary>
-        /// 指定したパスが含まれる<see cref="BlendShapeClip">のパスを置換します。
-        /// </summary>
-        /// <param name="avatar"></param>
-        /// <param name="oldPath"></param>
-        /// <param name="newPath"></param>
-        internal static void ReplaceBlendShapeRelativePaths(GameObject avatar, string oldPath, string newPath)
-        {
-            var blendShapeProxy = avatar.GetComponent<VRMBlendShapeProxy>();
-            if (!blendShapeProxy)
+            foreach (BlendShapeClip blendShapeClip in blendShapeAvatar.Clips)
             {
-                return;
-            }
-
-            if (!blendShapeProxy.BlendShapeAvatar || blendShapeProxy.BlendShapeAvatar.Clips == null)
-            {
-                return;
-            }
-
-            foreach (BlendShapeClip clip in blendShapeProxy.BlendShapeAvatar.Clips) {
-                if (!clip || clip.Values == null) {
-                    continue;
-                }
-
-                clip.Values = clip.Values.Select(binding => {
-                    string relativePath = binding.RelativePath;
-                    if (relativePath == oldPath || relativePath.StartsWith(oldPath + "/"))
-                    {
-                        binding.RelativePath = newPath + relativePath.Substring(startIndex: oldPath.Length);
-                    }
-                    return binding;
-                }).ToArray();
-            }
-        }
-
-        /// <summary>
-        /// 指定したパスに一致する<see cref="BlendShapeClip">のindexに指定値を加算します。
-        /// </summary>
-        /// <param name="avatar"></param>
-        /// <param name="relativePath"></param>
-        /// <param name="difference"></param>
-        internal static void ShiftBlendShapeIndices(GameObject avatar, string relativePath, int difference)
-        {
-            var blendShapeProxy = avatar.GetComponent<VRMBlendShapeProxy>();
-            if (!blendShapeProxy)
-            {
-                return;
-            }
-
-            if (!blendShapeProxy.BlendShapeAvatar || blendShapeProxy.BlendShapeAvatar.Clips == null)
-            {
-                return;
-            }
-
-            foreach (BlendShapeClip clip in blendShapeProxy.BlendShapeAvatar.Clips)
-            {
-                if (!clip || clip.Values == null)
+                if (!blendShapeClip)
                 {
                     continue;
                 }
 
-                clip.Values = clip.Values.Select(binding => {
-                    if (binding.RelativePath == relativePath)
-                    {
-                        binding.Index += difference;
-                    }
-                    return binding;
-                }).ToArray();
-            }
-        }
-
-        /// <summary>
-        /// 指定した<see cref="BlendShapeBinding"/>を置換します。
-        /// </summary>
-        /// <param name="blendShapeAvatar"></param>
-        /// <param name="oldBinding"></param>
-        /// <param name="newBinding"></param>
-        internal static void ReplaceBlendShapeBinding(
-            BlendShapeAvatar blendShapeAvatar,
-            BlendShapeBinding oldBinding,
-            BlendShapeBinding newBinding
-        ) {
-            foreach (BlendShapeClip clip in blendShapeAvatar.Clips)
-            {
-                if (!clip || clip.Values == null)
+                var clip = ScriptableObject.CreateInstance<VRMBlendShapeClip>();
+                clip.BlendShapeName = blendShapeClip.BlendShapeName;
+                clip.Preset = blendShapeClip.Preset;
+                clip.Values = blendShapeClip.Values;
+                clip.MaterialValues = blendShapeClip.MaterialValues;
+                clip.IsBinary = blendShapeClip.IsBinary;
+            
+                foreach (BlendShapeBinding binding in clip.Values)
                 {
-                    continue;
-                }
-
-                for (var i = 0; i < clip.Values.Length; i++)
-                {
-                    BlendShapeBinding binding = clip.Values[i];
-                    if (!binding.Equals(oldBinding))
+                    Transform transform = avatar.transform.Find(binding.RelativePath);
+                    if (!transform)
                     {
                         continue;
                     }
 
-                    clip.Values[i] = newBinding;
+                    var renderer = transform.GetComponent<SkinnedMeshRenderer>();
+                    if (!renderer)
+                    {
+                        continue;
+                    }
+
+                    Mesh mesh = renderer.sharedMesh;
+                    if (!mesh)
+                    {
+                        continue;
+                    }
+
+                    if (binding.Index > mesh.blendShapeCount)
+                    {
+                        continue;
+                    }
+
+                    clip.ShapeKeyValues.Add(key: mesh.GetBlendShapeName(binding.Index), value: binding.Weight);
                 }
+
+                if (clip.ShapeKeyValues.Count == 0)
+                {
+                    continue;
+                }
+
+                clips.Add(clip);
             }
+
+            return clips;
+        }
+
+        /// <summary>
+        /// 指定したシェイプキー名を置換します。
+        /// </summary>
+        /// <param name="clip"></param>
+        /// <param name="oldName"></param>
+        /// <param name="newName"></param>
+        internal static IEnumerable<VRMBlendShapeClip> ReplaceShapeKeyName(
+            IEnumerable<VRMBlendShapeClip> clips,
+            string oldName,
+            string newName
+        ) {
+            return clips.Select(clip => {
+                clip.ShapeKeyValues = clip.ShapeKeyValues.ToDictionary(
+                    keySelector: nameAndWeight => nameAndWeight.Key == oldName ? newName : nameAndWeight.Key,
+                    elementSelector: nameAndWeight => nameAndWeight.Value
+                );
+                return clip;
+            });
         }
     }
 }

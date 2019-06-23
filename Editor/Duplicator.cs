@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
@@ -32,17 +32,41 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </summary>
         /// <param name="sourceAvatar">プレハブ、またはHierarchy上のオブジェクト。</param>
         /// <param name="destinationPath">「Assets/」から始まり「.prefab」で終わる複製先のパス。</param>
-        /// <param name="duplicatingOptionals">モデル情報 (VRMMeta) とテクスチャも複製するなら <c>true</c>。</param>
-        public static void Duplicate(GameObject sourceAvatar, string destinationPath, bool duplicatingOptionals = false)
+        /// <param name="duplicatingOptionals">モデル情報 (VRMMeta) とVRMのBlendShapeとテクスチャも複製するなら <c>true</c>。</param>
+        /// <param name="notCombineRendererObjectNames">結合しないメッシュレンダラーのオブジェクト名。</param>
+        /// <returns>複製後のインスタンス。</returns>
+        public static GameObject Duplicate(
+            GameObject sourceAvatar,
+            string destinationPath,
+            bool duplicatingOptionals = false,
+            IEnumerable<string> notCombineRendererObjectNames = null
+        )
         {
-            Duplicator.DuplicatePrefab(sourceAvatar: sourceAvatar, destinationPath: destinationPath, duplicatingOptionals: duplicatingOptionals);
-            Duplicator.DuplicateMeshes(prefabPath: destinationPath);
-            Duplicator.DuplicateMaterials(prefabPath: destinationPath);
+            GameObject destinationPrefab = Duplicator.DuplicatePrefab(
+                sourceAvatar: sourceAvatar,
+                destinationPath: destinationPath,
+                duplicatingOptionals: duplicatingOptionals
+            );
+            var destinationPrefabInstance = PrefabUtility
+                .InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(destinationPath)) as GameObject;
+
+            Duplicator.DuplicateAndCombineMeshes(
+                prefabPath: destinationPath,
+                prefabInstance: destinationPrefabInstance,
+                notCombineRendererObjectNames: notCombineRendererObjectNames
+            );
+            Duplicator.DuplicateMaterials(prefabPath: destinationPath, prefabInstance: destinationPrefabInstance);
             if (duplicatingOptionals)
             {
-                Duplicator.DuplicateTextures(prefabPath: destinationPath);
+                Duplicator.DuplicateTextures(prefabPath: destinationPath, prefabInstance: destinationPrefabInstance);
+                Duplicator
+                    .DuplicateVRMBlendShapes(prefabPath: destinationPath, prefabInstance: destinationPrefabInstance);
             }
-            Duplicator.DuplicateVRMBlendShapes(prefabPath: destinationPath);
+
+            PrefabUtility
+                .ReplacePrefab(destinationPrefabInstance, destinationPrefab, ReplacePrefabOptions.ConnectToPrefab);
+            destinationPrefabInstance.transform.SetAsLastSibling();
+            return destinationPrefabInstance;
         }
 
         /// <summary>
@@ -187,8 +211,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="sourceAvatar">プレハブ、またはHierarchy上のオブジェクト。</param>
         /// <param name="destinationPath">「Assets/」から始まり「.prefab」で終わる複製先のパス。</param>
         /// <param name="duplicatingOptionals">モデル情報 (VRMMeta) も複製するなら <c>true</c>。</param>
-        private static void DuplicatePrefab(GameObject sourceAvatar, string destinationPath, bool duplicatingOptionals)
-        {
+        /// <returns></returns>
+        private static GameObject DuplicatePrefab(
+            GameObject sourceAvatar,
+            string destinationPath,
+            bool duplicatingOptionals
+        ) {
             // プレハブ
             GameObject sourceInstance = UnityEngine.Object.Instantiate(sourceAvatar);
             PrefabUtility.DisconnectPrefabInstance(sourceInstance);
@@ -248,34 +276,185 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     AssetDatabase.AddObjectToAsset(meta.Meta, destinationPrefab);
                 }
             }
+
+            return destinationPrefab;
         }
 
         /// <summary>
-        /// プレハブが依存しているメッシュを複製します。
+        /// プレハブが依存しているメッシュを複製・結合します。
         /// </summary>
         /// <param name="prefabPath">「Assets/」から始まるプレハブのパス。</param>
-        private static void DuplicateMeshes(string prefabPath)
-        {
-            var prefab = AssetDatabase.LoadMainAssetAtPath(prefabPath) as GameObject;
+        /// <param name="prefabInstance"></param>
+        /// <param name="notCombineRendererObjectNames"></param>
+        private static void DuplicateAndCombineMeshes(
+            string prefabPath,
+            GameObject prefabInstance,
+            IEnumerable<string> notCombineRendererObjectNames
+        ) {
+            Duplicator.MakeAllVerticesHaveWeights(
+                prefabInstance: prefabInstance,
+                notCombineRendererObjectNames: notCombineRendererObjectNames
+            );
+
+            Duplicator.CombineAllMeshes(
+                prefabPath: prefabPath,
+                prefabInstance: prefabInstance,
+                notCombineRendererObjectNames: notCombineRendererObjectNames
+            );
 
             var alreadyDuplicatedMeshes = new Dictionary<Mesh, Mesh>();
 
-            foreach (var renderer in prefab.GetComponentsInChildren<SkinnedMeshRenderer>())
+            foreach (var renderer in prefabInstance.GetComponentsInChildren<SkinnedMeshRenderer>())
             {
+                if (renderer.name == VRChatUtility.AutoBlinkMeshPath)
+                {
+                    continue;
+                }
+
                 Mesh mesh = renderer.sharedMesh;
                 renderer.sharedMesh = alreadyDuplicatedMeshes.ContainsKey(mesh)
                     ? alreadyDuplicatedMeshes[mesh]
-                    : Duplicator.DuplicateAssetToFolder<Mesh>(source: mesh, prefabPath: prefabPath);
+                    : Duplicator.DuplicateAssetToFolder<Mesh>(
+                        source: mesh,
+                        prefabPath: prefabPath,
+                        fileName: Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(mesh))
+                            == VRChatUtility.AutoBlinkMeshPath + ".asset"
+                            ? VRChatUtility.AutoBlinkMeshPath + "-" + VRChatUtility.AutoBlinkMeshPath + ".asset"
+                            : ""
+                    );
                 alreadyDuplicatedMeshes[mesh] = renderer.sharedMesh;
             }
 
-            foreach (var filter in prefab.GetComponentsInChildren<MeshFilter>())
+            foreach (var filter in prefabInstance.GetComponentsInChildren<MeshFilter>())
             {
                 Mesh mesh = filter.sharedMesh;
                 filter.sharedMesh = alreadyDuplicatedMeshes.ContainsKey(mesh)
                     ? alreadyDuplicatedMeshes[mesh]
-                    : Duplicator.DuplicateAssetToFolder<Mesh>(source: mesh, prefabPath: prefabPath);
+                    : Duplicator.DuplicateAssetToFolder<Mesh>(
+                        source: mesh,
+                        prefabPath: prefabPath,
+                        fileName: Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(mesh))
+                            == VRChatUtility.AutoBlinkMeshPath + ".asset"
+                            ? VRChatUtility.AutoBlinkMeshPath + "-" + VRChatUtility.AutoBlinkMeshPath + ".asset"
+                            : ""
+                    );
                 alreadyDuplicatedMeshes[mesh] = filter.sharedMesh;
+            }
+        }
+
+        /// <summary>
+        /// すべてのメッシュの全頂点にウェイトが設定された状態にします。
+        /// </summary>
+        /// <param name="prefabInstance"></param>
+        /// <param name="notCombineRendererObjectNames"></param>
+        private static void MakeAllVerticesHaveWeights(
+            GameObject prefabInstance,
+            IEnumerable<string> notCombineRendererObjectNames
+        ) {
+            foreach (var renderer in prefabInstance.GetComponentsInChildren<SkinnedMeshRenderer>())
+            {
+                if (notCombineRendererObjectNames.Contains(renderer.name)
+                    || renderer.bones.Length > 1 || renderer.bones[0] != renderer.transform)
+                {
+                    continue;
+                }
+
+                Transform bone = renderer.transform.parent;
+                renderer.bones = new[] { bone };
+
+                var mesh = Duplicator.DuplicateAssetInstance(instance: renderer.sharedMesh) as Mesh;
+                mesh.bindposes = new[] { bone.worldToLocalMatrix * renderer.localToWorldMatrix };
+                renderer.sharedMesh = mesh;
+            }
+
+            foreach (var meshRenderer in prefabInstance.GetComponentsInChildren<MeshRenderer>())
+            {
+                if (notCombineRendererObjectNames.Contains(meshRenderer.name))
+                {
+                    continue;
+                }
+
+                var meshFilter = meshRenderer.GetComponent<MeshFilter>();
+                Material[] materials = meshRenderer.sharedMaterials;
+                var renderer = meshRenderer.gameObject.AddComponent<SkinnedMeshRenderer>();
+                renderer.sharedMesh = meshFilter.sharedMesh;
+                UnityEngine.Object.DestroyImmediate(meshFilter);
+                renderer.sharedMaterials = materials;
+
+                Transform bone = renderer.transform.parent;
+                renderer.bones = new[] { bone };
+
+                var mesh = Duplicator.DuplicateAssetInstance(instance: renderer.sharedMesh) as Mesh;
+                mesh.boneWeights = new BoneWeight[mesh.vertexCount].Select(boneWeight => {
+                    boneWeight.weight0 = 1;
+                    return boneWeight;
+                }).ToArray();
+                mesh.bindposes = new[] { bone.worldToLocalMatrix * renderer.localToWorldMatrix };
+                renderer.sharedMesh = mesh;
+            }
+        }
+
+        /// <summary>
+        /// メッシュ、サブメッシュを結合します。
+        /// </summary>
+        /// <param name="prefabPath"></param>
+        /// <param name="prefabInstance"></param>
+        /// <param name="notCombineRendererObjectNames"></param>
+        private static void CombineAllMeshes(
+            string prefabPath,
+            GameObject prefabInstance,
+            IEnumerable<string> notCombineRendererObjectNames
+        ) {
+            SkinnedMeshRenderer bodyRenderer = MeshIntegrator
+                .Integrate(go: prefabInstance, notCombineRendererObjectNames: notCombineRendererObjectNames);
+            bodyRenderer.rootBone = prefabInstance.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips);
+
+            foreach (var renderer in prefabInstance.GetComponentsInChildren<SkinnedMeshRenderer>())
+            {
+                if (renderer == bodyRenderer || notCombineRendererObjectNames.Contains(renderer.name))
+                {
+                    continue;
+                }
+
+                GameObject gameObject = renderer.gameObject;
+                if (!gameObject)
+                {
+                    continue;
+                }
+
+                if (gameObject.transform.childCount > 0)
+                {
+                    UnityEngine.Object.DestroyImmediate(renderer);
+                }
+                else
+                {
+                    UnityEngine.Object.DestroyImmediate(gameObject);
+                }
+            }
+
+            Transform sameNameTransform = prefabInstance.transform.Find(VRChatUtility.AutoBlinkMeshPath);
+            if (sameNameTransform)
+            {
+                sameNameTransform.name += "-" + VRChatUtility.AutoBlinkMeshPath;
+            }
+
+            bodyRenderer.name = VRChatUtility.AutoBlinkMeshPath;
+            bodyRenderer.sharedMesh.name = bodyRenderer.name;
+
+            string destinationPath = Duplicator.DetermineAssetPath(
+                prefabPath: prefabPath,
+                type: typeof(Mesh),
+                fileName: bodyRenderer.sharedMesh.name + ".asset"
+            );
+            var destination = AssetDatabase.LoadAssetAtPath<Mesh>(destinationPath);
+            if (destination)
+            {
+                EditorUtility.CopySerialized(bodyRenderer.sharedMesh, destination);
+                bodyRenderer.sharedMesh = destination;
+            }
+            else
+            {
+                AssetDatabase.CreateAsset(bodyRenderer.sharedMesh, destinationPath);
             }
         }
 
@@ -283,11 +462,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// プレハブが依存しているマテリアルを複製します。
         /// </summary>
         /// <param name="prefabPath">「Assets/」から始まるプレハブのパス。</param>
-        private static void DuplicateMaterials(string prefabPath)
+        /// <param name="prefabInstance"></param>
+        private static void DuplicateMaterials(string prefabPath, GameObject prefabInstance)
         {
             var alreadyDuplicatedMaterials = new Dictionary<Material, Material>();
 
-            foreach (var renderer in (AssetDatabase.LoadMainAssetAtPath(prefabPath) as GameObject).GetComponentsInChildren<Renderer>())
+            foreach (var renderer in prefabInstance.GetComponentsInChildren<Renderer>())
             {
                 renderer.sharedMaterials = renderer.sharedMaterials.Select(material => {
                     if (alreadyDuplicatedMaterials.ContainsKey(material))
@@ -310,13 +490,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <https://answers.unity.com/answers/1116025/view.html>
         /// </remarks>
         /// <param name="prefabPath">「Assets/」から始まるプレハブのパス。</param>
-        private static void DuplicateTextures(string prefabPath)
+        /// <param name="prefabInstance"></param>
+        private static void DuplicateTextures(string prefabPath, GameObject prefabInstance)
         {
-            var prefab = AssetDatabase.LoadMainAssetAtPath(prefabPath) as GameObject;
-
             var alreadyDuplicatedTextures = new Dictionary<Texture, Texture>();
 
-            foreach (var renderer in prefab.GetComponentsInChildren<Renderer>())
+            foreach (var renderer in prefabInstance.GetComponentsInChildren<Renderer>())
             {
                 foreach (Material material in renderer.sharedMaterials)
                 {
@@ -356,7 +535,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 }
             }
 
-            VRMMetaObject meta = prefab.GetComponent<VRMMeta>().Meta;
+            VRMMetaObject meta = prefabInstance.GetComponent<VRMMeta>().Meta;
             Texture2D thumbnail = meta.Thumbnail;
             if (!thumbnail)
             {
@@ -373,7 +552,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// プレハブが依存しているVRMブレンドシェイプを複製します。
         /// </summary>
         /// <param name="prefabPath">「Assets/」から始まるプレハブのパス。</param>
-        private static void DuplicateVRMBlendShapes(string prefabPath)
+        /// <param name="prefabInstance"></param>
+        private static void DuplicateVRMBlendShapes(string prefabPath, GameObject prefabInstance)
         {
             var prefab = AssetDatabase.LoadMainAssetAtPath(prefabPath) as GameObject;
 

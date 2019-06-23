@@ -281,19 +281,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
 
             // ダミーのまばたき用ブレンドシェイプの作成
-            var renderer = avatar.transform.Find(name: VRChatUtility.AutoBlinkMeshPath).gameObject.GetOrAddComponent<SkinnedMeshRenderer>();
-            Mesh mesh = renderer.sharedMesh;
-            if (mesh && mesh.blendShapeCount >= BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.Count()) {
+            Mesh mesh = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath).GetSharedMesh();
+            if (mesh.blendShapeCount >= BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.Count()) {
                 return;
-            }
-
-            if (!mesh)
-            {
-                mesh = renderer.sharedMesh = Duplicator.DuplicateAssetToFolder<Mesh>(
-                    source: VRChatsBugsWorkaround.CreateDummyMesh(),
-                    prefabInstance: avatar
-                );
-                renderer.sharedMaterials = new Material[0];
             }
             
             foreach (var name in BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.Skip(count: mesh.blendShapeCount)) {

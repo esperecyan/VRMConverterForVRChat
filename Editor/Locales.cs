@@ -24,6 +24,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     { "Callback Functions", "コールバック関数" },
                     { "Not set “{0}” component.", "{0}コンポーネントが設定されていません。" },
                     { "VRMSpringBones with the below Comments do not exist.", "以下のCommentを持つVRMSpringBoneは存在しません。" },
+                    { "Renderers on the below name GameObject do not exist.", "レンダラーが設定されたGameObjectのうち、以下の名前を持つものは存在しません。" },
                     { "Unity {0} is running. If you are using a different version than {1}, VRChat SDK might not work correctly. Recommended using Unity downloaded from {2} .",
                         "Unity {0} が起動しています。{1} 以外のバージョンでは、VRChat SDK が正常に動作しない可能性があります。{2} からダウンロードした Unity の利用を推奨します。" },
                     { "The number of polygons is {0}.", "ポリゴン数が{0}です。"},

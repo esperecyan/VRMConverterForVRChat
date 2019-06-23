@@ -61,6 +61,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         [SerializeField, Localizable]
         private bool fixProneAvatarPosition = true;
 
+        /// <summary>
+        /// 結合しないメッシュレンダラーのオブジェクト名。
+        /// </summary>
+        [SerializeField, Localizable]
+        private List<string> notCombineRendererObjectNames = new List<string>();
+
         [Header("For PC")]
 
         /// <summary>
@@ -380,6 +386,21 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 }
             }
 
+            IEnumerable<string> notCombineRendererObjectNames = this.notCombineRendererObjectNames.Except(new[] { "" });
+            if (notCombineRendererObjectNames.Count() > 0)
+            {
+                IEnumerable<string> names = notCombineRendererObjectNames.Except(
+                    this.avatar.GetComponentsInChildren<SkinnedMeshRenderer>()
+                        .Concat<Component>(this.avatar.GetComponentsInChildren<MeshRenderer>())
+                        .Select(renderer => renderer.name)
+                );
+                if (names.Count() > 0)
+                {
+                    EditorGUILayout.HelpBox(string.Join(separator: "\n• ", value: new[] { Gettext._("Renderers on the below name GameObject do not exist.") }
+                        .Concat(names).ToArray()), MessageType.Warning);
+                }
+            }
+
             string version = VRChatUtility.GetSupportedUnityVersion();
             if (version != "" && Application.unityVersion != version)
             {
@@ -502,13 +523,15 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
             this.destinationPath = destinationPath;
 
-            Duplicator.Duplicate(sourceAvatar: this.avatar.gameObject, destinationPath: this.destinationPath);
+            GameObject prefabInstance = Duplicator.Duplicate(
+                sourceAvatar: this.avatar.gameObject,
+                destinationPath: this.destinationPath,
+                notCombineRendererObjectNames: this.notCombineRendererObjectNames
+            );
 
             this.SaveSettings();
 
             var prefab = AssetDatabase.LoadMainAssetAtPath(this.destinationPath) as GameObject;
-            var prefabInstance = PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(this.destinationPath)) as GameObject;
-            prefabInstance.transform.SetAsLastSibling();
 
             foreach (VRMSpringBone springBone in this.GetSpringBonesWithComments(prefab: prefabInstance, comments: this.excludedSpringBoneComments)
                 .SelectMany(springBone => springBone))
@@ -518,6 +541,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             IEnumerable<Converter.Message> messages = Converter.Convert(
                 prefabInstance: prefabInstance,
+                clips: VRMUtility.GetAllVRMBlendShapeClips(avatar: this.avatar.gameObject),
                 swayingObjectsConverterSetting: this.swayingObjects,
                 takingOverSwayingParameters: this.takeOverSwayingParameters,
                 swayingParametersConverter: this.swayingParametersConverter,

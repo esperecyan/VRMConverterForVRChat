@@ -35,6 +35,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// プレハブをVRChatへアップロード可能な状態にします。
         /// </summary>
         /// <param name="prefabPath">現在のシーンに存在するプレハブのインスタンス。</param>
+        /// <param name="clips"><see cref="VRMUtility.GetAllVRMBlendShapeClips"/>の戻り値。</param>
         /// <param name="swayingObjectsConverterSetting">揺れ物を変換するか否かの設定。<c>forQuest</c> が <c>true</c> の場合は無視されます。</param>
         /// <param name="takingOverSwayingParameters">揺れ物のパラメータを変換せずDynamic Boneのデフォルト値を利用するなら<c>false</c>。</param>
         /// <param name="swayingParametersConverter"></param>
@@ -46,6 +47,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <returns>変換中に発生したメッセージ。</returns>
         public static IEnumerable<Converter.Message> Convert(
             GameObject prefabInstance,
+            IEnumerable<VRMBlendShapeClip> clips,
             ComponentsReplacer.SwayingObjectsConverterSetting swayingObjectsConverterSetting
                 = default(ComponentsReplacer.SwayingObjectsConverterSetting),
             bool takingOverSwayingParameters = true,
@@ -58,7 +60,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         ) {
             var messages = new List<Converter.Message>();
             messages.AddRange(GeometryCorrector.Apply(avatar: prefabInstance));
-            messages.AddRange(BlendShapeReplacer.Apply(avatar: prefabInstance, forQuest: forQuest));
+            messages.AddRange(BlendShapeReplacer.Apply(avatar: prefabInstance, clips: clips, forQuest: forQuest));
             messages.AddRange(ComponentsReplacer.Apply(
                 avatar: prefabInstance,
                 swayingObjectsConverterSetting: forQuest
