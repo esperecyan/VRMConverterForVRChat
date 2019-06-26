@@ -49,6 +49,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         [SerializeField, Localizable]
         private bool enableEyeMovement = true;
 
+        /// <summary> 
+        /// オートアイムーブメント有効化時、目ボーンのPositionのZに加算する値。 
+        /// </summary> 
+        [SerializeField, Localizable(0, 0.1f)]
+        private float moveEyeBoneToFrontForEyeMovement;
+
         /// <summary>
         /// VRChat上でモデルがなで肩・いかり肩になる問題について、ボーンのPositionのYに加算する値。
         /// </summary>
@@ -548,6 +554,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 enableAutoEyeMovement: this.enableEyeMovement,
                 addedShouldersPositionY: this.shoulderHeights,
                 fixProneAvatarPosition: this.fixProneAvatarPosition,
+                moveEyeBoneToFrontForEyeMovement: this.moveEyeBoneToFrontForEyeMovement,
                 forQuest: this.forQuest
             );
 
