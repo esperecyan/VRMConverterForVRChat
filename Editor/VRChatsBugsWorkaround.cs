@@ -379,7 +379,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             foreach (var renderer in avatar.GetComponentsInChildren<SkinnedMeshRenderer>())
             {
                 Transform[] bones = renderer.bones;
-                IEnumerable<int> eyeBoneIndexes = eyeBones.Select(eyeBone => bones.IndexOf(target: eyeBone)).Where(index => index >= 0);
+                ILookup<Transform, int> boneIndicesAndBones = bones.Select((bone, index) => new { bone, index })
+                    .ToLookup(
+                        keySelector: boneAndIndex => boneAndIndex.bone,
+                        elementSelector: boneAndIndex => boneAndIndex.index
+                    );
+                IEnumerable<int> eyeBoneIndexes
+                    = eyeBones.SelectMany(eyeBone => boneIndicesAndBones[eyeBone]).Where(index => index >= 0);
                 if (eyeBoneIndexes.Count() == 0)
                 {
                     continue;
