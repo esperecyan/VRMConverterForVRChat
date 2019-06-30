@@ -28,8 +28,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     { "Unity {0} is running. If you are using a different version than {1}, VRChat SDK might not work correctly. Recommended using Unity downloaded from {2} .",
                         "Unity {0} が起動しています。{1} 以外のバージョンでは、VRChat SDK が正常に動作しない可能性があります。{2} からダウンロードした Unity の利用を推奨します。" },
                     { "The number of polygons is {0}.", "ポリゴン数が{0}です。"},
-                    { "If a number of polygons exceeds {0}, you can not upload.",
-                        "ポリゴン数が{0}を超える場合、アップロードできません。" },
                     { "The number of Skinned Mesh Renderer components is {0}.", "Skinned Mesh Rendererコンポーネントの数 (ウェイトが設定されているメッシュ数) が{0}です。"},
                     { "The number of (non-Skinned) Mesh Renderer is {0}.", "Mesh Rendererコンポーネントの数 (ウェイトが設定されていないメッシュ数) が{0}です。"},
                     { "The number of material slots (sub-meshes) is {0}.", "マテリアルスロット数 (サブメッシュ数) が{0}です。"},

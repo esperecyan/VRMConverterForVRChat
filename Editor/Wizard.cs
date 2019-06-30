@@ -418,7 +418,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 ), MessageType.Warning);
             }
 
-            if (!isValid)
+            if (!isValid || !this.forQuest)
             {
                 return true;
             }
@@ -427,23 +427,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 avatarName: avatar.GetComponent<VRMMeta>().Meta.Title,
                 avatarObject: this.avatar.gameObject
             );
-
-            AvatarPerformanceStatsLevel badPerformanceStatLimits
-                = VRChatUtility.AvatarPerformanceStatsLevelSets[this.forQuest ? "Quest" : "PC"].Bad;
-
-            if (statistics.PolyCount > badPerformanceStatLimits.PolyCount)
-            {
-                EditorGUILayout.HelpBox(string.Format(Gettext._("The number of polygons is {0}."), statistics.PolyCount)
-                    + string.Format(
-                        Gettext._("If a number of polygons exceeds {0}, you can not upload."),
-                        badPerformanceStatLimits.PolyCount
-                    ), MessageType.Error);
-            }
-
-            if (!this.forQuest)
-            {
-                return true;
-            }
 
             AvatarPerformanceStatsLevel performanceStatLimits
                 = VRChatUtility.AvatarPerformanceStatsLevelSets["Quest"].Medium;
