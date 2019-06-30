@@ -119,17 +119,21 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 addedValueToShoulders: addedShouldersPositionY,
                 addedValueToEyes: moveEyeBoneToFrontForEyeMovement
             );
-            IEnumerable<string> convertingFailedMaterialNames = VRChatsBugsWorkaround.ApplyRenderQueues(avatar: avatar);
-            if (convertingFailedMaterialNames.Count() > 0)
+            if (!forQuest)
             {
-                messages.Add(new Converter.Message
+                IEnumerable<string> convertingFailedMaterialNames
+                    = VRChatsBugsWorkaround.ApplyRenderQueues(avatar: avatar);
+                if (convertingFailedMaterialNames.Count() > 0)
                 {
-                    message = string.Join(
-                        separator: "\n• ",
-                        value: new[] { Gettext._("Converting these materials (for VRChat Render Queue bug) was failed.") }.Concat(convertingFailedMaterialNames).ToArray()
-                    ),
-                    type = MessageType.Warning,
-                });
+                    messages.Add(new Converter.Message
+                    {
+                        message = string.Join(
+                            separator: "\n• ",
+                            value: new[] { Gettext._("Converting these materials (for VRChat Render Queue bug) was failed.") }.Concat(convertingFailedMaterialNames).ToArray()
+                        ),
+                        type = MessageType.Warning,
+                    });
+                }
             }
             if (fixProneAvatarPosition)
             {
