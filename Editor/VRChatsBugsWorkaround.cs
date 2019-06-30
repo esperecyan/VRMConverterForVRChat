@@ -144,6 +144,71 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         }
 
         /// <summary>
+        /// サブメッシュをRender Queueが小さい方から順に並べ替えます。
+        /// </summary>
+        /// <remarks>
+        /// Furiaさんのツイート: “SubMeshの順序入れ替え、統合なんかをする感じのやつ。 自分用だけどとりあえず https://t.co/vRGUEnf9EV”
+        /// <https://twitter.com/flammpfeil/status/1143160567848296449>
+        /// SubMeshの順序入れ替え、統合なんかをする感じのやつ。　RenderQueueでソートもできる。
+        /// <https://gist.github.com/flammpfeil/18bb0b5f41588c6530500375d1a273f6/fdb256524aa0c45f8bd07f03f931d3da9650ede4#file-submeshinspectorwindow-cs-L241-L269>
+        /// 
+        /// MIT License
+        /// 
+        /// Copyright(c) 2019 Furia
+        /// Copyright(c) 2017-2018 Unity Technologies Japan
+        /// 
+        /// Permission is hereby granted, free of charge, to any person obtaining a copy
+        /// of this software and associated documentation files(the "Software"), to deal
+        /// in the Software without restriction, including without limitation the rights
+        /// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        /// copies of the Software, and to permit persons to whom the Software is
+        /// furnished to do so, subject to the following conditions:
+        /// 
+        /// The above copyright notice and this permission notice shall be included in all
+        /// copies or substantial portions of the Software.
+        /// 
+        /// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        /// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        /// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+        /// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        /// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        /// SOFTWARE.
+        /// </remarks>
+        /// <param name="renderer"></param>
+        /// <param name="target"></param>
+        /// <returns></returns>
+        private static GameObject[] SortSubMesh(Renderer renderer, Mesh target)
+        {
+            if (renderer != null)
+            {
+                var materials = renderer.sharedMaterials;
+
+                var sortedMaterials = materials
+                    .Select((x, i) => new { index = i, renderQueue = (x != null) ? x.renderQueue : 5001, material = x })
+                    .OrderBy(x => x.renderQueue)
+                    .Where(x => x.index < target.subMeshCount)
+                    .ToArray();
+
+                renderer.sharedMaterials = sortedMaterials.Select(x => x.material).ToArray();
+
+                var sortedSubMesh = sortedMaterials
+                    .Select(x => target.GetTriangles(x.index))
+                    .ToArray();
+
+                for (int i = 0; i < sortedSubMesh.Length; i++)
+                {
+                    target.SetTriangles(sortedSubMesh[i], i);
+                }
+            }
+
+            //smr.materials = smr.materials.Take(Math.Min(smr.materials.Count() - 1, target.subMeshCount)).ToArray();
+
+
+            return null;
+        }
+
+        /// <summary>
         /// <see cref="HumanBodyBones.UpperChest"/>が存在する場合、それを<see cref="HumanBodyBones.Chest"/>とし、元の<see cref="HumanBodyBones.Chest"/>の関連付けは外すようにした。
         /// </summary>
         /// <seealso cref="VRC_SdkControlPanel.AnalyzeIK"/>
@@ -512,6 +577,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// 参照:
         /// Use with VRChat – Type74
         /// <http://type74.lsrv.jp/use-with-vrchat/>
+        /// エイスーさんのツイート: “メニューのアバタープレビューを見るとFade、Transparentを使用したメッシュの表示がおかしくなる問題がようやく解決しました。透過させるマテリアルが画像箇所のMaterials Elementの最後（下側）の方に来るようBlenderとかで並び順を変更するといいみたいですね。#VRChat… https://t.co/d1K5QYh0Gw”
+        /// <https://twitter.com/Eisue_/status/1139460675305000961>
         /// </remarks>
         /// <retunrs>シェーダーの変換に失敗したマテリアル名を返します。</retunrs>
         private static IEnumerable<string> ApplyRenderQueues(GameObject avatar)
@@ -528,8 +595,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 pattern: @"SubShader\s*{\s*Tags\s*{(?<tags>(?:\s*""(?<name>[^""]+)""\s*=\s*""(?<value>[^""]+)""\s*)+)}",
                 options: RegexOptions.IgnoreCase
             );
-            foreach (var renderer in avatar.GetComponentsInChildren<Renderer>())
+            foreach (var renderer in avatar.GetComponentsInChildren<SkinnedMeshRenderer>())
             {
+                VRChatsBugsWorkaround.SortSubMesh(renderer: renderer, target: renderer.sharedMesh);
+                EditorUtility.SetDirty(renderer.sharedMesh);
+
                 foreach (Material material in renderer.sharedMaterials)
                 {
                     if (!material || material.renderQueue == material.shader.renderQueue)
