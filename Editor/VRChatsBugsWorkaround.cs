@@ -409,7 +409,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 mesh.boneWeights = mesh.boneWeights.Select(boneWeight => {
                     IEnumerable<float> weights = new[] { boneWeight.weight0, boneWeight.weight1, boneWeight.weight2, boneWeight.weight3 }.Where(weight => weight > 0);
                     IEnumerable<int> boneIndexes = new[] { boneWeight.boneIndex0, boneWeight.boneIndex1, boneWeight.boneIndex2, boneWeight.boneIndex3 }.Take(weights.Count());
-                    if (eyeBoneIndexes.Intersect(boneIndexes).Count() == 0 || boneIndexes.Contains(headBoneIndex))
+                    if (eyeBoneIndexes.Intersect(boneIndexes).Count() != boneIndexes.Count())
                     {
                         return boneWeight;
                     }
