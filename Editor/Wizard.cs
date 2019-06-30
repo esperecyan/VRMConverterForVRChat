@@ -423,62 +423,78 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 return true;
             }
 
-            AvatarPerformanceStats statistics = AvatarPerformance.CalculatePerformanceStats(
+            int currentPolycount = AvatarPerformance.CalculatePerformanceStats(
                 avatarName: avatar.GetComponent<VRMMeta>().Meta.Title,
                 avatarObject: this.avatar.gameObject
-            );
+            ).PolyCount;
 
-            AvatarPerformanceStatsLevel performanceStatLimits
-                = VRChatUtility.AvatarPerformanceStatsLevelSets["Quest"].Medium;
+            int maxPolycount = VRChatUtility.AvatarPerformanceStatsLevelSets["Quest"].Medium.PolyCount;
 
-            Wizard.ShowQuestLimitationsErrorMessageIfExceeds(
-                current: statistics.PolyCount,
-                limit: performanceStatLimits.PolyCount,
-                message: Gettext._("The number of polygons is {0}.")
-            );
-
-            Wizard.ShowQuestLimitationsErrorMessageIfExceeds(
-                current: statistics.SkinnedMeshCount,
-                limit: performanceStatLimits.SkinnedMeshCount,
-                message: Gettext._("The number of Skinned Mesh Renderer components is {0}.")
-            );
-
-            Wizard.ShowQuestLimitationsErrorMessageIfExceeds(
-                current: statistics.MeshCount,
-                limit: performanceStatLimits.MeshCount,
-                message: Gettext._("The number of (non-Skinned) Mesh Renderer components is {0}.")
-            );
-
-            Wizard.ShowQuestLimitationsErrorMessageIfExceeds(
-                current: statistics.MaterialCount,
-                limit: performanceStatLimits.MaterialCount,
-                message: Gettext._("The number of material slots (sub-meshes) is {0}.")
-            );
-
-            Wizard.ShowQuestLimitationsErrorMessageIfExceeds(
-                current: statistics.BoneCount,
-                limit: performanceStatLimits.BoneCount,
-                message: Gettext._("The number of Bones is {0}.")
-            );
+            if (currentPolycount > maxPolycount)
+            {
+                EditorGUILayout.HelpBox(string.Format(
+                    Gettext._("The number of polygons is {0}."),
+                    currentPolycount
+                ) + string.Format(
+                    Gettext._("If this value exceeds {0}, the avatar will not shown under the default user setting."),
+                    maxPolycount
+                ), MessageType.Error);
+            }
 
             return true;
         }
 
         /// <summary>
-        /// Questの制限値を超える場合にエラーメッセージを表示します。
+        /// Questの制限値に関するエラーメッセージを取得します。
         /// </summary>
-        /// <param name="current">対象の値。</param>
-        /// <param name="limit">制限値。</param>
-        /// <param name="message">エラーメッセージ。</param>
-        private static void ShowQuestLimitationsErrorMessageIfExceeds(int current, int limit, string message)
+        /// <param name="prefab"></param>
+        /// <returns></returns>
+        private static IEnumerable<Converter.Message> GenerateQuestLimitationsErrorMessages(GameObject prefab)
         {
-            if (current > limit)
+            var messages = new List<Converter.Message>();
+
+            AvatarPerformanceStats statistics = AvatarPerformance.CalculatePerformanceStats("", prefab);
+
+            AvatarPerformanceStatsLevel performanceStatLimits
+                = VRChatUtility.AvatarPerformanceStatsLevelSets["Quest"].Medium;
+
+            foreach (var limitation in new[] {
+                new {
+                    current = statistics.SkinnedMeshCount,
+                    limit = performanceStatLimits.SkinnedMeshCount,
+                    message = Gettext._("The number of Skinned Mesh Renderer components is {0}.")
+                },
+                new {
+                    current = statistics.MeshCount,
+                    limit = performanceStatLimits.MeshCount,
+                    message = Gettext._("The number of (non-Skinned) Mesh Renderer components is {0}.")
+                },
+                new {
+                    current = statistics.MaterialCount,
+                    limit = performanceStatLimits.MaterialCount,
+                    message = Gettext._("The number of material slots (sub-meshes) is {0}.")
+                },
+                new {
+                    current = statistics.BoneCount,
+                    limit = performanceStatLimits.BoneCount,
+                    message = Gettext._("The number of Bones is {0}.")
+                },
+            })
             {
-                EditorGUILayout.HelpBox(string.Format(message, current) + string.Format(
-                    Gettext._("If this value exceeds {0}, the avatar will not shown under the default user setting."),
-                    limit
-                ), MessageType.Error);
+                if (limitation.current > limitation.limit)
+                {
+                    messages.Add(new Converter.Message
+                    {
+                        message = string.Format(limitation.message, limitation.current) + string.Format(
+                            Gettext._("If this value exceeds {0}, the avatar will not shown under the default user setting."),
+                            limitation.limit
+                        ),
+                        type = MessageType.Error,
+                    });
+                }
             }
+
+            return messages;
         }
 
         private void OnWizardCreate()
@@ -518,6 +534,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 notCombineRendererObjectNames: this.notCombineRendererObjectNames
             );
 
+            var messages = new List<Converter.Message>();
+
+            if (this.forQuest)
+            {
+                messages.AddRange(Wizard.GenerateQuestLimitationsErrorMessages(prefab: prefabInstance));
+            }
+
             this.SaveSettings();
 
             var prefab = AssetDatabase.LoadMainAssetAtPath(this.destinationPath) as GameObject;
@@ -528,7 +551,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 UnityEngine.Object.DestroyImmediate(springBone);
             }
 
-            IEnumerable<Converter.Message> messages = Converter.Convert(
+            messages.AddRange(Converter.Convert(
                 prefabInstance: prefabInstance,
                 clips: VRMUtility.GetAllVRMBlendShapeClips(avatar: this.avatar.gameObject),
                 swayingObjectsConverterSetting: this.swayingObjects,
@@ -539,7 +562,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 fixProneAvatarPosition: this.fixProneAvatarPosition,
                 moveEyeBoneToFrontForEyeMovement: this.moveEyeBoneToFrontForEyeMovement,
                 forQuest: this.forQuest
-            );
+            ));
 
             if (this.postConverting != null) {
                 this.postConverting(prefabInstance, prefabInstance.GetComponent<VRMMeta>());
