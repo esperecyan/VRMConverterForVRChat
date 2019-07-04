@@ -436,75 +436,72 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 return false;
             }
 
+            var renderer = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath).GetComponent<SkinnedMeshRenderer>();
+
+            Transform[] bones = renderer.bones;
+            ILookup<Transform, int> boneIndicesAndBones = bones.Select((bone, index) => new { bone, index })
+                .ToLookup(
+                    keySelector: boneAndIndex => boneAndIndex.bone,
+                    elementSelector: boneAndIndex => boneAndIndex.index
+                );
+            IEnumerable<int> eyeBoneIndexes = eyes.SelectMany(eye => eye.GetComponentsInChildren<Transform>())
+                .SelectMany(eyeBone => boneIndicesAndBones[eyeBone]).Where(index => index >= 0);
+            if (eyeBoneIndexes.Count() == 0)
+            {
+                return false;
+            }
+
+            Mesh mesh = renderer.sharedMesh;
+            EditorUtility.SetDirty(mesh);
+
+            Transform headBone = avatar.GetComponent<VRMFirstPerson>().FirstPersonBone;
+            int headBoneIndex = bones.IndexOf(target: headBone);
+            if (headBoneIndex < 0)
+            {
+                renderer.bones = bones.Concat(new[] { headBone }).ToArray();
+                headBoneIndex = bones.Length;
+                mesh.bindposes = mesh.bindposes.Concat(new[] { headBone.worldToLocalMatrix }).ToArray();
+            }
+
             float minDegree = new[] { lookAtBoneApplyer.HorizontalOuter, lookAtBoneApplyer.HorizontalInner, lookAtBoneApplyer.VerticalDown, lookAtBoneApplyer.VerticalUp }
                 .Select(mapper => mapper.CurveYRangeDegree)
                 .Min();
             float eyeBoneWeight = minDegree / VRChatsBugsWorkaround.MaxAutoEyeMovementDegree;
             float headBoneWeight = 1 - eyeBoneWeight;
 
-            Transform headBone = avatar.GetComponent<VRMFirstPerson>().FirstPersonBone;
-            var eyeBones = eyes.SelectMany(eye => eye.GetComponentsInChildren<Transform>());
-
-            foreach (var renderer in avatar.GetComponentsInChildren<SkinnedMeshRenderer>())
-            {
-                Transform[] bones = renderer.bones;
-                ILookup<Transform, int> boneIndicesAndBones = bones.Select((bone, index) => new { bone, index })
-                    .ToLookup(
-                        keySelector: boneAndIndex => boneAndIndex.bone,
-                        elementSelector: boneAndIndex => boneAndIndex.index
-                    );
-                IEnumerable<int> eyeBoneIndexes
-                    = eyeBones.SelectMany(eyeBone => boneIndicesAndBones[eyeBone]).Where(index => index >= 0);
-                if (eyeBoneIndexes.Count() == 0)
+            mesh.boneWeights = mesh.boneWeights.Select(boneWeight => {
+                IEnumerable<float> weights = new[] { boneWeight.weight0, boneWeight.weight1, boneWeight.weight2, boneWeight.weight3 }.Where(weight => weight > 0);
+                IEnumerable<int> boneIndexes = new[] { boneWeight.boneIndex0, boneWeight.boneIndex1, boneWeight.boneIndex2, boneWeight.boneIndex3 }.Take(weights.Count());
+                if (eyeBoneIndexes.Intersect(boneIndexes).Count() != boneIndexes.Count())
                 {
-                    continue;
+                    return boneWeight;
                 }
 
-                Mesh mesh = renderer.sharedMesh;
-                EditorUtility.SetDirty(mesh);
-
-                int headBoneIndex = bones.IndexOf(target: headBone);
-                if (headBoneIndex < 0)
+                foreach (int eyeBoneIndex in eyeBoneIndexes)
                 {
-                    renderer.bones = bones.Concat(new[] { headBone }).ToArray();
-                    headBoneIndex = bones.Length;
-                    mesh.bindposes = mesh.bindposes.Concat(new[] { headBone.worldToLocalMatrix }).ToArray();
+                    int index = boneIndexes.ToList().FindIndex(boneIndex => boneIndex == eyeBoneIndex);
+                    switch (index)
+                    {
+                        case 0:
+                            boneWeight.boneIndex1 = headBoneIndex;
+                            boneWeight.weight1 = boneWeight.weight0 * headBoneWeight;
+                            boneWeight.weight0 *= eyeBoneWeight;
+                            break;
+                        case 1:
+                            boneWeight.boneIndex2 = headBoneIndex;
+                            boneWeight.weight2 = boneWeight.weight1 * headBoneWeight;
+                            boneWeight.weight1 *= eyeBoneWeight;
+                            break;
+                        case 2:
+                            boneWeight.boneIndex3 = headBoneIndex;
+                            boneWeight.weight3 = boneWeight.weight2 * headBoneWeight;
+                            boneWeight.weight2 *= eyeBoneWeight;
+                            break;
+                    }
                 }
 
-                mesh.boneWeights = mesh.boneWeights.Select(boneWeight => {
-                    IEnumerable<float> weights = new[] { boneWeight.weight0, boneWeight.weight1, boneWeight.weight2, boneWeight.weight3 }.Where(weight => weight > 0);
-                    IEnumerable<int> boneIndexes = new[] { boneWeight.boneIndex0, boneWeight.boneIndex1, boneWeight.boneIndex2, boneWeight.boneIndex3 }.Take(weights.Count());
-                    if (eyeBoneIndexes.Intersect(boneIndexes).Count() != boneIndexes.Count())
-                    {
-                        return boneWeight;
-                    }
-
-                    foreach (int eyeBoneIndex in eyeBoneIndexes)
-                    {
-                        int index = boneIndexes.ToList().FindIndex(boneIndex => boneIndex == eyeBoneIndex);
-                        switch (index)
-                        {
-                            case 0:
-                                boneWeight.boneIndex1 = headBoneIndex;
-                                boneWeight.weight1 = boneWeight.weight0 * headBoneWeight;
-                                boneWeight.weight0 *= eyeBoneWeight;
-                                break;
-                            case 1:
-                                boneWeight.boneIndex2 = headBoneIndex;
-                                boneWeight.weight2 = boneWeight.weight1 * headBoneWeight;
-                                boneWeight.weight1 *= eyeBoneWeight;
-                                break;
-                            case 2:
-                                boneWeight.boneIndex3 = headBoneIndex;
-                                boneWeight.weight3 = boneWeight.weight2 * headBoneWeight;
-                                boneWeight.weight2 *= eyeBoneWeight;
-                                break;
-                        }
-                    }
-
-                                return boneWeight;
-                }).ToArray();
-            }
+                            return boneWeight;
+            }).ToArray();
 
             return true;
         }
