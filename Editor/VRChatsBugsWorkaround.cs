@@ -455,12 +455,18 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             EditorUtility.SetDirty(mesh);
 
             Transform headBone = avatar.GetComponent<VRMFirstPerson>().FirstPersonBone;
-            int headBoneIndex = bones.IndexOf(target: headBone);
-            if (headBoneIndex < 0)
+            Matrix4x4 headBoneBindposeForEyeBones = headBone.worldToLocalMatrix;
+            int headBoneIndex;
+            try
+            {
+                headBoneIndex = boneIndicesAndBones[headBone]
+                    .FirstOrDefault(index => mesh.bindposes[index] == headBoneBindposeForEyeBones);
+            }
+            catch (InvalidOperationException)
             {
                 renderer.bones = bones.Concat(new[] { headBone }).ToArray();
                 headBoneIndex = bones.Length;
-                mesh.bindposes = mesh.bindposes.Concat(new[] { headBone.worldToLocalMatrix }).ToArray();
+                mesh.bindposes = mesh.bindposes.Concat(new[] { headBoneBindposeForEyeBones }).ToArray();
             }
 
             float minDegree = new[] { lookAtBoneApplyer.HorizontalOuter, lookAtBoneApplyer.HorizontalInner, lookAtBoneApplyer.VerticalDown, lookAtBoneApplyer.VerticalUp }
