@@ -256,7 +256,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             if (forQuest)
             {
-                SetNeutralAndBlinkForQuest(avatar: avatar, clips: clips);
+                SetBlinkForQuest(avatar: avatar, clips: clips);
+                SetNeutralForQuest(avatar: avatar, clips: clips);
             }
             else
             {
@@ -518,22 +519,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </remarks>
         /// <param name="avatar"></param>
         /// <param name="clips"></param>
-        private static void SetNeutralAndBlinkForQuest(GameObject avatar, IEnumerable<VRMBlendShapeClip> clips)
+        private static void SetBlinkForQuest(GameObject avatar, IEnumerable<VRMBlendShapeClip> clips)
         {
-            Transform transform = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath);
-            var renderer = transform.GetComponent<SkinnedMeshRenderer>();
+            var renderer = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath).GetComponent<SkinnedMeshRenderer>();
             Mesh mesh = renderer.sharedMesh;
-
-            var clip = clips.FirstOrDefault(c => c.Preset == BlendShapePreset.Neutral);
-            if (clip)
-            {
-                foreach (KeyValuePair<string, float> shapeKeyNameAndWeight in clip.ShapeKeyValues) {
-                    renderer.SetBlendShapeWeight(
-                        mesh.GetBlendShapeIndex(shapeKeyNameAndWeight.Key),
-                        shapeKeyNameAndWeight.Value
-                    );
-                }
-            }
 
             if (BlendShapeReplacer.GetBlendShapeNames(mesh: mesh)
                 .Take(BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.Count())
@@ -607,6 +596,30 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
 
             EditorUtility.SetDirty(target: mesh);
+        }
+
+        /// <summary>
+        /// Quest向けに<see cref="BlendShapePreset.Neutral"/>を変換します。
+        /// </summary>
+        /// <param name="avatar"></param>
+        /// <param name="clips"></param>
+        private static void SetNeutralForQuest(GameObject avatar, IEnumerable<VRMBlendShapeClip> clips)
+        {
+            var clip = clips.FirstOrDefault(c => c.Preset == BlendShapePreset.Neutral);
+            if (!clip)
+            {
+                return;
+            }
+
+            var renderer = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath).GetComponent<SkinnedMeshRenderer>();
+            Mesh mesh = renderer.sharedMesh;
+            foreach (KeyValuePair<string, float> shapeKeyNameAndWeight in clip.ShapeKeyValues)
+            {
+                renderer.SetBlendShapeWeight(
+                    mesh.GetBlendShapeIndex(shapeKeyNameAndWeight.Key),
+                    shapeKeyNameAndWeight.Value
+                );
+            }
         }
 
         /// <summary>
