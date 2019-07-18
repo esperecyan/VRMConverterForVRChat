@@ -76,7 +76,18 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                         continue;
                     }
 
-                    clip.ShapeKeyValues.Add(key: mesh.GetBlendShapeName(binding.Index), value: binding.Weight);
+                    string shapeKeyName = mesh.GetBlendShapeName(binding.Index);
+                    if (clip.ShapeKeyValues.ContainsKey(shapeKeyName))
+                    {
+                        if (binding.Weight > clip.ShapeKeyValues[shapeKeyName])
+                        {
+                            clip.ShapeKeyValues[shapeKeyName] = binding.Weight;
+                        }
+                    }
+                    else
+                    {
+                        clip.ShapeKeyValues.Add(key: shapeKeyName, value: binding.Weight);
+                    }
                 }
 
                 if (clip.ShapeKeyValues.Count == 0)
