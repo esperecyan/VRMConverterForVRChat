@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.IO;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEditor;
 using UniGLTF;
 using VRM;
@@ -622,6 +623,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
 
             PrefabUtility.ReplacePrefab(prefabInstance, prefab, ReplacePrefabOptions.ConnectToPrefab);
+            if (SceneManager.GetActiveScene().GetRootGameObjects()
+                .Any(root => root != prefabInstance && PrefabUtility.GetPrefabParent(root) == prefab))
+            {
+                // シーンのルートに、すでに他のプレハブインスタンスが存在していれば、変換用のインスタンスは削除
+                UnityEngine.Object.DestroyImmediate(prefabInstance);
+            }
 
             ResultDialog.Open(messages: messages);
         }
