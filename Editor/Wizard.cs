@@ -38,6 +38,22 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         private static readonly int Indent = 20;
 
         /// <summary>
+        /// VRoid Studioで出力したモデルにおける足のボーン名。
+        /// </summary>
+        private static readonly IDictionary<HumanBodyBones, string> VRoidStudioFootNames
+            = new Dictionary<HumanBodyBones, string> {
+                { HumanBodyBones.LeftFoot, "J_Bip_L_Foot" },
+                { HumanBodyBones.RightFoot, "J_Bip_R_Foot" },
+                { HumanBodyBones.LeftToes, "J_Bip_L_ToeBase" },
+                { HumanBodyBones.RightToes, "J_Bip_R_ToeBase" },
+            };
+
+        /// <summary>
+        /// VRoid Studioで出力したモデルにおける <see cref="Wizard.armatureHeight"/> の既定値。
+        /// </summary>
+        private static readonly float DefaultAddedArmaturePositionY = 0.03f;
+
+        /// <summary>
         /// 複製・変換対象のアバター。
         /// </summary>
         [SerializeField]
@@ -60,6 +76,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </summary>
         [SerializeField, Localizable(-0.1f, 0.1f)]
         private float shoulderHeights;
+
+        /// <summary>
+        /// VRChat上で足が沈む問題について、Hipsボーンの一つ上のオブジェクトのPositionのYに加算する値。
+        /// </summary>
+        [SerializeField, Localizable(-0.1f, 0.1f)]
+        private float armatureHeight;
 
         /// <summary>
         /// 伏せたときのアバターの位置が、自分視点と他者視点で異なるVRChatのバグに対処するなら <c>true</c>。
@@ -134,6 +156,16 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             wizard.minSize = Wizard.MinSize;
 
             wizard.avatar = avatar.GetComponent<Animator>();
+
+            IDictionary<HumanBodyBones, string> bonesAndNames
+                = avatar.GetComponent<VRMHumanoidDescription>().Description.human.ToDictionary(
+                    keySelector: boneLimit => boneLimit.humanBone,
+                    elementSelector: humanBone => humanBone.boneName
+                );
+            if (Wizard.VRoidStudioFootNames.All(boneAndName => bonesAndNames.Contains(boneAndName)))
+            {
+                wizard.armatureHeight = Wizard.DefaultAddedArmaturePositionY;
+            }
 
             wizard.LoadSettings();
         }
@@ -561,7 +593,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 addedShouldersPositionY: this.shoulderHeights,
                 fixProneAvatarPosition: this.fixProneAvatarPosition,
                 moveEyeBoneToFrontForEyeMovement: this.moveEyeBoneToFrontForEyeMovement,
-                forQuest: this.forQuest
+                forQuest: this.forQuest,
+                addedArmaturePositionY: this.armatureHeight
             ));
 
             if (this.postConverting != null) {

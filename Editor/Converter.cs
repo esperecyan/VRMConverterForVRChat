@@ -44,6 +44,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="fixProneAvatarPosition">伏せたときのアバターの位置が、自分視点と他者視点で異なるVRChatのバグに対処するなら <c>true</c>。</param>
         /// <param name="moveEyeBoneToFrontForEyeMovement">オートアイムーブメント有効化時、目ボーンのPositionのZに加算する値。</param>
         /// <param name="forQuest">Quest版用アバター向けに変換するなら <c>true</c>。</param>
+        /// <param name="addedArmaturePositionY">VRChat上で足が沈む問題について、Hipsボーンの一つ上のオブジェクトのPositionのYに加算する値。</param>
         /// <returns>変換中に発生したメッセージ。</returns>
         public static IEnumerable<Converter.Message> Convert(
             GameObject prefabInstance,
@@ -56,7 +57,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             float addedShouldersPositionY = 0.0f,
             bool fixProneAvatarPosition = true,
             float moveEyeBoneToFrontForEyeMovement = 0.0f,
-            bool forQuest = false
+            bool forQuest = false,
+            float addedArmaturePositionY = 0.0f
         ) {
             var messages = new List<Converter.Message>();
             messages.AddRange(GeometryCorrector.Apply(avatar: prefabInstance));
@@ -74,6 +76,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 avatar: prefabInstance,
                 enableAutoEyeMovement: enableAutoEyeMovement,
                 addedShouldersPositionY: addedShouldersPositionY,
+                addedArmaturePositionY: addedArmaturePositionY,
                 fixProneAvatarPosition: fixProneAvatarPosition,
                 moveEyeBoneToFrontForEyeMovement: moveEyeBoneToFrontForEyeMovement,
                 forQuest: forQuest

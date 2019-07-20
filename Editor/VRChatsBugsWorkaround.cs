@@ -78,6 +78,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="avatar"></param>
         /// <param name="enableAutoEyeMovement">オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。</param>
         /// <param name="addedShouldersPositionY">VRChat上でモデルがなで肩・いかり肩になる問題について、Shoulder/UpperArmボーンのPositionのYに加算する値。</param>
+        /// <param name="addedArmaturePositionY"></param>
         /// <param name="fixProneAvatarPosition">伏せたときのアバターの位置が、自分視点と他者視点で異なるVRChatのバグに対処するなら <c>true</c>。</param>
         /// <param name="moveEyeBoneToFrontForEyeMovement"></param>
         /// <param name="forQuest"></param>
@@ -87,6 +88,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             bool enableAutoEyeMovement,
             float addedShouldersPositionY,
             bool fixProneAvatarPosition,
+            float addedArmaturePositionY,
             float moveEyeBoneToFrontForEyeMovement,
             bool forQuest
         ) {
@@ -116,6 +118,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
             VRChatsBugsWorkaround.AddShouldersPositionYAndEyesPositionZ(
                 avatar: avatar,
+                addedValueToArmature: addedArmaturePositionY,
                 addedValueToShoulders: addedShouldersPositionY,
                 addedValueToEyes: moveEyeBoneToFrontForEyeMovement
             );
@@ -525,23 +528,29 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         }
 
         /// <summary>
-        /// VRChat上でモデルがなで肩・いかり肩になる問題について、ボーンのPositionを変更します。
-        /// また、オートアイムーブメント有効化に伴うウェイト塗り直しで黒目が白目に沈む問題を回避するため、ボーンのPositionを変更します。
+        /// VRChat上で発生するの以下の問題に対処するため、ボーンのPositionを変更します。
+        /// • 足が沈む
+        /// • なで肩・いかり肩になる
+        /// • オートアイムーブメント有効化に伴うウェイト塗り直しで黒目が白目に沈む
         /// </summary>
         /// <remarks>
         /// 参照:
+        /// WiLさんのツイート: “#VRChat blender無しでアバターを浮かせる(靴が埋まらないようにする)方法 1. fbxファイル(prefabではない)→rig→configureを選択 2. rig設定内HierarchyのArmature→Transformで高さ(y position)を浮かせたい値だけ増やす→Done 3. Avatar DescriptorのView Positionを浮かせたい値と同じだけ増やす… https://t.co/fdMtnuQqy1”
+        /// <https://twitter.com/WiL_VRC/status/1147723536716296192>
         /// ふわふわのクラゲさんのツイート: “書き間違いだとした場合は沈み方にもよりますが、瞳メッシュの位置とボーンの回転軸の位置関係が近すぎることが原因と思われます。単なる幾何学的問題なのでこれを100さんが見落としてるというのは考えづらいですが。… ”
         /// <https://twitter.com/DD_JellyFish/status/1139051774352871424>
         /// </remarks>
         /// <param name="avatar"></param>
+        /// <param name="addedValueToArmature"></param>
         /// <param name="addedValueToShoulders"></param>
         /// <param name="addedValueToEyes"></param>
         private static void AddShouldersPositionYAndEyesPositionZ(
             GameObject avatar,
+            float addedValueToArmature,
             float addedValueToShoulders,
             float addedValueToEyes
         ) {
-            if (addedValueToShoulders == 0.0f && addedValueToEyes == 0.0f)
+            if (addedValueToArmature == 0.0f && addedValueToShoulders == 0.0f && addedValueToEyes == 0.0f)
             {
                 return;
             }
@@ -549,6 +558,17 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             ApplyAvatarDescription(avatar: avatar, humanDescriptionModifier: humanDescription => {
                 List<HumanBone> humanBones = humanDescription.human.ToList();
                 List<SkeletonBone> skeltonBones = humanDescription.skeleton.ToList();
+                if (addedValueToArmature != 0.0f)
+                {
+                    var addedPosition = new Vector3(0, addedValueToArmature, 0);
+
+                    string armatureName
+                        = avatar.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips).parent.name;
+                    humanDescription.skeleton[skeltonBones.FindIndex(match: skeltonBone => skeltonBone.name == armatureName)].position
+                        += addedPosition;
+
+                    avatar.GetComponent<VRC_AvatarDescriptor>().ViewPosition += addedPosition;
+                }
                 if (addedValueToShoulders != 0.0f)
                 {
                     foreach (HumanBodyBones bone in VRChatsBugsWorkaround.RequiredModifiedBonesForVRChat)
