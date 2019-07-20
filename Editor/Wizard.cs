@@ -10,6 +10,7 @@ using UnityEditor;
 using UniGLTF;
 using VRM;
 using VRCSDK2;
+using VRC.Core;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
 {
@@ -581,6 +582,32 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
             this.destinationPath = destinationPath;
 
+            // プレハブ、およびシーン上のプレハブインスタンスのBlueprint IDを取得
+            string prefabBlueprintId = "";
+            var blueprintIds = new Dictionary<int, string>();
+            var previousPrefab = AssetDatabase.LoadMainAssetAtPath(this.destinationPath) as GameObject;
+            if (previousPrefab)
+            {
+                var pipelineManager = previousPrefab.GetComponent<PipelineManager>();
+                prefabBlueprintId = pipelineManager ? pipelineManager.blueprintId : "";
+
+                GameObject[] previousRootGameObjects = SceneManager.GetActiveScene().GetRootGameObjects();
+                blueprintIds = previousRootGameObjects.Where(root => PrefabUtility.GetPrefabParent(root) == previousPrefab)
+                    .Select(root =>
+                    {
+                        var manager = root.GetComponent<PipelineManager>();
+                        var blueprintId = manager ? manager.blueprintId : "";
+                        return new
+                        {
+                            index = Array.IndexOf(previousRootGameObjects, root),
+                            blueprintId = blueprintId != prefabBlueprintId ? blueprintId : "",
+                        };
+                    }).ToDictionary(
+                        keySelector: indexAndBlueprintId => indexAndBlueprintId.index,
+                        elementSelector: indexAndBlueprintId => indexAndBlueprintId.blueprintId
+                    );
+            }
+
             GameObject prefabInstance = Duplicator.Duplicate(
                 sourceAvatar: this.avatar.gameObject,
                 destinationPath: this.destinationPath,
@@ -618,13 +645,31 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 addedArmaturePositionY: this.armatureHeight
             ));
 
+            // 変換前のプレハブのPipeline ManagerのBlueprint IDを反映
+            if (!string.IsNullOrEmpty(prefabBlueprintId))
+            {
+                prefabInstance.GetComponent<PipelineManager>().blueprintId = prefabBlueprintId;
+            }
+
             if (this.postConverting != null) {
                 this.postConverting(prefabInstance, prefabInstance.GetComponent<VRMMeta>());
             }
 
             PrefabUtility.ReplacePrefab(prefabInstance, prefab, ReplacePrefabOptions.ConnectToPrefab);
-            if (SceneManager.GetActiveScene().GetRootGameObjects()
-                .Any(root => root != prefabInstance && PrefabUtility.GetPrefabParent(root) == prefab))
+
+            // 変換前のプレハブインスタンスのPipeline ManagerのBlueprint IDを反映
+            GameObject[] rootGameObjects = SceneManager.GetActiveScene().GetRootGameObjects();
+            foreach (var avatarAndBlueprintId in blueprintIds)
+            {
+                if (string.IsNullOrEmpty(avatarAndBlueprintId.Value))
+                {
+                    continue;
+                }
+                rootGameObjects[avatarAndBlueprintId.Key].GetComponent<PipelineManager>().blueprintId
+                    = avatarAndBlueprintId.Value;
+            }
+
+            if (blueprintIds.Count > 0)
             {
                 // シーンのルートに、すでに他のプレハブインスタンスが存在していれば、変換用のインスタンスは削除
                 UnityEngine.Object.DestroyImmediate(prefabInstance);
