@@ -457,26 +457,15 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             Mesh mesh = renderer.sharedMesh;
             EditorUtility.SetDirty(mesh);
 
-            Transform headBone = avatar.GetComponent<VRMFirstPerson>().FirstPersonBone;
-            Matrix4x4 headBoneBindposeForEyeBones = headBone.worldToLocalMatrix;
-            int headBoneIndex;
-            try
-            {
-                headBoneIndex = boneIndicesAndBones[headBone]
-                    .FirstOrDefault(index => mesh.bindposes[index] == headBoneBindposeForEyeBones);
-            }
-            catch (InvalidOperationException)
-            {
-                renderer.bones = bones.Concat(new[] { headBone }).ToArray();
-                headBoneIndex = bones.Length;
-                mesh.bindposes = mesh.bindposes.Concat(new[] { headBoneBindposeForEyeBones }).ToArray();
-            }
-
             float minDegree = new[] { lookAtBoneApplyer.HorizontalOuter, lookAtBoneApplyer.HorizontalInner, lookAtBoneApplyer.VerticalDown, lookAtBoneApplyer.VerticalUp }
                 .Select(mapper => mapper.CurveYRangeDegree)
                 .Min();
             float eyeBoneWeight = minDegree / VRChatsBugsWorkaround.MaxAutoEyeMovementDegree;
             float headBoneWeight = 1 - eyeBoneWeight;
+
+            Transform headBone = avatar.GetComponent<VRMFirstPerson>().FirstPersonBone;
+            var headBoneIndicesAndBindposes = boneIndicesAndBones[headBone]
+                .Select(index => new { index, bindpose = mesh.bindposes[index] }).ToList();
 
             mesh.boneWeights = mesh.boneWeights.Select(boneWeight => {
                 IEnumerable<float> weights = new[] { boneWeight.weight0, boneWeight.weight1, boneWeight.weight2, boneWeight.weight3 }.Where(weight => weight > 0);
@@ -484,6 +473,25 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 if (eyeBoneIndexes.Intersect(boneIndexes).Count() != boneIndexes.Count())
                 {
                     return boneWeight;
+                }
+
+                // bindposeの計算
+                Matrix4x4 headBoneBindpose = headBone.worldToLocalMatrix
+                    * mesh.bindposes[boneWeight.boneIndex0]
+                    * renderer.bones[boneWeight.boneIndex0].localToWorldMatrix;
+                int headBoneIndex;
+                var headBoneIndexAndBindpose = headBoneIndicesAndBindposes
+                    .FirstOrDefault(indexAndBindpose => indexAndBindpose.bindpose == headBoneBindpose);
+                if (headBoneIndexAndBindpose.bindpose == default(Matrix4x4))
+                {
+                    headBoneIndex = renderer.bones.Length;
+                    renderer.bones = renderer.bones.Concat(new[] { headBone }).ToArray();
+                    mesh.bindposes = mesh.bindposes.Concat(new[] { headBoneBindpose }).ToArray();
+                    headBoneIndicesAndBindposes.Add(new { index = headBoneIndex, bindpose = headBoneBindpose });
+                }
+                else
+                {
+                    headBoneIndex = headBoneIndexAndBindpose.index;
                 }
 
                 foreach (int eyeBoneIndex in eyeBoneIndexes)
