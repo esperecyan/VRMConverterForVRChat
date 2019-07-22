@@ -291,16 +291,20 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             GameObject prefabInstance,
             IEnumerable<string> notCombineRendererObjectNames
         ) {
-            Duplicator.MakeAllVerticesHaveWeights(
-                prefabInstance: prefabInstance,
-                notCombineRendererObjectNames: notCombineRendererObjectNames
+            Transform sameNameTransform = prefabInstance.transform.Find(VRChatUtility.AutoBlinkMeshPath);
+            if (sameNameTransform)
+            {
+                sameNameTransform.name += "-" + VRChatUtility.AutoBlinkMeshPath;
+            }
+
+            SkinnedMeshRenderer destinationRenderer = CombineMeshesAndSubMeshes.CombineMeshesAndSubMeshes.Combine(
+                root: prefabInstance,
+                notCombineRendererObjectNames: notCombineRendererObjectNames,
+                destinationObjectName: VRChatUtility.AutoBlinkMeshPath
             );
 
-            Duplicator.CombineAllMeshes(
-                prefabPath: prefabPath,
-                prefabInstance: prefabInstance,
-                notCombineRendererObjectNames: notCombineRendererObjectNames
-            );
+            destinationRenderer.rootBone
+                = prefabInstance.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips);
 
             var alreadyDuplicatedMeshes = new Dictionary<Mesh, Mesh>();
 
@@ -339,122 +343,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                             : ""
                     );
                 alreadyDuplicatedMeshes[mesh] = filter.sharedMesh;
-            }
-        }
-
-        /// <summary>
-        /// すべてのメッシュの全頂点にウェイトが設定された状態にします。
-        /// </summary>
-        /// <param name="prefabInstance"></param>
-        /// <param name="notCombineRendererObjectNames"></param>
-        private static void MakeAllVerticesHaveWeights(
-            GameObject prefabInstance,
-            IEnumerable<string> notCombineRendererObjectNames
-        ) {
-            foreach (var renderer in prefabInstance.GetComponentsInChildren<SkinnedMeshRenderer>())
-            {
-                if (notCombineRendererObjectNames.Contains(renderer.name)
-                    || renderer.bones.Length > 1 || renderer.bones[0] != renderer.transform)
-                {
-                    continue;
-                }
-
-                Transform bone = renderer.transform.parent;
-                renderer.bones = new[] { bone };
-
-                var mesh = Duplicator.DuplicateAssetInstance(instance: renderer.sharedMesh) as Mesh;
-                mesh.bindposes = new[] { bone.worldToLocalMatrix * renderer.localToWorldMatrix };
-                renderer.sharedMesh = mesh;
-            }
-
-            foreach (var meshRenderer in prefabInstance.GetComponentsInChildren<MeshRenderer>())
-            {
-                if (notCombineRendererObjectNames.Contains(meshRenderer.name))
-                {
-                    continue;
-                }
-
-                var meshFilter = meshRenderer.GetComponent<MeshFilter>();
-                Material[] materials = meshRenderer.sharedMaterials;
-                var renderer = meshRenderer.gameObject.AddComponent<SkinnedMeshRenderer>();
-                renderer.sharedMesh = meshFilter.sharedMesh;
-                UnityEngine.Object.DestroyImmediate(meshFilter);
-                renderer.sharedMaterials = materials;
-
-                Transform bone = renderer.transform.parent;
-                renderer.bones = new[] { bone };
-
-                var mesh = Duplicator.DuplicateAssetInstance(instance: renderer.sharedMesh) as Mesh;
-                mesh.boneWeights = new BoneWeight[mesh.vertexCount].Select(boneWeight => {
-                    boneWeight.weight0 = 1;
-                    return boneWeight;
-                }).ToArray();
-                mesh.bindposes = new[] { bone.worldToLocalMatrix * renderer.localToWorldMatrix };
-                renderer.sharedMesh = mesh;
-            }
-        }
-
-        /// <summary>
-        /// メッシュ、サブメッシュを結合します。
-        /// </summary>
-        /// <param name="prefabPath"></param>
-        /// <param name="prefabInstance"></param>
-        /// <param name="notCombineRendererObjectNames"></param>
-        private static void CombineAllMeshes(
-            string prefabPath,
-            GameObject prefabInstance,
-            IEnumerable<string> notCombineRendererObjectNames
-        ) {
-            SkinnedMeshRenderer bodyRenderer = MeshIntegrator
-                .Integrate(go: prefabInstance, notCombineRendererObjectNames: notCombineRendererObjectNames);
-            bodyRenderer.rootBone = prefabInstance.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips);
-
-            foreach (var renderer in prefabInstance.GetComponentsInChildren<SkinnedMeshRenderer>())
-            {
-                if (renderer == bodyRenderer || notCombineRendererObjectNames.Contains(renderer.name))
-                {
-                    continue;
-                }
-
-                GameObject gameObject = renderer.gameObject;
-                if (!gameObject)
-                {
-                    continue;
-                }
-
-                if (gameObject.transform.childCount > 0)
-                {
-                    UnityEngine.Object.DestroyImmediate(renderer);
-                }
-                else
-                {
-                    UnityEngine.Object.DestroyImmediate(gameObject);
-                }
-            }
-
-            Transform sameNameTransform = prefabInstance.transform.Find(VRChatUtility.AutoBlinkMeshPath);
-            if (sameNameTransform)
-            {
-                sameNameTransform.name += "-" + VRChatUtility.AutoBlinkMeshPath;
-            }
-
-            bodyRenderer.name = VRChatUtility.AutoBlinkMeshPath;
-            bodyRenderer.sharedMesh.name = bodyRenderer.name;
-
-            string destinationPath = Duplicator.DetermineAssetPath(
-                prefabPath: prefabPath,
-                type: typeof(Mesh),
-                fileName: bodyRenderer.sharedMesh.name + ".asset"
-            );
-            var destination = AssetDatabase.LoadAssetAtPath<Mesh>(destinationPath);
-            if (destination)
-            {
-                EditorUtility.CopySerialized(bodyRenderer.sharedMesh, destination);
-                bodyRenderer.sharedMesh = destination;
-            }
-            else
-            {
-                AssetDatabase.CreateAsset(bodyRenderer.sharedMesh, destinationPath);
             }
         }
 
