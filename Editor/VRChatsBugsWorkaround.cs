@@ -482,7 +482,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 int headBoneIndex;
                 var headBoneIndexAndBindpose = headBoneIndicesAndBindposes
                     .FirstOrDefault(indexAndBindpose => indexAndBindpose.bindpose == headBoneBindpose);
-                if (headBoneIndexAndBindpose.bindpose == default(Matrix4x4))
+                if (headBoneIndexAndBindpose == null)
                 {
                     headBoneIndex = renderer.bones.Length;
                     renderer.bones = renderer.bones.Concat(new[] { headBone }).ToArray();
