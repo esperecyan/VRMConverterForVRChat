@@ -4,7 +4,7 @@ using System.IO;
 using UnityEngine;
 using UnityEditor;
 
-namespace Esperecyan.Unity.CombineMeshesAndSubMeshes
+namespace Esperecyan.Unity.VRMConverterForVRChat.CombineMeshesAndSubMeshes
 {
     /// <summary>
     /// 指定したオブジェクト階下のメッシュを、指定したオブジェクト直下へ結合します。その際、マテリアルが同一であるサブメッシュ (マテリアルスロット) を結合します。
