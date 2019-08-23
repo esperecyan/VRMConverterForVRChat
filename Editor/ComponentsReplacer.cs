@@ -7,6 +7,8 @@ using UnityEditor;
 using VRM;
 using UniGLTF;
 using VRCSDK2;
+using VRCSDK2.Validation.Performance;
+using VRCSDK2.Validation.Performance.Stats;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
 {
@@ -264,33 +266,33 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             );
 
             AvatarPerformanceStatsLevel mediumPerformanceStatLimits
-                = VRChatUtility.AvatarPerformanceStatsLevelSets["PC"].Medium;
+                = VRChatUtility.AvatarPerformanceStatsLevelSets["PC"].medium;
 
-            if (statistics.DynamicBoneSimulatedBoneCount > mediumPerformanceStatLimits.DynamicBoneSimulatedBoneCount)
+            if (statistics.dynamicBoneSimulatedBoneCount > mediumPerformanceStatLimits.dynamicBoneSimulatedBoneCount)
             {
                 messages.Add(new Converter.Message
                 {
                     message = string.Format(
                         Gettext._("The “Dynamic Bone Simulated Bone Count” is {0}."),
-                        statistics.DynamicBoneSimulatedBoneCount
+                        statistics.dynamicBoneSimulatedBoneCount
                     ) + string.Format(
                         Gettext._("If this value exceeds {0}, the default user setting disable all Dynamic Bones."),
-                        mediumPerformanceStatLimits.DynamicBoneSimulatedBoneCount
+                        mediumPerformanceStatLimits.dynamicBoneSimulatedBoneCount
                     ),
                     type = MessageType.Warning,
                 });
             }
 
-            if (statistics.DynamicBoneCollisionCheckCount > mediumPerformanceStatLimits.DynamicBoneCollisionCheckCount)
+            if (statistics.dynamicBoneCollisionCheckCount > mediumPerformanceStatLimits.dynamicBoneCollisionCheckCount)
             {
                 messages.Add(new Converter.Message
                 {
                     message = string.Format(
                         Gettext._("The “Dynamic Bone Collision Check Count” is {0}."),
-                        statistics.DynamicBoneCollisionCheckCount
+                        statistics.dynamicBoneCollisionCheckCount
                     ) + string.Format(
                         Gettext._("If this value exceeds {0}, the default user setting disable all Dynamic Bones."),
-                        mediumPerformanceStatLimits.DynamicBoneCollisionCheckCount
+                        mediumPerformanceStatLimits.dynamicBoneCollisionCheckCount
                     ),
                     type = MessageType.Warning,
                 });

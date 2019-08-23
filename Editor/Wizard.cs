@@ -9,7 +9,8 @@ using UnityEngine.SceneManagement;
 using UnityEditor;
 using UniGLTF;
 using VRM;
-using VRCSDK2;
+using VRCSDK2.Validation.Performance;
+using VRCSDK2.Validation.Performance.Stats;
 using VRC.Core;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
@@ -480,9 +481,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             int currentPolycount = AvatarPerformance.CalculatePerformanceStats(
                 avatarName: avatar.GetComponent<VRMMeta>().Meta.Title,
                 avatarObject: this.avatar.gameObject
-            ).PolyCount;
+            ).polyCount;
 
-            int maxPolycount = VRChatUtility.AvatarPerformanceStatsLevelSets["Quest"].Medium.PolyCount;
+            int maxPolycount = VRChatUtility.AvatarPerformanceStatsLevelSets["Quest"].medium.polyCount;
 
             if (currentPolycount > maxPolycount)
             {
@@ -510,27 +511,27 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             AvatarPerformanceStats statistics = AvatarPerformance.CalculatePerformanceStats("", prefab);
 
             AvatarPerformanceStatsLevel performanceStatLimits
-                = VRChatUtility.AvatarPerformanceStatsLevelSets["Quest"].Medium;
+                = VRChatUtility.AvatarPerformanceStatsLevelSets["Quest"].medium;
 
             foreach (var limitation in new[] {
                 new {
-                    current = statistics.SkinnedMeshCount,
-                    limit = performanceStatLimits.SkinnedMeshCount,
+                    current = statistics.skinnedMeshCount,
+                    limit = performanceStatLimits.skinnedMeshCount,
                     message = Gettext._("The number of Skinned Mesh Renderer components is {0}.")
                 },
                 new {
-                    current = statistics.MeshCount,
-                    limit = performanceStatLimits.MeshCount,
+                    current = statistics.meshCount,
+                    limit = performanceStatLimits.meshCount,
                     message = Gettext._("The number of (non-Skinned) Mesh Renderer components is {0}.")
                 },
                 new {
-                    current = statistics.MaterialCount,
-                    limit = performanceStatLimits.MaterialCount,
+                    current = statistics.materialCount,
+                    limit = performanceStatLimits.materialCount,
                     message = Gettext._("The number of material slots (sub-meshes) is {0}.")
                 },
                 new {
-                    current = statistics.BoneCount,
-                    limit = performanceStatLimits.BoneCount,
+                    current = statistics.boneCount,
+                    limit = performanceStatLimits.boneCount,
                     message = Gettext._("The number of Bones is {0}.")
                 },
             })

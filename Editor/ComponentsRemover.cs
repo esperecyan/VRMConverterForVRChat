@@ -1,5 +1,5 @@
-﻿using UnityEngine;
-using VRCSDK2;
+using UnityEngine;
+using VRCSDK2.Validation;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
 {

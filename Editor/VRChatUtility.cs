@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
 using UnityEditor;
 using VRC.Core;
 using VRCSDK2;
+using VRCSDK2.Validation.Performance.Stats;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
 {
@@ -73,33 +73,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         internal static IDictionary<string, AvatarPerformanceStatsLevelSet> AvatarPerformanceStatsLevelSets
             = new Dictionary<string, AvatarPerformanceStatsLevelSet>() {
                 { "PC", Resources.Load<AvatarPerformanceStatsLevelSet>(
-                    "PerformanceStatsLevels/Windows/AvatarPerformanceStatLevels_Windows"
+                    "Validation/Performance/StatsLevels/Windows/AvatarPerformanceStatLevels_Windows"
                 ) },
                 { "Quest", Resources.Load<AvatarPerformanceStatsLevelSet>(
-                    "PerformanceStatsLevels/Quest/AvatarPerformanceStatLevels_Quest"
+                    "Validation/Performance/StatsLevels/Quest/AvatarPerformanceStatLevels_Quest"
                 ) },
             };
-
-        /// <summary>
-        /// <see cref="VRC_SdkControlPanel.AnalyzeGeometry"/>を実行します。
-        /// </summary>
-        /// <param name="go">対象のアバター。</param>
-        /// <param name="bounds">大きさ。</param>
-        /// <param name="polycount">ポリゴン数。</param>
-        internal static void AnalyzeGeometry(GameObject go, out Bounds bounds, out int polycount)
-        {
-            var args = new object[] { go, null, null };
-            typeof(VRC_SdkControlPanel).InvokeMember(
-                name: "AnalyzeGeometry",
-                invokeAttr: BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.InvokeMethod,
-                binder: null,
-                target: ScriptableObject.CreateInstance<VRC_SdkControlPanel>(),
-                args: args
-            );
-
-            bounds = (Bounds)args[1];
-            polycount = (int)args[2];
-        }
 
         /// <summary>
         /// VRChat SDKがサポートするUnityのバージョンを取得します。
