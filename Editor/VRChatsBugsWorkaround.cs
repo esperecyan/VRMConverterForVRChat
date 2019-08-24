@@ -94,7 +94,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         ) {
             var messages = new List<Converter.Message>();
             
-            VRChatsBugsWorkaround.AdjustHumanDescription(avatar: avatar);
             VRChatsBugsWorkaround.EnableAnimationOvrride(avatar: avatar);
             if (enableAutoEyeMovement)
             {
@@ -209,30 +208,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
 
             return null;
-        }
-
-        /// <summary>
-        /// <see cref="HumanBodyBones.UpperChest"/>が存在する場合、それを<see cref="HumanBodyBones.Chest"/>とし、元の<see cref="HumanBodyBones.Chest"/>の関連付けは外すようにした。
-        /// </summary>
-        /// <seealso cref="VRC_SdkControlPanel.AnalyzeIK"/>
-        /// <param name="avatar"></param>
-        private static void AdjustHumanDescription(GameObject avatar)
-        {
-            AvatarDescription avatarDescription = avatar.GetComponent<VRMHumanoidDescription>().Description;
-
-            List<BoneLimit> boneLimits = avatarDescription.human.ToList();
-            var upperChest = boneLimits.FirstOrDefault(predicate: boneLimit => boneLimit.humanBone == HumanBodyBones.UpperChest);
-            if (string.IsNullOrEmpty(upperChest.boneName)) {
-                return;
-            }
-
-            boneLimits.Remove(boneLimits.First(predicate: boneLimit => boneLimit.humanBone == HumanBodyBones.Chest));
-
-            upperChest.humanBone = HumanBodyBones.Chest;
-            boneLimits[boneLimits.FindIndex(boneLimit => boneLimit.humanBone == HumanBodyBones.UpperChest)] = upperChest;
-
-            avatarDescription.human = boneLimits.ToArray();
-            ApplyAvatarDescription(avatar: avatar);
         }
 
         /// <summary>
