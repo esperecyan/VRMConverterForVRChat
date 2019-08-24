@@ -244,24 +244,24 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </summary>
         /// <param name="avatar"></param>
         /// <param name="clips"></param>
-        /// <param name="forQuest"></param>
+        /// <param name="useAnimatorForBlinks"></param>
         internal static IEnumerable<Converter.Message> Apply(
             GameObject avatar,
             IEnumerable<VRMBlendShapeClip> clips,
-            bool forQuest
+            bool useAnimatorForBlinks
         ) {
             var messages = new List<Converter.Message>();
 
             SetLipSync(avatar: avatar, clips: clips);
 
-            if (forQuest)
+            if (useAnimatorForBlinks)
             {
-                SetBlinkForQuest(avatar: avatar, clips: clips);
-                SetNeutralForQuest(avatar: avatar, clips: clips);
+                SetNeutralAndBlink(avatar: avatar, clips: clips);
             }
             else
             {
-                SetNeutralAndBlink(avatar: avatar, clips: clips);
+                SetBlinkWithoutAnimator(avatar: avatar, clips: clips);
+                SetNeutralWithoutAnimator(avatar: avatar, clips: clips);
             }
 
             SetFeelings(avatar: avatar, clips: clips);
@@ -510,7 +510,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         }
 
         /// <summary>
-        /// Quest向けに<see cref="BlendShapePreset.Neutral"/>、および<see cref="BlendShapePreset.Blink"/>を変換します。
+        /// Animatorコンポーネントを使用せずに、<see cref="BlendShapePreset.Neutral"/>、および<see cref="BlendShapePreset.Blink"/>を変換します。
         /// </summary>
         /// <remarks>
         /// <see cref="BlendShapePreset.Blink"/>が関連付けられたメッシュが見つからない、またはそのメッシュに
@@ -519,7 +519,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </remarks>
         /// <param name="avatar"></param>
         /// <param name="clips"></param>
-        private static void SetBlinkForQuest(GameObject avatar, IEnumerable<VRMBlendShapeClip> clips)
+        private static void SetBlinkWithoutAnimator(GameObject avatar, IEnumerable<VRMBlendShapeClip> clips)
         {
             var renderer = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath).GetComponent<SkinnedMeshRenderer>();
             Mesh mesh = renderer.sharedMesh;
@@ -599,11 +599,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         }
 
         /// <summary>
-        /// Quest向けに<see cref="BlendShapePreset.Neutral"/>を変換します。
+        /// Animatorコンポーネントを使用せずに<see cref="BlendShapePreset.Neutral"/>を変換します。
         /// </summary>
         /// <param name="avatar"></param>
         /// <param name="clips"></param>
-        private static void SetNeutralForQuest(GameObject avatar, IEnumerable<VRMBlendShapeClip> clips)
+        private static void SetNeutralWithoutAnimator(GameObject avatar, IEnumerable<VRMBlendShapeClip> clips)
         {
             var clip = clips.FirstOrDefault(c => c.Preset == BlendShapePreset.Neutral);
             if (!clip)

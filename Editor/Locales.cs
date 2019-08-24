@@ -22,6 +22,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     { "Shoulder Heights", "肩の高さ" },
                     { "Armature Height", "Armatureの高さ" },
                     { "Fix Prone Avatar Position", "伏せアバターの位置ズレ補正" },
+                    { "Use Animator For Blinks", "まばたきにAnimatorを使用" },
                     { "Callback Functions", "コールバック関数" },
                     { "Not set “{0}” component.", "{0}コンポーネントが設定されていません。" },
                     { "VRMSpringBones with the below Comments do not exist.", "以下のCommentを持つVRMSpringBoneは存在しません。" },

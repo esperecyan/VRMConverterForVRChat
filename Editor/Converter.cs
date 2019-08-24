@@ -45,6 +45,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="moveEyeBoneToFrontForEyeMovement">オートアイムーブメント有効化時、目ボーンのPositionのZに加算する値。</param>
         /// <param name="forQuest">Quest版用アバター向けに変換するなら <c>true</c>。</param>
         /// <param name="addedArmaturePositionY">VRChat上で足が沈む問題について、Hipsボーンの一つ上のオブジェクトのPositionのYに加算する値。</param>
+        /// <param name="useAnimatorForBlinks">まばたきにAnimatorコンポーネントを利用するなら <c>true</c>。
+        ///     <c>forQuest</c> が <c>false</c> の場合、常にAnimatorコンポーネントが利用され、このパラメータは無視されます。</param>
         /// <returns>変換中に発生したメッセージ。</returns>
         public static IEnumerable<Converter.Message> Convert(
             GameObject prefabInstance,
@@ -58,11 +60,16 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             bool fixProneAvatarPosition = true,
             float moveEyeBoneToFrontForEyeMovement = 0.0f,
             bool forQuest = false,
-            float addedArmaturePositionY = 0.0f
+            float addedArmaturePositionY = 0.0f,
+            bool useAnimatorForBlinks = true
         ) {
             var messages = new List<Converter.Message>();
             messages.AddRange(GeometryCorrector.Apply(avatar: prefabInstance));
-            messages.AddRange(BlendShapeReplacer.Apply(avatar: prefabInstance, clips: clips, forQuest: forQuest));
+            messages.AddRange(BlendShapeReplacer.Apply(
+                avatar: prefabInstance,
+                clips: clips,
+                useAnimatorForBlinks: forQuest ? useAnimatorForBlinks : true
+            ));
             messages.AddRange(ComponentsReplacer.Apply(
                 avatar: prefabInstance,
                 swayingObjectsConverterSetting: forQuest

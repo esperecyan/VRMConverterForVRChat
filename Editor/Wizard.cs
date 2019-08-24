@@ -142,6 +142,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         [SerializeField, Localizable]
         private bool forQuest = false;
 
+        /// <summary>
+        /// まばたきにAnimatorコンポーネントを利用するなら <c>true</c>。
+        /// </summary>
+        [SerializeField, Localizable]
+        private bool useAnimatorForBlinks = true;
+
         [Header("Callback")]
 
         /// <summary>
@@ -643,7 +649,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 fixProneAvatarPosition: this.fixProneAvatarPosition,
                 moveEyeBoneToFrontForEyeMovement: this.moveEyeBoneToFrontForEyeMovement,
                 forQuest: this.forQuest,
-                addedArmaturePositionY: this.armatureHeight
+                addedArmaturePositionY: this.armatureHeight,
+                useAnimatorForBlinks: this.useAnimatorForBlinks
             ));
 
             // 変換前のプレハブのPipeline ManagerのBlueprint IDを反映
