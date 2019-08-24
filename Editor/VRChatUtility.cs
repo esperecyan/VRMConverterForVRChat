@@ -97,7 +97,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         internal static void AddCustomAnims(GameObject avatar)
         {
             var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
-            var template = AssetDatabase.LoadMainAssetAtPath(VRChatUtility.CustomAnimsTemplatePath);
+            var template = AssetDatabase.LoadMainAssetAtPath(VRChatUtility.CustomAnimsTemplatePath)
+                as AnimatorOverrideController;
 
             if (!avatarDescriptor.CustomStandingAnims)
             {

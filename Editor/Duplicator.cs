@@ -102,7 +102,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="prefabPath">「Assets/」から始まるプレハブのパス。</param>
         /// <param name="fileName">ファイル名が複製元と異なる場合に指定。</param>
         /// <returns></returns>
-        internal static T DuplicateAssetToFolder<T>(UnityEngine.Object source, string prefabPath, string fileName = "") where T : UnityEngine.Object
+        internal static T DuplicateAssetToFolder<T>(T source, string prefabPath, string fileName = "") where T : UnityEngine.Object
         {
             string destinationFileName;
             if (string.IsNullOrEmpty(fileName))
@@ -137,7 +137,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="prefabInstance">現在のシーンに存在するプレハブのインスタンス。</param>
         /// <param name="fileName">ファイル名が複製元と異なる場合に指定。</param>
         /// <returns></returns>
-        internal static T DuplicateAssetToFolder<T>(UnityEngine.Object source, GameObject prefabInstance, string fileName = "") where T : UnityEngine.Object
+        internal static T DuplicateAssetToFolder<T>(T source, GameObject prefabInstance, string fileName = "") where T : UnityEngine.Object
         {
             return DuplicateAssetToFolder<T>(
                 source: source,
