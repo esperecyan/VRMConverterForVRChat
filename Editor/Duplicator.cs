@@ -107,14 +107,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             string destinationFileName;
             if (string.IsNullOrEmpty(fileName))
             {
-                string sourcePath = AssetDatabase.GetAssetPath(source);
-                if (string.IsNullOrEmpty(sourcePath) || AssetDatabase.IsSubAsset(source))
+                var sourceUnityPath = UnityPath.FromAsset(source);
+                if (!sourceUnityPath.IsUnderAssetsFolder || AssetDatabase.IsSubAsset(source))
                 {
                     destinationFileName = source.name.EscapeFilePath() + ".asset";
                 }
                 else
                 {
-                    destinationFileName = Path.GetFileName(sourcePath);
+                    destinationFileName = Path.GetFileName(sourceUnityPath.Value);
                 }
             }
             else
@@ -171,16 +171,17 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="duplicatedPath">「Assets/」から始まりファイル名で終わる複製先のパス。</param>
         private static void DuplicateAsset(UnityEngine.Object source, string destinationPath)
         {
+            var sourceUnityPath = UnityPath.FromAsset(source);
             UnityEngine.Object destination = AssetDatabase.LoadMainAssetAtPath(destinationPath);
             if (destination)
             {
-                if (AssetDatabase.IsNativeAsset(source) || string.IsNullOrEmpty(AssetDatabase.GetAssetPath(source)))
+                if (AssetDatabase.IsNativeAsset(source) || !sourceUnityPath.IsUnderAssetsFolder)
                 {
                     EditorUtility.CopySerialized(source, destination);
                 }
                 else
                 {
-                    string sourceFullPath = UnityPath.FromAsset(source).FullPath;
+                    string sourceFullPath = sourceUnityPath.FullPath;
                     string destinationFullPath = destinationPath.AssetPathToFullPath();
                     if (File.GetLastWriteTime(sourceFullPath) != File.GetLastWriteTime(destinationFullPath))
                     {
@@ -195,7 +196,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
             else
             {
-                if (AssetDatabase.IsSubAsset(source) || string.IsNullOrEmpty(AssetDatabase.GetAssetPath(source)))
+                if (AssetDatabase.IsSubAsset(source) || !sourceUnityPath.IsUnderAssetsFolder)
                 {
                     AssetDatabase.CreateAsset(Duplicator.DuplicateAssetInstance(source), destinationPath);
                 }
