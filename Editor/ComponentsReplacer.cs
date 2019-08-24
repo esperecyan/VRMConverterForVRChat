@@ -168,7 +168,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 DynamicBoneColliderType.GetField("m_Center").SetValue(dynamicBoneCollider, collider.Offset);
                 DynamicBoneColliderType.GetField("m_Radius").SetValue(dynamicBoneCollider, collider.Radius);
                 return dynamicBoneCollider as MonoBehaviour;
-            });
+            }).ToList();
         }
 
         /// <summary>
