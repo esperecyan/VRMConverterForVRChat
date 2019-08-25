@@ -22,6 +22,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     { "Shoulder Heights", "肩の高さ" },
                     { "Armature Height", "Armatureの高さ" },
                     { "Fix Prone Avatar Position", "伏せアバターの位置ズレ補正" },
+                    { "Combine Meshes", "メッシュの結合" },
+                    { "If you do not “Combine Meshes”,"
+                        + " and any of VRMBlendShapes references meshes other than the mesh having most shape keys"
+                            + " or the mesh is not direct child of the avatar root,"
+                        + " the avatar will not be converted correctly.",
+                        "「メッシュの結合」を行わず、かつもっともシェイプキーを多くもつメッシュ以外を参照するVRMBlendShapeが存在するか"
+                            + "そのメッシュがアバタールートの直下にない場合、正常に変換できません。"},
                     { "Use Animator For Blinks", "まばたきにAnimatorを使用" },
                     { "Callback Functions", "コールバック関数" },
                     { "Not set “{0}” component.", "{0}コンポーネントが設定されていません。" },

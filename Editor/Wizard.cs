@@ -109,6 +109,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         private bool fixProneAvatarPosition = true;
 
         /// <summary>
+        /// メッシュ・サブメッシュの結合を行うなら <c>true</c>。
+        /// </summary>
+        [SerializeField, Localizable]
+        private bool combineMeshes = true;
+
+        /// <summary>
         /// 結合しないメッシュレンダラーのオブジェクト名。
         /// </summary>
         [SerializeField, Localizable]
@@ -453,19 +459,30 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 }
             }
 
-            IEnumerable<string> notCombineRendererObjectNames = this.notCombineRendererObjectNames.Except(new[] { "" });
-            if (notCombineRendererObjectNames.Count() > 0)
+            if (this.combineMeshes)
             {
-                IEnumerable<string> names = notCombineRendererObjectNames.Except(
-                    this.avatar.GetComponentsInChildren<SkinnedMeshRenderer>()
-                        .Concat<Component>(this.avatar.GetComponentsInChildren<MeshRenderer>())
-                        .Select(renderer => renderer.name)
-                );
-                if (names.Count() > 0)
+                IEnumerable<string> notCombineRendererObjectNames
+                    = this.notCombineRendererObjectNames.Except(new[] { "" });
+                if (notCombineRendererObjectNames.Count() > 0)
                 {
-                    EditorGUILayout.HelpBox(string.Join(separator: "\n• ", value: new[] { Gettext._("Renderers on the below name GameObject do not exist.") }
-                        .Concat(names).ToArray()), MessageType.Warning);
+                    IEnumerable<string> names = notCombineRendererObjectNames.Except(
+                        this.avatar.GetComponentsInChildren<SkinnedMeshRenderer>()
+                            .Concat<Component>(this.avatar.GetComponentsInChildren<MeshRenderer>())
+                            .Select(renderer => renderer.name)
+                    );
+                    if (names.Count() > 0)
+                    {
+                        EditorGUILayout.HelpBox(string.Join(separator: "\n• ", value: new[] { Gettext._("Renderers on the below name GameObject do not exist.") }
+                            .Concat(names).ToArray()), MessageType.Warning);
+                    }
                 }
+            }
+            else
+            {
+                EditorGUILayout.HelpBox(Gettext._("If you do not “Combine Meshes”,"
+                    + " and any of VRMBlendShapes references meshes other than the mesh having most shape keys"
+                        + " or the mesh is not direct child of the avatar root,"
+                    + " the avatar will not be converted correctly."), MessageType.Warning);
             }
 
             string version = VRChatUtility.GetSupportedUnityVersion();
@@ -618,7 +635,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             GameObject prefabInstance = Duplicator.Duplicate(
                 sourceAvatar: this.avatar.gameObject,
                 destinationPath: this.destinationPath,
-                notCombineRendererObjectNames: this.notCombineRendererObjectNames
+                notCombineRendererObjectNames: this.notCombineRendererObjectNames,
+                combineMeshesAndSubMeshes: this.combineMeshes
             );
 
             var messages = new List<Converter.Message>();

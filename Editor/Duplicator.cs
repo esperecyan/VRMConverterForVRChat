@@ -34,12 +34,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="destinationPath">「Assets/」から始まり「.prefab」で終わる複製先のパス。</param>
         /// <param name="duplicatingOptionals">モデル情報 (VRMMeta) とVRMのBlendShapeとテクスチャも複製するなら <c>true</c>。</param>
         /// <param name="notCombineRendererObjectNames">結合しないメッシュレンダラーのオブジェクト名。</param>
+        /// <param name="combineMeshesAndSubMeshes">メッシュ・サブメッシュを結合するなら <c>true</c>。</param>
         /// <returns>複製後のインスタンス。</returns>
         public static GameObject Duplicate(
             GameObject sourceAvatar,
             string destinationPath,
             bool duplicatingOptionals = false,
-            IEnumerable<string> notCombineRendererObjectNames = null
+            IEnumerable<string> notCombineRendererObjectNames = null,
+            bool combineMeshesAndSubMeshes = true
         )
         {
             GameObject destinationPrefab = Duplicator.DuplicatePrefab(
@@ -53,6 +55,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             Duplicator.DuplicateAndCombineMeshes(
                 prefabPath: destinationPath,
                 prefabInstance: destinationPrefabInstance,
+                combineMeshesAndSubMeshes: combineMeshesAndSubMeshes,
                 notCombineRendererObjectNames: notCombineRendererObjectNames
             );
             Duplicator.DuplicateMaterials(prefabPath: destinationPath, prefabInstance: destinationPrefabInstance);
@@ -282,30 +285,57 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         }
 
         /// <summary>
+        /// もっともシェイプキーが多いメッシュを取得します。
+        /// </summary>
+        /// <param name="prefabInstance"></param>
+        /// <returns></returns>
+        private static SkinnedMeshRenderer GetFaceMeshRenderer(GameObject prefabInstance)
+        {
+            return prefabInstance.GetComponentsInChildren<SkinnedMeshRenderer>()
+                .OrderByDescending(renderer => renderer.sharedMesh ? renderer.sharedMesh.blendShapeCount : 0).First();
+        }
+
+        /// <summary>
         /// プレハブが依存しているメッシュを複製・結合します。
         /// </summary>
         /// <param name="prefabPath">「Assets/」から始まるプレハブのパス。</param>
         /// <param name="prefabInstance"></param>
+        /// <param name="combineMeshesAndSubMeshes"></param>
         /// <param name="notCombineRendererObjectNames"></param>
         private static void DuplicateAndCombineMeshes(
             string prefabPath,
             GameObject prefabInstance,
+            bool combineMeshesAndSubMeshes,
             IEnumerable<string> notCombineRendererObjectNames
         ) {
+            SkinnedMeshRenderer faceMeshRenderer
+                = combineMeshesAndSubMeshes ? null : Duplicator.GetFaceMeshRenderer(prefabInstance: prefabInstance);
+
             Transform sameNameTransform = prefabInstance.transform.Find(VRChatUtility.AutoBlinkMeshPath);
-            if (sameNameTransform)
+            if (combineMeshesAndSubMeshes ? sameNameTransform : faceMeshRenderer.transform != sameNameTransform)
             {
                 sameNameTransform.name += "-" + VRChatUtility.AutoBlinkMeshPath;
             }
 
-            SkinnedMeshRenderer destinationRenderer = CombineMeshesAndSubMeshes.CombineMeshesAndSubMeshes.Combine(
-                root: prefabInstance,
-                notCombineRendererObjectNames: notCombineRendererObjectNames,
-                destinationObjectName: VRChatUtility.AutoBlinkMeshPath
-            );
+            if (combineMeshesAndSubMeshes)
+            {
+                SkinnedMeshRenderer destinationRenderer = CombineMeshesAndSubMeshes.CombineMeshesAndSubMeshes.Combine(
+                    root: prefabInstance,
+                    notCombineRendererObjectNames: notCombineRendererObjectNames,
+                    destinationObjectName: VRChatUtility.AutoBlinkMeshPath
+                );
 
-            destinationRenderer.rootBone
-                = prefabInstance.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips);
+                destinationRenderer.rootBone
+                    = prefabInstance.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips);
+            }
+            else
+            {
+                if (faceMeshRenderer.transform != sameNameTransform)
+                {
+                    faceMeshRenderer.transform.parent = prefabInstance.transform;
+                    faceMeshRenderer.transform.name = VRChatUtility.AutoBlinkMeshPath;
+                }
+            }
 
             var alreadyDuplicatedMeshes = new Dictionary<Mesh, Mesh>();
 
