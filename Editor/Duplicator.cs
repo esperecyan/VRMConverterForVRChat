@@ -7,7 +7,6 @@ using UnityEditor;
 using UniGLTF;
 using VRM;
 using UniHumanoid;
-using Esperecyan.Unity.VRMConverterForVRChat.CombineMeshesAndSubMeshes;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
 {
