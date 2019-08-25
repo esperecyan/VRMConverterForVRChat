@@ -15,10 +15,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
     {
         private static readonly Regex FilePathPattern
             = new Regex(pattern: "^(?:" + Regex.Escape(Converter.RootFolderPath)
-                + @"/|Assets/Editor/CombineMeshesAndSubMeshes\.cs$)");
-
-        private static readonly Regex ExcludedFilePathPattern
-            = new Regex(pattern: @"/(?:Exporter\.cs|MToon-.+\.shader)$");
+                + @"/(?!Editor/Exporter\.cs$)|Assets/Editor/CombineMeshesAndSubMeshes\.cs$)");
 
         private static readonly Regex ExcludedFilePathPatternInUniVRM = new Regex(pattern: @"/[^/]+-[^/]+\.shader$");
 
@@ -29,8 +26,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         {
             string[] allAssetPathNames = AssetDatabase.GetAllAssetPaths();
 
-            IEnumerable<string> assetPathNames = allAssetPathNames
-                .Where(path => Exporter.FilePathPattern.IsMatch(input: path) && !Exporter.ExcludedFilePathPattern.IsMatch(input: path));
+            IEnumerable<string> assetPathNames
+                = allAssetPathNames.Where(path => Exporter.FilePathPattern.IsMatch(input: path));
             
             IEnumerable<string> packagePaths = new[] { false, true }.Select(withUniVRM => {
                 string name = Exporter.PackageName;
