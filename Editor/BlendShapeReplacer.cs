@@ -862,7 +862,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             Mesh mesh = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath).GetSharedMesh();
             foreach (KeyValuePair<string, float> nameAndWeight in clip.ShapeKeyValues)
             {
-                if (neutralAndBlinkShapeKeyNames.Contains(nameAndWeight.Key))
+                if (!neutralAndBlinkShapeKeyNames.Contains(nameAndWeight.Key))
                 {
                     continue;
                 }
