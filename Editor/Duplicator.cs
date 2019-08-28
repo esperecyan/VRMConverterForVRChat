@@ -312,7 +312,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 = combineMeshesAndSubMeshes ? null : Duplicator.GetFaceMeshRenderer(prefabInstance: prefabInstance);
 
             Transform sameNameTransform = prefabInstance.transform.Find(VRChatUtility.AutoBlinkMeshPath);
-            if (combineMeshesAndSubMeshes ? sameNameTransform : faceMeshRenderer.transform != sameNameTransform)
+            if (sameNameTransform && (combineMeshesAndSubMeshes || faceMeshRenderer.transform != sameNameTransform))
             {
                 sameNameTransform.name += "-" + VRChatUtility.AutoBlinkMeshPath;
             }
