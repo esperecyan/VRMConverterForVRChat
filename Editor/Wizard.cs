@@ -36,6 +36,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         private static readonly Vector2 MinSize = new Vector2(x: 800, y: 350);
 
         /// <summary>
+        /// ダイアログを開いた時点の最小の高さ。
+        /// </summary>
+        private static readonly int MinHeightWhenOpen = 700;
+
+        /// <summary>
         /// リストにおける一段回分の字下げ幅。
         /// </summary>
         private static readonly int Indent = 20;
@@ -184,6 +189,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         internal static void Open(GameObject avatar)
         {
             var wizard = DisplayWizard<Wizard>(title: Converter.Name + " " + Converter.Version, createButtonName: Gettext._("Duplicate and Convert"));
+            Vector2 defaultMinSize = Wizard.MinSize;
+            defaultMinSize.y = Wizard.MinHeightWhenOpen;
+            wizard.minSize = defaultMinSize;
             wizard.minSize = Wizard.MinSize;
 
             wizard.avatar = avatar.GetComponent<Animator>();
