@@ -260,9 +260,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         private static IEnumerable<Converter.Message> GetMessagesAboutDynamicBoneLimits(GameObject avatar)
         {
             var messages = new List<Converter.Message>();
-            AvatarPerformanceStats statistics = AvatarPerformance.CalculatePerformanceStats(
+            AvatarPerformanceStats statistics = new AvatarPerformanceStats();
+            AvatarPerformance.CalculatePerformanceStats(
                 avatarName: avatar.GetComponent<VRMMeta>().Meta.Title,
-                avatarObject: avatar
+                avatarObject: avatar,
+                perfStats: statistics
             );
 
             AvatarPerformanceStatsLevel mediumPerformanceStatLimits

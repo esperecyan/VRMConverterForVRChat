@@ -509,10 +509,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 return true;
             }
 
-            int currentPolycount = AvatarPerformance.CalculatePerformanceStats(
+            AvatarPerformanceStats statistics = new AvatarPerformanceStats();
+            AvatarPerformance.CalculatePerformanceStats(
                 avatarName: avatar.GetComponent<VRMMeta>().Meta.Title,
-                avatarObject: this.avatar.gameObject
-            ).polyCount;
+                avatarObject: this.avatar.gameObject,
+                perfStats: statistics
+            );
+            int currentPolycount = statistics.polyCount;
 
             int maxPolycount = VRChatUtility.AvatarPerformanceStatsLevelSets["Quest"].medium.polyCount;
 
@@ -539,7 +542,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         {
             var messages = new List<Converter.Message>();
 
-            AvatarPerformanceStats statistics = AvatarPerformance.CalculatePerformanceStats("", prefab);
+            AvatarPerformanceStats statistics = new AvatarPerformanceStats();
+            AvatarPerformance.CalculatePerformanceStats("", prefab, statistics);
 
             AvatarPerformanceStatsLevel performanceStatLimits
                 = VRChatUtility.AvatarPerformanceStatsLevelSets["Quest"].medium;
