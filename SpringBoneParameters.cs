@@ -1,4 +1,4 @@
-﻿
+
 namespace Esperecyan.Unity.VRMConverterForVRChat
 {
     /// <summary>

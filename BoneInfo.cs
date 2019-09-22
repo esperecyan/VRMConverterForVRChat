@@ -1,4 +1,4 @@
-﻿using VRM;
+using VRM;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
 {
