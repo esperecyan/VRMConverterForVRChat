@@ -324,9 +324,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     notCombineRendererObjectNames: notCombineRendererObjectNames,
                     destinationObjectName: VRChatUtility.AutoBlinkMeshPath
                 );
-
-                destinationRenderer.rootBone
-                    = prefabInstance.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips);
             }
             else
             {
