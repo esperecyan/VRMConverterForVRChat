@@ -49,18 +49,19 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <summary>
         /// アニメーションオーバーライドの有効化に必須となるボーン。
         /// </summary>
-        internal static readonly HumanBodyBones[][] RequiredHumanBodyBonesForAnimationOverride = new HumanBodyBones[][] {
-            new[] { HumanBodyBones.LeftHand, HumanBodyBones.LeftThumbProximal, HumanBodyBones.LeftThumbIntermediate, HumanBodyBones.LeftThumbDistal },
-            new[] { HumanBodyBones.LeftHand, HumanBodyBones.LeftIndexProximal, HumanBodyBones.LeftIndexIntermediate, HumanBodyBones.LeftIndexDistal },
-            new[] { HumanBodyBones.LeftHand, HumanBodyBones.LeftMiddleProximal, HumanBodyBones.LeftMiddleIntermediate, HumanBodyBones.LeftMiddleDistal },
-            new[] { HumanBodyBones.LeftHand, HumanBodyBones.LeftRingProximal, HumanBodyBones.LeftRingIntermediate, HumanBodyBones.LeftRingDistal },
-            new[] { HumanBodyBones.LeftHand, HumanBodyBones.LeftLittleProximal, HumanBodyBones.LeftLittleIntermediate, HumanBodyBones.LeftLittleDistal },
-            new[] { HumanBodyBones.RightHand, HumanBodyBones.RightThumbProximal, HumanBodyBones.RightThumbIntermediate, HumanBodyBones.RightThumbDistal },
-            new[] { HumanBodyBones.RightHand, HumanBodyBones.RightIndexProximal, HumanBodyBones.RightIndexIntermediate, HumanBodyBones.RightIndexDistal },
-            new[] { HumanBodyBones.RightHand, HumanBodyBones.RightMiddleProximal, HumanBodyBones.RightMiddleIntermediate, HumanBodyBones.RightMiddleDistal },
-            new[] { HumanBodyBones.RightHand, HumanBodyBones.RightRingProximal, HumanBodyBones.RightRingIntermediate, HumanBodyBones.RightRingDistal },
-            new[] { HumanBodyBones.RightHand, HumanBodyBones.RightLittleProximal, HumanBodyBones.RightLittleIntermediate, HumanBodyBones.RightLittleDistal },
-        };
+        internal static readonly IDictionary<HumanBodyBones, HumanBodyBones[]>
+			RequiredHumanBodyBonesForAnimationOverride = new Dictionary<HumanBodyBones, HumanBodyBones[]> {
+				{ HumanBodyBones.LeftHand, new[] {
+					HumanBodyBones.LeftThumbProximal,
+					HumanBodyBones.LeftIndexProximal,
+					HumanBodyBones.LeftMiddleProximal,
+				} },
+				{ HumanBodyBones.RightHand, new[] {
+					HumanBodyBones.RightThumbProximal,
+					HumanBodyBones.RightIndexProximal,
+					HumanBodyBones.RightMiddleProximal,
+				} },
+			};
 
         /// <summary>
         /// VRChat SDKに含まれるカスタムアニメーション設定用のテンプレートファイルのパス。

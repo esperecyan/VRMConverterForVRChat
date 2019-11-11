@@ -225,19 +225,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             IEnumerable<HumanBodyBones> existedHumanBodyBones = avatarDescription.human.Select(boneLimit => boneLimit.humanBone);
 
-            IEnumerable<BoneLimit> addedBoneLimits = VRChatUtility.RequiredHumanBodyBonesForAnimationOverride.Select(bones => {
-                int missingHumanBodyBoneIndex = bones.ToList().FindIndex(match: bone => !existedHumanBodyBones.Contains(value: bone));
-                if (missingHumanBodyBoneIndex == -1)
-                {
-                    return new BoneLimit[0];
-                }
-                
-                Transform parent = avatar.GetComponent<Animator>().GetBoneTransform(bones[missingHumanBodyBoneIndex - 1]);
-                return bones.Skip(count: missingHumanBodyBoneIndex).Select(bone => {
-                    Transform dummyBone = new GameObject("vrc." + bone).transform;
+            IEnumerable<BoneLimit> addedBoneLimits = VRChatUtility.RequiredHumanBodyBonesForAnimationOverride.Select(parentAndChildren => {
+				Transform parent = avatar.GetComponent<Animator>().GetBoneTransform(parentAndChildren.Key);
+				return parentAndChildren.Value.Except(existedHumanBodyBones).Select(child => {
+                    Transform dummyBone = new GameObject("vrc." + child).transform;
                     dummyBone.parent = parent;
                     parent = dummyBone;
-                    return new BoneLimit() { humanBone = bone, boneName = dummyBone.name };
+                    return new BoneLimit() { humanBone = child, boneName = dummyBone.name };
                 });
             }).ToList().SelectMany(boneLimit => boneLimit);
 
