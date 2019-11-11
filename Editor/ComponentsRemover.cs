@@ -10,8 +10,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
     {
         internal static void Apply(GameObject avatar)
         {
-            foreach (Component component in AvatarValidation.FindIllegalComponents(target: avatar)) {
-                Object.DestroyImmediate(obj: component);
+            foreach (Component component in AvatarValidation.FindIllegalComponents(avatar)) {
+                Object.DestroyImmediate(component);
             }
         }
     }

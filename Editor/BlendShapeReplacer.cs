@@ -349,7 +349,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     null
                 );
             }
-            EditorUtility.SetDirty(target: mesh);
+            EditorUtility.SetDirty(mesh);
 
             var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
             avatarDescriptor.lipSync = VRC_AvatarDescriptor.LipSyncStyle.VisemeBlendShape;
@@ -423,10 +423,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                             }
 
                             animationClip.SetCurve(
-                                relativePath: "",
-                                type: typeof(SkinnedMeshRenderer),
-                                propertyName: "blendShape." + shapeKeyNameAndWeight.Key,
-                                curve: animationCurve
+                                "",
+                                typeof(SkinnedMeshRenderer),
+                                "blendShape." + shapeKeyNameAndWeight.Key,
+                                animationCurve
                             );
                             continue;
                         }
@@ -477,7 +477,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     shapeKey.Tangents.ToArray()
                 );
             }
-            EditorUtility.SetDirty(target: mesh);
+            EditorUtility.SetDirty(mesh);
         }
 
         /// <summary>
@@ -595,7 +595,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 );
             }
 
-            EditorUtility.SetDirty(target: mesh);
+            EditorUtility.SetDirty(mesh);
         }
 
         /// <summary>
@@ -740,10 +740,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
 
             animationClip.SetCurve(
-                relativePath: setRelativePath ? VRChatUtility.AutoBlinkMeshPath : "",
-                type: typeof(SkinnedMeshRenderer),
-                propertyName: "blendShape." + shapeKeyName,
-                curve: curve
+                setRelativePath ? VRChatUtility.AutoBlinkMeshPath : "",
+                typeof(SkinnedMeshRenderer),
+                "blendShape." + shapeKeyName,
+                curve
             );
         }
 
@@ -801,10 +801,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     curve.AddKey(new Keyframe(timeAndValue.Key, timeAndValue.Value));
                 }
                 anim.SetCurve(
-                    relativePath: VRChatUtility.AutoBlinkMeshPath,
-                    type: typeof(Behaviour),
-                    propertyName: "m_Enabled",
-                    curve: curve
+                    VRChatUtility.AutoBlinkMeshPath,
+                    typeof(Behaviour),
+                    "m_Enabled",
+                    curve
                 );
 
                 clips = BlendShapeReplacer.DuplicateShapeKeyToUnique(avatar: avatar, preset: preset, clips: clips);
@@ -876,24 +876,18 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     var deltaNormals = new Vector3[mesh.vertexCount];
                     var deltaTangents = new Vector3[mesh.vertexCount];
 
-                    mesh.GetBlendShapeFrameVertices(
-                        shapeIndex: index,
-                        frameIndex: i,
-                        deltaVertices: deltaVertices,
-                        deltaNormals: deltaNormals,
-                        deltaTangents: deltaTangents
-                    );
+                    mesh.GetBlendShapeFrameVertices(index, i, deltaVertices, deltaNormals, deltaTangents);
 
                     mesh.AddBlendShapeFrame(
-                        shapeName: name,
-                        frameWeight: mesh.GetBlendShapeFrameWeight(shapeIndex: index, frameIndex: i),
-                        deltaVertices: deltaVertices,
-                        deltaNormals: deltaNormals,
-                        deltaTangents: deltaTangents
+                        name,
+                        mesh.GetBlendShapeFrameWeight(shapeIndex: index, frameIndex: i),
+                        deltaVertices,
+                        deltaNormals,
+                        deltaTangents
                     );
                 }
 
-                EditorUtility.SetDirty(target: mesh);
+                EditorUtility.SetDirty(mesh);
 
                 clips = VRMUtility.ReplaceShapeKeyName(clips: clips, oldName: nameAndWeight.Key, newName: name);
             }

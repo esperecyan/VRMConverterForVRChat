@@ -23,7 +23,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <summary>
         /// 選択されているアバターの変換ダイアログを開きます。
         /// </summary>
-        [MenuItem(itemName: Menu.ItemName, isValidateFunction: false, priority: Menu.Priority)]
+        [MenuItem(Menu.ItemName, false, Menu.Priority)]
         private static void DuplicateAndConvertForVRChat()
         {
             Wizard.Open(avatar: ClosestModel());
@@ -51,7 +51,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 return null;
             }
 
-            var components = activeObject.GetComponentsInParent<Animator>(includeInactive: true);
+            var components = activeObject.GetComponentsInParent<Animator>(true);
             if (components.Length == 0)
             {
                 return null;

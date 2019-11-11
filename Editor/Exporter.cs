@@ -21,7 +21,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
         private static readonly string PackageName = Converter.Name + "-" + Converter.Version;
 
-        [MenuItem(itemName: "Assets/Export " + Converter.Name, isValidateFunction: false, priority: 30)]
+        [MenuItem("Assets/Export " + Converter.Name, false, 30)]
         private static void Export()
         {
             string[] allAssetPathNames = AssetDatabase.GetAllAssetPaths();
@@ -40,7 +40,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 }
 
                 var packagePath = Path.Combine(Application.temporaryCachePath, name + ".unitypackage");
-                AssetDatabase.ExportPackage(assetPathNames: assetPathNames.ToArray(), fileName: packagePath);
+                AssetDatabase.ExportPackage(assetPathNames.ToArray(), packagePath);
                 return packagePath;
             });
 

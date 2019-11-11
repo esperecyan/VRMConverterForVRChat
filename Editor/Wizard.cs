@@ -33,7 +33,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <summary>
         /// ダイアログの最小サイズ。
         /// </summary>
-        private static readonly Vector2 MinSize = new Vector2(x: 800, y: 350);
+        private static readonly Vector2 MinSize = new Vector2(800, 350);
 
         /// <summary>
         /// ダイアログを開いた時点の最小の高さ。
@@ -188,7 +188,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="avatar"></param>
         internal static void Open(GameObject avatar)
         {
-            var wizard = DisplayWizard<Wizard>(title: Converter.Name + " " + Converter.Version, createButtonName: Gettext._("Duplicate and Convert"));
+            var wizard = DisplayWizard<Wizard>(Converter.Name + " " + Converter.Version, Gettext._("Duplicate and Convert"));
             Vector2 defaultMinSize = Wizard.MinSize;
             defaultMinSize.y = Wizard.MinHeightWhenOpen;
             wizard.minSize = defaultMinSize;
@@ -434,19 +434,19 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             var indentStyle = new GUIStyle() { padding = new RectOffset() { left = Wizard.Indent } };
             EditorGUILayout.LabelField(
-                label: (this.swayingParametersConverter != null ? "☑" : "☐")
+                (this.swayingParametersConverter != null ? "☑" : "☐")
                     + " public static DynamicBoneParameters SwayingParametersConverter(SpringBoneParameters, BoneInfo)",
-                style: indentStyle
+                indentStyle
             );
             
             EditorGUILayout.LabelField(
-                label: (this.postConverting != null ? "☑" : "☐")
+                (this.postConverting != null ? "☑" : "☐")
                     + " public static void PostConverting(GameObject, VRMMeta)",
-                style: indentStyle
+                indentStyle
             );
 
             foreach (var type in Converter.RequiredComponents) {
-                if (!this.avatar.GetComponent(type: type))
+                if (!this.avatar.GetComponent(type))
                 {
                     EditorGUILayout.HelpBox(string.Format(Gettext._("Not set “{0}” component."), type), MessageType.Error);
                     isValid = false;

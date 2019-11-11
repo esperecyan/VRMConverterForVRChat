@@ -16,16 +16,16 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="messages"></param>
         internal static void Open(IEnumerable<Converter.Message> messages)
         {
-            var wizard = DisplayWizard<ResultDialog>(title: Converter.Name + " " + Converter.Version, createButtonName: Gettext._("OK"));
+            var wizard = DisplayWizard<ResultDialog>(Converter.Name + " " + Converter.Version, Gettext._("OK"));
             wizard.messages = messages;
         }
 
         protected override bool DrawWizardGUI()
         {
             base.DrawWizardGUI();
-            EditorGUILayout.LabelField(label: Gettext._("Converting is completed."));
+            EditorGUILayout.LabelField(Gettext._("Converting is completed."));
             foreach (var message in this.messages) {
-                EditorGUILayout.HelpBox(message: message.message, type: message.type);
+                EditorGUILayout.HelpBox(message.message, message.type);
             }
             return true;
         }

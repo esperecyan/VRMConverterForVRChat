@@ -261,11 +261,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         {
             var messages = new List<Converter.Message>();
             AvatarPerformanceStats statistics = new AvatarPerformanceStats();
-            AvatarPerformance.CalculatePerformanceStats(
-                avatarName: avatar.GetComponent<VRMMeta>().Meta.Title,
-                avatarObject: avatar,
-                perfStats: statistics
-            );
+            AvatarPerformance.CalculatePerformanceStats(avatar.GetComponent<VRMMeta>().Meta.Title, avatar, statistics);
 
             AvatarPerformanceStatsLevel mediumPerformanceStatLimits
                 = VRChatUtility.AvatarPerformanceStatsLevelSets["PC"].medium;

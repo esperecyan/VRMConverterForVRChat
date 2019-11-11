@@ -232,9 +232,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     return new BoneLimit[0];
                 }
                 
-                Transform parent = avatar.GetComponent<Animator>().GetBoneTransform(humanBoneId: bones[missingHumanBodyBoneIndex - 1]);
+                Transform parent = avatar.GetComponent<Animator>().GetBoneTransform(bones[missingHumanBodyBoneIndex - 1]);
                 return bones.Skip(count: missingHumanBodyBoneIndex).Select(bone => {
-                    Transform dummyBone = new GameObject(name: "vrc." + bone).transform;
+                    Transform dummyBone = new GameObject("vrc." + bone).transform;
                     dummyBone.parent = parent;
                     parent = dummyBone;
                     return new BoneLimit() { humanBone = bone, boneName = dummyBone.name };
@@ -292,15 +292,15 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         ) {
             var humanoidDescription = avatar.GetComponent<VRMHumanoidDescription>();
             AvatarDescription avatarDescription = humanoidDescription.Description;
-            HumanDescription humanDescription = avatarDescription.ToHumanDescription(root: avatar.transform);
+            HumanDescription humanDescription = avatarDescription.ToHumanDescription(avatar.transform);
             if (humanDescriptionModifier != null) {
                 humanDescriptionModifier(humanDescription);
             }
-            Avatar humanoidRig = AvatarBuilder.BuildHumanAvatar(go: avatar, humanDescription: humanDescription);
+            Avatar humanoidRig = AvatarBuilder.BuildHumanAvatar(avatar, humanDescription);
             humanoidRig.name = humanoidDescription.Avatar.name;
             EditorUtility.CopySerialized(humanoidRig, humanoidDescription.Avatar);
             PrefabUtility.ReplacePrefab(avatar, PrefabUtility.GetPrefabParent(avatar), ReplacePrefabOptions.ConnectToPrefab);
-            EditorUtility.SetDirty(target: humanoidDescription.Avatar);
+            EditorUtility.SetDirty(humanoidDescription.Avatar);
         }
 
         /// <summary>
@@ -318,9 +318,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             foreach (var path in VRChatUtility.RequiredPathForAutoEyeMovement.Concat(new string[] { VRChatUtility.AutoBlinkMeshPath })) {
                 var current = avatar.transform;
                 foreach (var name in path.Split(separator: '/')) {
-                    Transform child = current.Find(name: name);
+                    Transform child = current.Find(name);
                     if (!child) {
-                        child = new GameObject(name: name).transform;
+                        child = new GameObject(name).transform;
                         child.parent = current;
                     }
                     current = child;
@@ -337,7 +337,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 BlendShapeReplacer.AddDummyShapeKey(mesh: mesh, name: name);
             }
             
-            EditorUtility.SetDirty(target: mesh);
+            EditorUtility.SetDirty(mesh);
         }
 
         /// <summary>
@@ -347,13 +347,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         private static void DisableAutoEyeMovement(GameObject avatar)
         {
             var paths = VRChatUtility.RequiredPathForAutoEyeMovement.Concat(new string[] { VRChatUtility.AutoBlinkMeshPath });
-            var transforms = paths.Concat(new string[] { VRChatUtility.AutoBlinkMeshPath }).Select(path => avatar.transform.Find(name: path));
+            var transforms = paths.Concat(new string[] { VRChatUtility.AutoBlinkMeshPath }).Select(path => avatar.transform.Find(path));
             if (transforms.Contains(value: null))
             {
                 return;
             }
 
-            var renderer = avatar.transform.Find(name: VRChatUtility.AutoBlinkMeshPath).gameObject.GetOrAddComponent<SkinnedMeshRenderer>();
+            var renderer = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath).gameObject.GetOrAddComponent<SkinnedMeshRenderer>();
             Mesh mesh = renderer.sharedMesh;
             if (!mesh || mesh.blendShapeCount < BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.Count())
             {
@@ -361,7 +361,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
 
             var eyeBones = new[] { HumanBodyBones.RightEye, HumanBodyBones.LeftEye }
-                .Select(id => avatar.GetComponent<Animator>().GetBoneTransform(humanBoneId: id))
+                .Select(id => avatar.GetComponent<Animator>().GetBoneTransform(id))
                 .Where(bone => bone && transforms.Contains(value: bone));
             if (eyeBones.Count() == 0)
             {
@@ -406,7 +406,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             var animator = avatar.GetComponent<Animator>();
             Transform[] eyes = new[] { HumanBodyBones.RightEye, HumanBodyBones.LeftEye }
-                .Select(id => animator.GetBoneTransform(humanBoneId: id))
+                .Select(id => animator.GetBoneTransform(id))
                 .Where(transform => transform)
                 .ToArray();
             if (eyes.Length == 0)
@@ -755,9 +755,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 );
 
                 var curve = new AnimationCurve();
-                curve.AddKey(time: 0, value: -zGap);
-                curve.AddKey(time: clip.length, value: -zGap);
-                clip.SetCurve(relativePath: "", type: typeof(Animator), propertyName: "RootT.z", curve: curve);
+                curve.AddKey(0, -zGap);
+                curve.AddKey(clip.length, -zGap);
+                clip.SetCurve("", typeof(Animator), "RootT.z", curve);
 
                 avatarDescriptor.CustomStandingAnims[anim] = clip;
             }
