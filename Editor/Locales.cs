@@ -56,6 +56,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                         "アバターを{0}倍に拡大し、アップロード可能な肩の高さ {1} Unit を超えるようにしました。" },
                     { "Converting these materials (for VRChat Render Queue bug) was failed.",
                         "以下のマテリアルの変換 (VRChatのRender Queueバグ対策) が失敗しました。" },
+                    { "“Texture Mipmap Streaming” was enabled on these each textures.",
+                        "以下のテクスチャで Texture Mipmap Streaming を有効化しました。" },
                     { "Converting is completed.", "変換が完了しました。" },
                     { "OK", "OK" },
                 }}

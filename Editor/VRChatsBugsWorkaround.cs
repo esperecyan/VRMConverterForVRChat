@@ -141,6 +141,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             {
                 VRChatsBugsWorkaround.FixProneAvatarPosition(avatar: avatar);
             }
+            messages.AddRange(VRChatsBugsWorkaround.EnableTextureMipmapStreaming(avatar: avatar));
 
             return messages;
         }
@@ -755,6 +756,57 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
                 avatarDescriptor.CustomStandingAnims[anim] = clip;
             }
+        }
+
+        /// <summary>
+        /// テクスチャのMipmap Streamingが無効だとアップロードできないため、有効化します。
+        /// </summary>
+        /// <param name="avatar"></param>
+        private static IEnumerable<Converter.Message> EnableTextureMipmapStreaming(GameObject avatar)
+        {
+            var messages = new List<Converter.Message>();
+
+#if UNITY_2018_4_OR_NEWER
+            var paths = new List<string>();
+            foreach (Texture texture
+                in EditorUtility.CollectDependencies(new[] { avatar }).Where(obj => obj is Texture))
+            {
+                string path = AssetDatabase.GetAssetPath(texture);
+                if (string.IsNullOrEmpty(path))
+                {
+                    continue;
+                }
+
+                var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+                if (!importer || !importer.mipmapEnabled || importer.streamingMipmaps)
+                {
+                    continue;
+                }
+
+                importer.streamingMipmaps = true;
+                EditorUtility.SetDirty(importer);
+                paths.Add(path);
+            }
+
+            if (paths.Count == 0)
+            {
+                return messages;
+            }
+
+            AssetDatabase.ForceReserializeAssets(paths);
+
+            messages.Add(new Converter.Message
+            {
+                message = string.Join(
+                    separator: "\n• ",
+                    value: new[] { Gettext._("“Texture Mipmap Streaming” was enabled on these each textures.") }
+                        .Concat(paths).ToArray()
+                ),
+                type = MessageType.Warning,
+            });
+#endif
+
+            return messages;
         }
     }
 }
