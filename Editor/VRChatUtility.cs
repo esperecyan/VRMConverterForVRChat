@@ -66,12 +66,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <summary>
         /// VRChat SDKに含まれるカスタムアニメーション設定用のテンプレートファイルのパス。
         /// </summary>
-        internal static readonly string CustomAnimsTemplatePath = "Assets/VRCSDK/Examples/Sample Assets/Animation/CustomOverrideEmpty.overrideController";
-
-        /// <summary>
-        /// ベータ版のVRChat SDKに含まれるカスタムアニメーション設定用のテンプレートファイルのパス。
-        /// </summary>
-        internal static readonly string CustomAnimsTemplatePathBeta = "Assets/VRCSDK/Examples2/Sample Assets/Animation/CustomOverrideEmpty.overrideController";
+        internal static readonly string CustomAnimsTemplatePath = "Assets/VRCSDK/Examples2/Animation/SDK2/CustomOverrideEmpty.overrideController";
 
         /// <summary>
         /// プラットフォームごとの<see cref="AvatarPerformanceStatsLevelSet"/>。
@@ -103,14 +98,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         internal static void AddCustomAnims(GameObject avatar)
         {
             var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
-            var template = AssetDatabase.LoadMainAssetAtPath(VRChatUtility.CustomAnimsTemplatePath)
-                as AnimatorOverrideController;
-            if (!template)
-            {
-                // VRCSDK2-2019.12.19.19.56
-                template = AssetDatabase.LoadMainAssetAtPath(VRChatUtility.CustomAnimsTemplatePathBeta)
-                    as AnimatorOverrideController;
-            }
+            var template
+                = AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>(VRChatUtility.CustomAnimsTemplatePath);
 
             if (!avatarDescriptor.CustomStandingAnims)
             {
