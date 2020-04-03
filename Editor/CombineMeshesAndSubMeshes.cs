@@ -4,35 +4,13 @@ using System.IO;
 using UnityEngine;
 using UnityEditor;
 
-namespace Esperecyan.Unity.CombineMeshesAndSubMeshes
+namespace Esperecyan.Unity.VRMConverterForVRChat
 {
     /// <summary>
     /// 指定したオブジェクト階下のメッシュを、指定したオブジェクト直下へ結合します。その際、マテリアルが同一であるサブメッシュ (マテリアルスロット) を結合します。
     /// </summary>
-    /// <remarks>
-    /// 動作確認バージョン: Unity 2017.4.28f1, 2018.4.12f1
-    /// ライセンス: Mozilla Public License 2.0 (MPL-2.0) <https://spdx.org/licenses/MPL-2.0.html>
-    /// 配布元: <https://gist.github.com/esperecyan/426824a84efc9c6e0bc6f72731a41a5b>
-    /// </remarks>
     public class CombineMeshesAndSubMeshes
     {
-        /// <summary>
-        /// 当エディタ拡張のバージョン。
-        /// </summary>
-        /// <remarks>
-        /// 0.3.0 (2019-11-11)
-        ///     メッシュがプレハブに含まれていると例外が発生するバグを修正 (プレハブを自動的に展開するようにした)
-        ///     プレハブアセットのパスによって保存先が決定されるようにした
-        ///     Unity 2018.4 に対応
-        /// 0.2.0 (2019-10-27)
-        ///     異なるメッシュデータを上書きする際に、データが壊れる問題に対処
-        ///         参照: <https://twitter.com/flammpfeil/status/1185775617473564673>
-        ///     結合後にRoot Boneを設定するとBoundsがズレるため、Hipsボーンが存在する場合は自動で設定するようにした
-        /// 0.1.0 (2019-07-15)
-        ///     『VRM Converter for VRChat』から分離、手直し
-        /// </remarks>
-        public const string Version = "0.3.0";
-
         /// <summary>
         /// メッシュを結合します。
         /// </summary>
@@ -231,14 +209,12 @@ namespace Esperecyan.Unity.CombineMeshesAndSubMeshes
     /// <summary>
     /// ダイアログ。
     /// </summary>
-    public class Wizard : ScriptableWizard
+    public class CombinerWizard : ScriptableWizard
     {
         /// <summary>
         /// 追加するメニューアイテムの、「UnityEditorScripts」メニュー内の位置。
         /// </summary>
         public const int Priority = 22;
-
-        private const string NameAndVersion = CombineMeshesAndSubMeshes.Name + "-" + CombineMeshesAndSubMeshes.Version;
 
         [SerializeField]
         private GameObject root = null;
@@ -251,16 +227,16 @@ namespace Esperecyan.Unity.CombineMeshesAndSubMeshes
 
         private static void OpenWizard()
         {
-            Wizard.Open();
+            CombinerWizard.Open();
         }
 
         /// <summary>
         /// ダイアログを開きます。
         /// </summary>
-        [MenuItem("GameObject/UnityEditorScripts/" + Wizard.NameAndVersion, false, Wizard.Priority)]
+        [MenuItem("GameObject/UnityEditorScripts/" + CombineMeshesAndSubMeshes.Name, false, CombinerWizard.Priority)]
         private static void Open()
         {
-            var wizard = DisplayWizard<Wizard>(NameAndVersion, "Combine");
+            var wizard = DisplayWizard<CombinerWizard>(CombineMeshesAndSubMeshes.Name, "Combine");
             wizard.root = Selection.activeObject as GameObject;
         }
 
@@ -313,7 +289,7 @@ namespace Esperecyan.Unity.CombineMeshesAndSubMeshes
             );
 
             EditorUtility.DisplayDialog(
-                Wizard.NameAndVersion,
+                CombineMeshesAndSubMeshes.Name,
                 "メッシュ、およびマテリアルが同一であるサブメッシュの結合が完了しました。",
                 "OK"
             );

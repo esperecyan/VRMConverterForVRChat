@@ -319,7 +319,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             if (combineMeshesAndSubMeshes)
             {
-                SkinnedMeshRenderer destinationRenderer = CombineMeshesAndSubMeshes.CombineMeshesAndSubMeshes.Combine(
+                SkinnedMeshRenderer destinationRenderer = CombineMeshesAndSubMeshes.Combine(
                     root: prefabInstance,
                     notCombineRendererObjectNames: notCombineRendererObjectNames,
                     destinationObjectName: VRChatUtility.AutoBlinkMeshPath
