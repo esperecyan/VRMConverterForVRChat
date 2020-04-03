@@ -291,7 +291,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             if (combineMeshesAndSubMeshes)
             {
                 string prefabPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(prefabInstance);
-                SkinnedMeshRenderer destinationRenderer = CombineMeshesAndSubMeshes.Combine(
+                CombineMeshesAndSubMeshes.Combine(
                     root: prefabInstance,
                     notCombineRendererObjectNames: notCombineRendererObjectNames,
                     destinationObjectName: VRChatUtility.AutoBlinkMeshPath
