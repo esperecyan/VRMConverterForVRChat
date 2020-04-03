@@ -49,25 +49,21 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 destinationPath: destinationPath,
                 duplicatingOptionals: duplicatingOptionals
             );
-            var destinationPrefabInstance = PrefabUtility
-                .InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(destinationPath)) as GameObject;
+            var destinationPrefabInstance = PrefabUtility.InstantiatePrefab(destinationPrefab) as GameObject;
 
             Duplicator.DuplicateAndCombineMeshes(
-                prefabPath: destinationPath,
                 prefabInstance: destinationPrefabInstance,
                 combineMeshesAndSubMeshes: combineMeshesAndSubMeshes,
                 notCombineRendererObjectNames: notCombineRendererObjectNames
             );
-            Duplicator.DuplicateMaterials(prefabPath: destinationPath, prefabInstance: destinationPrefabInstance);
+            Duplicator.DuplicateMaterials(prefabInstance: destinationPrefabInstance);
             if (duplicatingOptionals)
             {
-                Duplicator.DuplicateTextures(prefabPath: destinationPath, prefabInstance: destinationPrefabInstance);
-                Duplicator
-                    .DuplicateVRMBlendShapes(prefabPath: destinationPath, prefabInstance: destinationPrefabInstance);
+                Duplicator.DuplicateTextures(prefabInstance: destinationPrefabInstance);
+                Duplicator.DuplicateVRMBlendShapes(prefabInstance: destinationPrefabInstance);
             }
 
-            PrefabUtility
-                .ReplacePrefab(destinationPrefabInstance, destinationPrefab, ReplacePrefabOptions.ConnectToPrefab);
+            PrefabUtility.RecordPrefabInstancePropertyModifications(destinationPrefabInstance);
             destinationPrefabInstance.transform.SetAsLastSibling();
             return destinationPrefabInstance;
         }
@@ -75,13 +71,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <summary>
         /// アセットの種類に応じて、保存先を決定します。
         /// </summary>
-        /// <param name="prefabPath">「Assets/」から始まるプレハブのパス。</param>
+        /// <param name="prefabInstance"></param>
         /// <param name="type">アセットの種類。</param>
         /// <param name="fileName">ファイル名。</param>
         /// <returns>「Assets/」から始まるパス。</returns>
-        internal static string DetermineAssetPath(string prefabPath, Type type, string fileName = "")
+        internal static string DetermineAssetPath(GameObject prefabInstance, Type type, string fileName = "")
         {
-            var destinationFolderUnityPath = UnityPath.FromUnityPath(prefabPath);
+            var destinationFolderUnityPath
+                = UnityPath.FromUnityPath(PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(prefabInstance));
             foreach (KeyValuePair<Type, string> typeAndSuffix in Duplicator.FolderNameSuffixes)
             {
                 if (typeAndSuffix.Key.IsAssignableFrom(type))
@@ -101,10 +98,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="source">複製元のオブジェクト。</param>
-        /// <param name="prefabPath">「Assets/」から始まるプレハブのパス。</param>
+        /// <param name="prefabInstance">プレハブインスタンス。</param>
         /// <param name="fileName">ファイル名が複製元と異なる場合に指定。</param>
         /// <returns></returns>
-        internal static T DuplicateAssetToFolder<T>(T source, string prefabPath, string fileName = "") where T : UnityEngine.Object
+        internal static T DuplicateAssetToFolder<T>(T source, GameObject prefabInstance, string fileName = "")
+            where T : UnityEngine.Object
         {
             string destinationFileName;
             if (string.IsNullOrEmpty(fileName))
@@ -124,28 +122,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 destinationFileName = fileName;
             }
 
-            string destinationPath
-                = Duplicator.DetermineAssetPath(prefabPath: prefabPath, type: typeof(T), fileName: destinationFileName);
+            string destinationPath = Duplicator
+                .DetermineAssetPath(prefabInstance: prefabInstance, type: typeof(T), fileName: destinationFileName);
             Duplicator.DuplicateAsset(source: source, destinationPath: destinationPath);
 
             return AssetDatabase.LoadAssetAtPath<T>(destinationPath);
-        }
-
-        /// <summary>
-        /// アセットをプレハブが置かれているディレクトリの直下のフォルダへ複製します。
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="source">複製元のオブジェクト。</param>
-        /// <param name="prefabInstance">現在のシーンに存在するプレハブのインスタンス。</param>
-        /// <param name="fileName">ファイル名が複製元と異なる場合に指定。</param>
-        /// <returns></returns>
-        internal static T DuplicateAssetToFolder<T>(T source, GameObject prefabInstance, string fileName = "") where T : UnityEngine.Object
-        {
-            return DuplicateAssetToFolder<T>(
-                source: source,
-                prefabPath: AssetDatabase.GetAssetPath(PrefabUtility.GetPrefabParent(prefabInstance)),
-                fileName: fileName
-            );
         }
 
         /// <summary>
@@ -223,16 +204,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         ) {
             // プレハブ
             GameObject sourceInstance = UnityEngine.Object.Instantiate(sourceAvatar);
-            PrefabUtility.DisconnectPrefabInstance(sourceInstance);
-            var destinationPrefab = AssetDatabase.LoadMainAssetAtPath(destinationPath) as GameObject;
-            if (destinationPrefab)
-            {
-                destinationPrefab = PrefabUtility.ReplacePrefab(sourceAvatar, destinationPrefab, ReplacePrefabOptions.ConnectToPrefab);
-            }
-            else
-            {
-                destinationPrefab = PrefabUtility.CreatePrefab(destinationPath, sourceInstance, ReplacePrefabOptions.ConnectToPrefab);
-            }
+            GameObject destinationPrefab = PrefabUtility
+                .SaveAsPrefabAssetAndConnect(sourceInstance, destinationPath, InteractionMode.AutomatedAction);
             UnityEngine.Object.DestroyImmediate(sourceInstance);
 
             // Avatar
@@ -298,12 +271,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <summary>
         /// プレハブが依存しているメッシュを複製・結合します。
         /// </summary>
-        /// <param name="prefabPath">「Assets/」から始まるプレハブのパス。</param>
         /// <param name="prefabInstance"></param>
         /// <param name="combineMeshesAndSubMeshes"></param>
         /// <param name="notCombineRendererObjectNames"></param>
         private static void DuplicateAndCombineMeshes(
-            string prefabPath,
             GameObject prefabInstance,
             bool combineMeshesAndSubMeshes,
             IEnumerable<string> notCombineRendererObjectNames
@@ -319,11 +290,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             if (combineMeshesAndSubMeshes)
             {
+                string prefabPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(prefabInstance);
                 SkinnedMeshRenderer destinationRenderer = CombineMeshesAndSubMeshes.Combine(
                     root: prefabInstance,
                     notCombineRendererObjectNames: notCombineRendererObjectNames,
                     destinationObjectName: VRChatUtility.AutoBlinkMeshPath
                 );
+                PrefabUtility.SaveAsPrefabAssetAndConnect(prefabInstance, prefabPath, InteractionMode.AutomatedAction);
             }
             else
             {
@@ -348,7 +321,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     ? alreadyDuplicatedMeshes[mesh]
                     : Duplicator.DuplicateAssetToFolder<Mesh>(
                         source: mesh,
-                        prefabPath: prefabPath,
+                        prefabInstance: prefabInstance,
                         fileName: Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(mesh))
                             == VRChatUtility.AutoBlinkMeshPath + ".asset"
                             ? VRChatUtility.AutoBlinkMeshPath + "-" + VRChatUtility.AutoBlinkMeshPath + ".asset"
@@ -364,7 +337,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     ? alreadyDuplicatedMeshes[mesh]
                     : Duplicator.DuplicateAssetToFolder<Mesh>(
                         source: mesh,
-                        prefabPath: prefabPath,
+                        prefabInstance: prefabInstance,
                         fileName: Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(mesh))
                             == VRChatUtility.AutoBlinkMeshPath + ".asset"
                             ? VRChatUtility.AutoBlinkMeshPath + "-" + VRChatUtility.AutoBlinkMeshPath + ".asset"
@@ -377,9 +350,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <summary>
         /// プレハブが依存しているマテリアルを複製します。
         /// </summary>
-        /// <param name="prefabPath">「Assets/」から始まるプレハブのパス。</param>
         /// <param name="prefabInstance"></param>
-        private static void DuplicateMaterials(string prefabPath, GameObject prefabInstance)
+        private static void DuplicateMaterials(GameObject prefabInstance)
         {
             var alreadyDuplicatedMaterials = new Dictionary<Material, Material>();
 
@@ -392,7 +364,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     }
 
                     return alreadyDuplicatedMaterials[material]
-                        = Duplicator.DuplicateAssetToFolder<Material>(source: material, prefabPath: prefabPath);
+                        = Duplicator.DuplicateAssetToFolder<Material>(source: material, prefabInstance: prefabInstance);
                 }).ToArray();
             }
         }
@@ -405,9 +377,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// Get all textures from a material? — Unity Answers
         /// <https://answers.unity.com/answers/1116025/view.html>
         /// </remarks>
-        /// <param name="prefabPath">「Assets/」から始まるプレハブのパス。</param>
         /// <param name="prefabInstance"></param>
-        private static void DuplicateTextures(string prefabPath, GameObject prefabInstance)
+        private static void DuplicateTextures(GameObject prefabInstance)
         {
             var alreadyDuplicatedTextures = new Dictionary<Texture, Texture>();
 
@@ -442,7 +413,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                         }
                         else
                         {
-                            newTexture = Duplicator.DuplicateAssetToFolder<Texture>(source: texture, prefabPath: prefabPath);
+                            newTexture = Duplicator
+                                .DuplicateAssetToFolder<Texture>(source: texture, prefabInstance: prefabInstance);
                             alreadyDuplicatedTextures[texture] = newTexture;
                         }
 
@@ -459,7 +431,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
             meta.Thumbnail = (alreadyDuplicatedTextures.ContainsKey(thumbnail)
                 ? alreadyDuplicatedTextures[thumbnail] as Texture2D
-                : Duplicator.DuplicateAssetToFolder<Texture2D>(source: thumbnail, prefabPath: prefabPath));
+                : Duplicator.DuplicateAssetToFolder<Texture2D>(source: thumbnail, prefabInstance: prefabInstance));
             alreadyDuplicatedTextures[thumbnail] = meta.Thumbnail;
         }
 
@@ -467,11 +439,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <summary>
         /// プレハブが依存しているVRMブレンドシェイプを複製します。
         /// </summary>
-        /// <param name="prefabPath">「Assets/」から始まるプレハブのパス。</param>
         /// <param name="prefabInstance"></param>
-        private static void DuplicateVRMBlendShapes(string prefabPath, GameObject prefabInstance)
+        private static void DuplicateVRMBlendShapes(GameObject prefabInstance)
         {
-            var prefab = AssetDatabase.LoadMainAssetAtPath(prefabPath) as GameObject;
+            var prefab = PrefabUtility.GetCorrespondingObjectFromSource(prefabInstance) as GameObject;
 
             var proxy = prefab.GetComponent<VRMBlendShapeProxy>();
             if (!proxy || !proxy.BlendShapeAvatar)
@@ -479,7 +450,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 return;
             }
 
-            proxy.BlendShapeAvatar = Duplicator.DuplicateAssetToFolder<BlendShapeAvatar>(source: proxy.BlendShapeAvatar, prefabPath: prefabPath); 
+            proxy.BlendShapeAvatar = Duplicator.DuplicateAssetToFolder<BlendShapeAvatar>(source: proxy.BlendShapeAvatar, prefabInstance: prefabInstance); 
 
             var alreadyDuplicatedBlendShapeClips = new Dictionary<BlendShapeClip, BlendShapeClip>();
 
@@ -495,7 +466,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 }
 
                 return alreadyDuplicatedBlendShapeClips[clip]
-                    = Duplicator.DuplicateAssetToFolder<BlendShapeClip>(source: clip, prefabPath: prefabPath);
+                    = Duplicator.DuplicateAssetToFolder<BlendShapeClip>(source: clip, prefabInstance: prefabInstance);
             }).ToList();
         }
     }

@@ -582,7 +582,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 prefabBlueprintId = pipelineManager ? pipelineManager.blueprintId : "";
 
                 GameObject[] previousRootGameObjects = SceneManager.GetActiveScene().GetRootGameObjects();
-                blueprintIds = previousRootGameObjects.Where(root => PrefabUtility.GetPrefabParent(root) == previousPrefab)
+                blueprintIds = previousRootGameObjects
+                    .Where(root => PrefabUtility.GetNearestPrefabInstanceRoot(root) == previousPrefab)
                     .Select(root =>
                     {
                         var manager = root.GetComponent<PipelineManager>();
@@ -613,8 +614,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
 
             this.SaveSettings();
-
-            var prefab = AssetDatabase.LoadMainAssetAtPath(this.destinationPath) as GameObject;
 
             foreach (VRMSpringBone springBone in this.GetSpringBonesWithComments(prefab: prefabInstance, comments: this.excludedSpringBoneComments)
                 .SelectMany(springBone => springBone))
@@ -647,7 +646,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 this.postConverting(prefabInstance, prefabInstance.GetComponent<VRMMeta>());
             }
 
-            PrefabUtility.ReplacePrefab(prefabInstance, prefab, ReplacePrefabOptions.ConnectToPrefab);
+            PrefabUtility.RecordPrefabInstancePropertyModifications(prefabInstance);
 
             // 変換前のプレハブインスタンスのPipeline ManagerのBlueprint IDを反映
             GameObject[] rootGameObjects = SceneManager.GetActiveScene().GetRootGameObjects();
@@ -677,21 +676,25 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <returns></returns>
         private string GetAssetsPath(GameObject vrm)
         {
-            var path = UnityPath.FromAsset(asset: vrm);
-            if (!path.IsUnderAssetsFolder)
+            var path = "";
+
+            var unityPath = UnityPath.FromAsset(asset: vrm);
+            if (unityPath.IsUnderAssetsFolder)
             {
-                var prefab = PrefabUtility.GetPrefabParent(vrm);
-                if (prefab)
-                {
-                    path = UnityPath.FromAsset(asset: prefab);
-                }
-                else
-                {
-                    path = UnityPath.FromUnityPath("Assets/" + avatar.name);
-                }
+                path = unityPath.Value;
             }
 
-            return path.Value;
+            if (string.IsNullOrEmpty(path))
+            {
+                path = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(vrm);
+            }
+
+            if (string.IsNullOrEmpty(path))
+            {
+                path = "Assets/" + avatar.name;
+            }
+
+            return path;
         }
 
         /// <summary>

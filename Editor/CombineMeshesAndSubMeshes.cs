@@ -123,15 +123,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             string rootPath = AssetDatabase.GetAssetPath(root);
             if (string.IsNullOrEmpty(rootPath))
             {
-#if UNITY_2018_3_OR_NEWER
-                var prefab = PrefabUtility.GetCorrespondingObjectFromSource(root);
-#else
-                var prefab = PrefabUtility.GetPrefabParent(root);
-#endif
-                if (prefab)
-                {
-                    rootPath = AssetDatabase.GetAssetPath(prefab);
-                }
+                rootPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(root);
             }
 
             foreach (var renderer in root.GetComponentsInChildren<SkinnedMeshRenderer>())
@@ -153,7 +145,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 }
                 else
                 {
-#if UNITY_2018_3_OR_NEWER
                     var prefabRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(gameObject);
                     if (prefabRoot)
                     {
@@ -163,7 +154,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                             InteractionMode.AutomatedAction
                         );
                     }
-#endif
                     UnityEngine.Object.DestroyImmediate(gameObject);
                 }
             }

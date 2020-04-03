@@ -660,11 +660,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="name"></param>
         private static AnimatorController CreateSingleAnimatorController(GameObject avatar, string name)
         {
-            var path = Duplicator.DetermineAssetPath(
-                prefabPath: AssetDatabase.GetAssetPath(PrefabUtility.GetPrefabParent(avatar)),
-                type: typeof(AnimatorController),
-                fileName: name
-            );
+            var path = Duplicator
+                .DetermineAssetPath(prefabInstance: avatar, type: typeof(AnimatorController), fileName: name);
             var controllerPath = path + ".controller";
             var clipPath = path + ".anim";
 
