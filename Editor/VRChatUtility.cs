@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEditor;
 using VRC.Core;
@@ -64,11 +65,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 			};
 
         /// <summary>
-        /// VRChat SDKに含まれるカスタムアニメーション設定用のテンプレートファイルのパス。
-        /// </summary>
-        internal static readonly string CustomAnimsTemplatePath = "Assets/VRCSDK/Examples2/Animation/SDK2/CustomOverrideEmpty.overrideController";
-
-        /// <summary>
         /// プラットフォームごとの<see cref="AvatarPerformanceStatsLevelSet"/>。
         /// </summary>
         internal static IDictionary<string, AvatarPerformanceStatsLevelSet> AvatarPerformanceStatsLevelSets
@@ -80,6 +76,17 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     "Validation/Performance/StatsLevels/Quest/AvatarPerformanceStatLevels_Quest"
                 ) },
             };
+
+        /// <summary>
+        /// VRChat SDKに含まれるカスタムアニメーション設定用のテンプレートファイルのGUID。
+        /// </summary>
+        private static readonly string CustomAnimsTemplateGUID = "4bd8fbaef3c3de041a22200917ae98b8";
+
+        /// <summary>
+        /// VRChat SDKに含まれるカスタムアニメーション設定用のテンプレートファイルのパス。
+        /// </summary>
+        private static readonly string CustomAnimsTemplatePath
+            = "Assets/VRCSDK/Examples2/Animation/SDK2/CustomOverrideEmpty.overrideController";
 
         /// <summary>
         /// VRChat SDKがサポートするUnityのバージョンを取得します。
@@ -94,12 +101,22 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <see cref="VRC_AvatarDescriptor.CustomStandingAnims"/>、および<see cref="VRC_AvatarDescriptor.CustomSittingAnims"/>を作成します。
         /// </summary>
         /// <param name="avatar"></param>
+        /// <exception cref="FileNotFoundException">VRChat SDKに含まれるカスタムアニメーション設定用のテンプレートファイルが見つからなかった場合。</exception>
         /// <returns></returns>
         internal static void AddCustomAnims(GameObject avatar)
         {
             var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
-            var template
-                = AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>(VRChatUtility.CustomAnimsTemplatePath);
+            var templatePath = AssetDatabase.GUIDToAssetPath(VRChatUtility.CustomAnimsTemplateGUID);
+            if (string.IsNullOrEmpty(templatePath))
+            {
+                templatePath = VRChatUtility.CustomAnimsTemplatePath;
+            }
+            var template = AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>(templatePath);
+            if (!template)
+            {
+                new FileNotFoundException("VRChat SDKに含まれるカスタムアニメーション設定用のテンプレートファイルが見つかりません。", fileName: templatePath);
+            }
+
 
             if (!avatarDescriptor.CustomStandingAnims)
             {
