@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEditor;
-using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
+using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat.UI
 {
@@ -17,14 +17,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// <param name="messages"></param>
         internal static void Open(IEnumerable<Converter.Message> messages)
         {
-            var wizard = DisplayWizard<ResultDialog>(Converter.Name + " " + Converter.Version, Gettext._("OK"));
+            var wizard = DisplayWizard<ResultDialog>(Converter.Name + " " + Converter.Version, _("OK"));
             wizard.messages = messages;
         }
 
         protected override bool DrawWizardGUI()
         {
             base.DrawWizardGUI();
-            EditorGUILayout.LabelField(Gettext._("Converting is completed."));
+            EditorGUILayout.LabelField(_("Converting is completed."));
             foreach (var message in this.messages) {
                 EditorGUILayout.HelpBox(message.message, message.type);
             }

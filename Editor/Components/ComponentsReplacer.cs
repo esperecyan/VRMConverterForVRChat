@@ -10,6 +10,7 @@ using VRCSDK2;
 using VRCSDK2.Validation.Performance;
 using VRCSDK2.Validation.Performance.Stats;
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
+using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 {
@@ -272,10 +273,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 messages.Add(new Converter.Message
                 {
                     message = string.Format(
-                        Gettext._("The “Dynamic Bone Simulated Bone Count” is {0}."),
+                        _("The “Dynamic Bone Simulated Bone Count” is {0}."),
                         statistics.dynamicBoneSimulatedBoneCount
                     ) + string.Format(
-                        Gettext._("If this value exceeds {0}, the default user setting disable all Dynamic Bones."),
+                        _("If this value exceeds {0}, the default user setting disable all Dynamic Bones."),
                         mediumPerformanceStatLimits.dynamicBoneSimulatedBoneCount
                     ),
                     type = MessageType.Warning,
@@ -287,10 +288,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 messages.Add(new Converter.Message
                 {
                     message = string.Format(
-                        Gettext._("The “Dynamic Bone Collision Check Count” is {0}."),
+                        _("The “Dynamic Bone Collision Check Count” is {0}."),
                         statistics.dynamicBoneCollisionCheckCount
                     ) + string.Format(
-                        Gettext._("If this value exceeds {0}, the default user setting disable all Dynamic Bones."),
+                        _("If this value exceeds {0}, the default user setting disable all Dynamic Bones."),
                         mediumPerformanceStatLimits.dynamicBoneCollisionCheckCount
                     ),
                     type = MessageType.Warning,

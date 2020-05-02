@@ -14,6 +14,7 @@ using VRCSDK2.Validation.Performance.Stats;
 using VRC.Core;
 using Esperecyan.Unity.VRMConverterForVRChat.Components;
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
+using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat.UI
 {
@@ -158,7 +159,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// <param name="avatar"></param>
         internal static void Open(GameObject avatar)
         {
-            var wizard = DisplayWizard<Wizard>(Converter.Name + " " + Converter.Version, Gettext._("Duplicate and Convert"));
+            var wizard = DisplayWizard<Wizard>(Converter.Name + " " + Converter.Version, _("Duplicate and Convert"));
             Vector2 defaultMinSize = Wizard.MinSize;
             defaultMinSize.y = Wizard.MinHeightWhenOpen;
             wizard.minSize = defaultMinSize;
@@ -404,7 +405,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
             foreach (var type in Converter.RequiredComponents) {
                 if (!this.avatar.GetComponent(type))
                 {
-                    EditorGUILayout.HelpBox(string.Format(Gettext._("Not set “{0}” component."), type), MessageType.Error);
+                    EditorGUILayout.HelpBox(string.Format(_("Not set “{0}” component."), type), MessageType.Error);
                     isValid = false;
                 }
             }
@@ -418,7 +419,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 );
                 if (comments.Count() > 0)
                 {
-                    EditorGUILayout.HelpBox(string.Join(separator: "\n• ", value: new[] { Gettext._("VRMSpringBones with the below Comments do not exist.") }
+                    EditorGUILayout.HelpBox(string.Join(separator: "\n• ", value: new[] { _("VRMSpringBones with the below Comments do not exist.") }
                         .Concat(comments).ToArray()), MessageType.Warning);
                 }
             }
@@ -436,14 +437,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                     );
                     if (names.Count() > 0)
                     {
-                        EditorGUILayout.HelpBox(string.Join(separator: "\n• ", value: new[] { Gettext._("Renderers on the below name GameObject do not exist.") }
+                        EditorGUILayout.HelpBox(string.Join(separator: "\n• ", value: new[] { _("Renderers on the below name GameObject do not exist.") }
                             .Concat(names).ToArray()), MessageType.Warning);
                     }
                 }
             }
             else
             {
-                EditorGUILayout.HelpBox(Gettext._("If you do not “Combine Meshes”,"
+                EditorGUILayout.HelpBox(_("If you do not “Combine Meshes”,"
                     + " and any of VRMBlendShapes references meshes other than the mesh having most shape keys"
                         + " or the mesh is not direct child of the avatar root,"
                     + " the avatar will not be converted correctly."), MessageType.Warning);
@@ -453,7 +454,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
             if (version != "" && Application.unityVersion != version)
             {
                 EditorGUILayout.HelpBox(string.Format(
-                    Gettext._("Unity {0} is running. If you are using a different version than {1}, VRChat SDK might not work correctly. Recommended using Unity downloaded from {2} ."),
+                    _("Unity {0} is running. If you are using a different version than {1}, VRChat SDK might not work correctly. Recommended using Unity downloaded from {2} ."),
                     Application.unityVersion,
                     version,
                     VRChatUtility.DownloadURL
@@ -478,10 +479,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
             if (currentPolycount > maxPolycount)
             {
                 EditorGUILayout.HelpBox(string.Format(
-                    Gettext._("The number of polygons is {0}."),
+                    _("The number of polygons is {0}."),
                     currentPolycount
                 ) + string.Format(
-                    Gettext._("If this value exceeds {0}, the avatar will not shown under the default user setting."),
+                    _("If this value exceeds {0}, the avatar will not shown under the default user setting."),
                     maxPolycount
                 ), MessageType.Error);
             }
@@ -508,22 +509,22 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 new {
                     current = statistics.skinnedMeshCount,
                     limit = performanceStatLimits.skinnedMeshCount,
-                    message = Gettext._("The number of Skinned Mesh Renderer components is {0}.")
+                    message = _("The number of Skinned Mesh Renderer components is {0}.")
                 },
                 new {
                     current = statistics.meshCount,
                     limit = performanceStatLimits.meshCount,
-                    message = Gettext._("The number of (non-Skinned) Mesh Renderer components is {0}.")
+                    message = _("The number of (non-Skinned) Mesh Renderer components is {0}.")
                 },
                 new {
                     current = statistics.materialCount,
                     limit = performanceStatLimits.materialCount,
-                    message = Gettext._("The number of material slots (sub-meshes) is {0}.")
+                    message = _("The number of material slots (sub-meshes) is {0}.")
                 },
                 new {
                     current = statistics.boneCount,
                     limit = performanceStatLimits.boneCount,
-                    message = Gettext._("The number of Bones is {0}.")
+                    message = _("The number of Bones is {0}.")
                 },
             })
             {
@@ -532,7 +533,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                     messages.Add(new Converter.Message
                     {
                         message = string.Format(limitation.message, limitation.current) + string.Format(
-                            Gettext._("If this value exceeds {0}, the avatar will not shown under the default user setting."),
+                            _("If this value exceeds {0}, the avatar will not shown under the default user setting."),
                             limitation.limit
                         ),
                         type = MessageType.Error,

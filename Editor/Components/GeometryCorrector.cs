@@ -5,6 +5,7 @@ using UnityEditor;
 using VRM;
 using VRCSDK2;
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
+using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 {
@@ -24,7 +25,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 messages.Add(new Converter.Message
                 {
                     message = string.Format(
-                        Gettext._("The shoulders is in {0} Unit. You can not upload, if the shoulders is not in over than {1} Unit."),
+                        _("The shoulders is in {0} Unit. You can not upload, if the shoulders is not in over than {1} Unit."),
                         shoulderHeight,
                         VRChatUtility.MinShoulderHeight
                     ),
@@ -38,7 +39,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 messages.Add(new Converter.Message
                 {
                     message = string.Format(
-                        Gettext._("The avatar is scaled to {0} times to be settled in uploadable shoulders height {1} Unit."),
+                        _("The avatar is scaled to {0} times to be settled in uploadable shoulders height {1} Unit."),
                         scale,
                         VRChatUtility.MinShoulderHeight
                     ),

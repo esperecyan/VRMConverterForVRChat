@@ -12,6 +12,7 @@ using UniHumanoid;
 using UniGLTF;
 using VRCSDK2;
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
+using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 {
@@ -132,7 +133,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                     {
                         message = string.Join(
                             separator: "\n• ",
-                            value: new[] { Gettext._("Converting these materials (for VRChat Render Queue bug) was failed.") }.Concat(convertingFailedMaterialNames).ToArray()
+                            value: new[] { _("Converting these materials (for VRChat Render Queue bug) was failed.") }.Concat(convertingFailedMaterialNames).ToArray()
                         ),
                         type = MessageType.Warning,
                     });
@@ -800,7 +801,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             {
                 message = string.Join(
                     separator: "\n• ",
-                    value: new[] { Gettext._("“Texture Mipmap Streaming” was enabled on these each textures.") }
+                    value: new[] { _("“Texture Mipmap Streaming” was enabled on these each textures.") }
                         .Concat(paths).ToArray()
                 ),
                 type = MessageType.Warning,
