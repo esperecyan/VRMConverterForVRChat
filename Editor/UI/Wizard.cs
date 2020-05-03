@@ -53,7 +53,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// 複製・変換対象のアバター。
         /// </summary>
         [SerializeField]
-        private Animator avatar;
+        private Animator avatar = default;
 
         /// <summary>
         /// オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。
@@ -65,19 +65,19 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// オートアイムーブメント有効化時、目ボーンのPositionのZに加算する値。 
         /// </summary> 
         [SerializeField, Localizable(0, 0.1f)]
-        private float moveEyeBoneToFrontForEyeMovement;
+        private float moveEyeBoneToFrontForEyeMovement = default;
 
         /// <summary>
         /// VRChat上でモデルがなで肩・いかり肩になる問題について、ボーンのPositionのYに加算する値。
         /// </summary>
         [SerializeField, Localizable(-0.1f, 0.1f)]
-        private float shoulderHeights;
+        private float shoulderHeights = default;
 
         /// <summary>
         /// VRChat上で足が沈む問題について、Hipsボーンの一つ上のオブジェクトのPositionのYに加算する値。
         /// </summary>
         [SerializeField, Localizable(-0.1f, 0.1f)]
-        private float armatureHeight;
+        private float armatureHeight = default;
 
         /// <summary>
         /// 伏せたときのアバターの位置が、自分視点と他者視点で異なるVRChatのバグに対処するなら <c>true</c>。
@@ -103,7 +103,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// 揺れ物を変換するか否かの設定。
         /// </summary>
         [SerializeField, Localizable]
-        private Converter.SwayingObjectsConverterSetting swayingObjects;
+        private Converter.SwayingObjectsConverterSetting swayingObjects = default;
 
         /// <summary>
         /// 揺れ物のパラメータを引き継ぐなら<c>true</c>。
@@ -137,22 +137,22 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// 各種コールバック関数のユーザー設定値。
         /// </summary>
         [SerializeField, Localizable]
-        private MonoScript callbackFunctions;
+        private MonoScript callbackFunctions = default;
 
         /// <summary>
         /// <see cref="Converter.SwayingParametersConverter"/>のユーザー設定値。
         /// </summary>
-        private Converter.SwayingParametersConverter swayingParametersConverter;
+        private Converter.SwayingParametersConverter swayingParametersConverter = default;
 
         /// <summary>
         /// <see cref="Wizard.PostConverting"/>のユーザー設定値。
         /// </summary>
-        private Wizard.PostConverting postConverting;
+        private Wizard.PostConverting postConverting = default;
 
         /// <summary>
         /// 「Assets/」で始まり「.prefab」で終わる保存先のパス。
         /// </summary>
-        private string destinationPath;
+        private string destinationPath = default;
 
         /// <summary>
         /// 変換ダイアログを開きます。
