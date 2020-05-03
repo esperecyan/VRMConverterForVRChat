@@ -14,8 +14,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
     internal class Exporter
     {
         private static readonly Regex FilePathPattern
-            = new Regex(pattern: "^(?:" + Regex.Escape(Converter.RootFolderPath)
-                + @"/(?!Editor/Utilities/Exporter\.cs$)|Assets/Editor/CombineMeshesAndSubMeshes\.cs$)");
+            = new Regex(pattern: "^" + Regex.Escape(Converter.RootFolderPath) + @"/(?!Editor/Utilities/Exporter\.cs$)");
 
         private static readonly Regex ExcludedFilePathPatternInUniVRM = new Regex(pattern: @"/[^/]+-[^/]+\.shader$");
 
