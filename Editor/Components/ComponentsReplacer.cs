@@ -18,43 +18,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
     /// <summary>
     /// キャラクター情報、視点、揺れ物に関する設定。
     /// </summary>
-    public class ComponentsReplacer
+    internal class ComponentsReplacer
     {
-        /// <summary>
-        /// 揺れ物を変換するか否かの設定。
-        /// </summary>
-        public enum SwayingObjectsConverterSetting
-        {
-            ConvertVrmSpringBonesOnly,
-            ConvertVrmSpringBonesAndVrmSpringBoneColliderGroups,
-            RemoveSwayingObjects,
-        }
-
-        /// <summary>
-        /// 揺れ物のパラメータ変換アルゴリズムの定義を行うコールバック関数。
-        /// </summary>
-        /// <param name="springBoneParameters"></param>
-        /// <param name="boneInfo"></param>
-        /// <returns></returns>
-        public delegate DynamicBoneParameters SwayingParametersConverter(SpringBoneParameters springBoneParameters, BoneInfo boneInfo);
-
-        /// <summary>
-        /// <see cref="ComponentsReplacer.SwayingParametersConverter">の既定値。
-        /// </summary>
-        /// <param name="springBoneParameters"></param>
-        /// <param name="boneInfo"></param>
-        /// <returns></returns>
-        public static DynamicBoneParameters DefaultSwayingParametersConverter(SpringBoneParameters springBoneParameters, BoneInfo boneInfo)
-        {
-            return new DynamicBoneParameters()
-            {
-                Elasticity = springBoneParameters.StiffnessForce * 0.05f,
-                Damping = springBoneParameters.DragForce * 0.6f,
-                Stiffness = 0,
-                Inert = 0,
-            };
-        }
-
         private static readonly Type DynamicBoneType = Type.GetType("DynamicBone, Assembly-CSharp");
         private static readonly Type DynamicBoneColliderType = Type.GetType("DynamicBoneCollider, Assembly-CSharp");
         private static readonly Type DynamicBoneColliderBaseListType
@@ -68,8 +33,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// <returns></returns>
         internal static IEnumerable<Converter.Message> Apply(
             GameObject avatar,
-            ComponentsReplacer.SwayingObjectsConverterSetting swayingObjectsConverterSetting,
-            ComponentsReplacer.SwayingParametersConverter swayingParametersConverter
+            Converter.SwayingObjectsConverterSetting swayingObjectsConverterSetting,
+            Converter.SwayingParametersConverter swayingParametersConverter
         )
         {
             var messages = new List<Converter.Message>();
@@ -78,13 +43,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             ConvertVRMFirstPerson(avatar: avatar);
 
             if (DynamicBoneType == null
-                || swayingObjectsConverterSetting == ComponentsReplacer.SwayingObjectsConverterSetting.RemoveSwayingObjects)
+                || swayingObjectsConverterSetting == Converter.SwayingObjectsConverterSetting.RemoveSwayingObjects)
             {
                 return messages;
             }
 
             IDictionary<VRMSpringBoneColliderGroup, IEnumerable<MonoBehaviour>> dynamicBoneColliderGroups = null;
-            if (swayingObjectsConverterSetting == ComponentsReplacer.SwayingObjectsConverterSetting.ConvertVrmSpringBonesAndVrmSpringBoneColliderGroups)
+            if (swayingObjectsConverterSetting == Converter.SwayingObjectsConverterSetting.ConvertVrmSpringBonesAndVrmSpringBoneColliderGroups)
             {
                 RemoveUnusedColliderGroups(avatar: avatar);
                 dynamicBoneColliderGroups = ConvertVRMSpringBoneColliderGroups(avatar);
@@ -183,7 +148,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         private static void ConvertVRMSpringBones(
             GameObject avatar,
             IDictionary<VRMSpringBoneColliderGroup, IEnumerable<MonoBehaviour>> dynamicBoneColliderGroups,
-            ComponentsReplacer.SwayingParametersConverter swayingParametersConverter
+            Converter.SwayingParametersConverter swayingParametersConverter
         )
         {
             foreach (var springBone in avatar.GetComponentsInChildren<VRMSpringBone>())
@@ -201,7 +166,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         private static void ConvertVRMSpringBone(
             VRMSpringBone springBone,
             IDictionary<VRMSpringBoneColliderGroup, IEnumerable<MonoBehaviour>> dynamicBoneColliderGroups,
-            ComponentsReplacer.SwayingParametersConverter swayingParametersConverter
+            Converter.SwayingParametersConverter swayingParametersConverter
         )
         {
             var springBoneParameters = new SpringBoneParameters(stiffnessForce: springBone.m_stiffnessForce, dragForce: springBone.m_dragForce);

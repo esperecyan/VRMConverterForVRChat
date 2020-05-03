@@ -13,7 +13,6 @@ using VRM;
 using VRCSDK2.Validation.Performance;
 using VRCSDK2.Validation.Performance.Stats;
 using VRC.Core;
-using Esperecyan.Unity.VRMConverterForVRChat.Components;
 #endif
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
@@ -104,7 +103,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// 揺れ物を変換するか否かの設定。
         /// </summary>
         [SerializeField, Localizable]
-        private ComponentsReplacer.SwayingObjectsConverterSetting swayingObjects;
+        private Converter.SwayingObjectsConverterSetting swayingObjects;
 
         /// <summary>
         /// 揺れ物のパラメータを引き継ぐなら<c>true</c>。
@@ -141,9 +140,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         private MonoScript callbackFunctions;
 
         /// <summary>
-        /// <see cref="ComponentsReplacer.SwayingParametersConverter"/>のユーザー設定値。
+        /// <see cref="Converter.SwayingParametersConverter"/>のユーザー設定値。
         /// </summary>
-        private ComponentsReplacer.SwayingParametersConverter swayingParametersConverter;
+        private Converter.SwayingParametersConverter swayingParametersConverter;
 
         /// <summary>
         /// <see cref="Wizard.PostConverting"/>のユーザー設定値。
@@ -375,12 +374,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 Type callBackFunctions = this.callbackFunctions.GetClass();
 
                 this.swayingParametersConverter = Delegate.CreateDelegate(
-                    type: typeof(ComponentsReplacer.SwayingParametersConverter),
+                    type: typeof(Converter.SwayingParametersConverter),
                     target: callBackFunctions,
                     method: "SwayingParametersConverter",
                     ignoreCase: false,
                     throwOnBindFailure: false
-                ) as ComponentsReplacer.SwayingParametersConverter;
+                ) as Converter.SwayingParametersConverter;
 
                 this.postConverting = Delegate.CreateDelegate(
                     type: typeof(Wizard.PostConverting),

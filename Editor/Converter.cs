@@ -17,6 +17,41 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
     public class Converter
     {
         /// <summary>
+        /// 揺れ物を変換するか否かの設定。
+        /// </summary>
+        public enum SwayingObjectsConverterSetting
+        {
+            ConvertVrmSpringBonesOnly,
+            ConvertVrmSpringBonesAndVrmSpringBoneColliderGroups,
+            RemoveSwayingObjects,
+        }
+
+        /// <summary>
+        /// 揺れ物のパラメータ変換アルゴリズムの定義を行うコールバック関数。
+        /// </summary>
+        /// <param name="springBoneParameters"></param>
+        /// <param name="boneInfo"></param>
+        /// <returns></returns>
+        public delegate DynamicBoneParameters SwayingParametersConverter(SpringBoneParameters springBoneParameters, BoneInfo boneInfo);
+
+        /// <summary>
+        /// <see cref="ComponentsReplacer.SwayingParametersConverter">の既定値。
+        /// </summary>
+        /// <param name="springBoneParameters"></param>
+        /// <param name="boneInfo"></param>
+        /// <returns></returns>
+        public static DynamicBoneParameters DefaultSwayingParametersConverter(SpringBoneParameters springBoneParameters, BoneInfo boneInfo)
+        {
+            return new DynamicBoneParameters()
+            {
+                Elasticity = springBoneParameters.StiffnessForce * 0.05f,
+                Damping = springBoneParameters.DragForce * 0.6f,
+                Stiffness = 0,
+                Inert = 0,
+            };
+        }
+
+        /// <summary>
         /// <see cref="EditorGUILayout.HelpBox"/>で表示するメッセージ。
         /// </summary>
         public struct Message
@@ -55,10 +90,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         public static IEnumerable<Converter.Message> Convert(
             GameObject prefabInstance,
             IEnumerable<VRMBlendShapeClip> clips,
-            ComponentsReplacer.SwayingObjectsConverterSetting swayingObjectsConverterSetting
-                = default(ComponentsReplacer.SwayingObjectsConverterSetting),
+            SwayingObjectsConverterSetting swayingObjectsConverterSetting = default,
             bool takingOverSwayingParameters = true,
-            ComponentsReplacer.SwayingParametersConverter swayingParametersConverter = null,
+            SwayingParametersConverter swayingParametersConverter = null,
             bool enableAutoEyeMovement = true,
             float addedShouldersPositionY = 0.0f,
             bool fixProneAvatarPosition = true,
@@ -78,10 +112,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             messages.AddRange(ComponentsReplacer.Apply(
                 avatar: prefabInstance,
                 swayingObjectsConverterSetting: forQuest
-                    ? ComponentsReplacer.SwayingObjectsConverterSetting.RemoveSwayingObjects
+                    ? SwayingObjectsConverterSetting.RemoveSwayingObjects
                     : swayingObjectsConverterSetting,
                 swayingParametersConverter: takingOverSwayingParameters
-                    ? swayingParametersConverter ?? ComponentsReplacer.DefaultSwayingParametersConverter
+                    ? swayingParametersConverter ?? DefaultSwayingParametersConverter
                     : null
             ));
             messages.AddRange(VRChatsBugsWorkaround.Apply(
