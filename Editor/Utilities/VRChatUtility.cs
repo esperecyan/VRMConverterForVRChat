@@ -33,7 +33,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
         /// <summary>
         /// VRChat SDKがサポートするバージョンのUnityのダウンロード先。
         /// </summary>
-        internal static readonly string DownloadURL = "https://api.vrchat.cloud/home/download";
+        internal static readonly string DownloadURL = "https://docs.vrchat.com/docs/current-unity-version";
 
         /// <summary>
         /// オートアイムーブメントの有効化に必要となるダミーの階層構造。
