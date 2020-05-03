@@ -12,28 +12,28 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
     /// <summary>
     /// VRChat関連の処理など。
     /// </summary>
-    public class VRChatUtility
+    internal class VRChatUtility
     {
         /// <summary>
         /// 表情の設定に利用するアニメーション名。
         /// </summary>
-        public enum Anim
+        internal enum Anim
         {
             VICTORY,
             ROCKNROLL,
             HANDGUN,
             THUMBSUP,
         }
-        
+
         /// <summary>
         /// アバターの最小の肩の位置。
         /// </summary>
-        public static readonly float MinShoulderHeight = 0.2f;
+        internal static readonly float MinShoulderHeight = 0.2f;
 
         /// <summary>
         /// VRChat SDKがサポートするバージョンのUnityのダウンロード先。
         /// </summary>
-        public static readonly string DownloadURL = "https://api.vrchat.cloud/home/download";
+        internal static readonly string DownloadURL = "https://api.vrchat.cloud/home/download";
 
         /// <summary>
         /// オートアイムーブメントの有効化に必要となるダミーの階層構造。

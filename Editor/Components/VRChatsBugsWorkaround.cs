@@ -20,12 +20,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
     /// <summary>
     /// VRChatの不具合などに対処します。
     /// </summary>
-    public class VRChatsBugsWorkaround
+    internal class VRChatsBugsWorkaround
     {
         /// <summary>
         /// VRChatのバグ対策用のシェーダー名に前置する文字列。
         /// </summary>
-        public static readonly string ShaderNamePrefix = "VRChat/RenderQueueApplied/";
+        private static readonly string ShaderNamePrefix = "VRChat/RenderQueueApplied/";
 
         /// <summary>
         /// 正常に動作する<see cref="VRC_AvatarDescriptor.Animations"/>の値。

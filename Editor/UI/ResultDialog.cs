@@ -7,7 +7,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
     /// <summary>
     /// 結果ダイアログ。
     /// </summary>
-    public class ResultDialog : ScriptableWizard
+    internal class ResultDialog : ScriptableWizard
     {
         private IEnumerable<Converter.Message> messages;
 

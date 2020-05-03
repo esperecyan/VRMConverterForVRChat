@@ -22,7 +22,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
     /// <summary>
     /// 変換ダイアログ。
     /// </summary>
-    public class Wizard : ScriptableWizard
+    internal class Wizard : ScriptableWizard
     {
         private static readonly string EditorUserSettingsName = typeof(Wizard).Namespace;
         private static readonly string EditorUserSettingsXmlNamespace = "https://pokemori.booth.pm/items/1025226";
@@ -32,7 +32,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// </summary>
         /// <param name="avatar"></param>
         /// <param name="meta"></param>
-        public delegate void PostConverting(GameObject avatar, VRMMeta meta);
+        private delegate void PostConverting(GameObject avatar, VRMMeta meta);
 
         /// <summary>
         /// ダイアログの最小サイズ。

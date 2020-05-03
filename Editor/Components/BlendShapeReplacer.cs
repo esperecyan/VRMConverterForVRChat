@@ -14,25 +14,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
     /// <summary>
     /// ブレンドシェイプに関する設定。
     /// </summary>
-    public class BlendShapeReplacer
+    internal class BlendShapeReplacer
     {
-        /// <summary>
-        /// 表情の変更に関するVIVEタッチパッド上の位置について、バーチャルキャストとVRchatの対応関係。
-        /// </summary>
-        /// <remarks>
-        /// 参照:
-        /// おぐら@VDRAW ver1.2.1公開さんのツイート: “Vキャスでの表情の変え方について。VRMファイルで設定した「喜怒哀楽」はこのように割り振られているみたいです。 Unityで設定する時のBlendShapeのClip名は 喜：JOY　怒：ANGRY　哀：SORROW　楽：FUN　です。 #バーチャルキャスト #VirtualCast… https://t.co/pYgHLoelG2”
-        /// <https://twitter.com/ogog_ogura/status/987522017678114816>
-        /// アニメーションオーバーライドで表情をつけよう — VRで美少女になりたい人の備忘録
-        /// <http://shiasakura.hatenablog.com/entry/2018/03/30/190811#%E3%83%A2%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3%E3%82%92%E3%82%B3%E3%83%B3%E3%83%88%E3%83%AD%E3%83%BC%E3%83%A9%E3%83%BC%E3%81%A8%E5%AF%BE%E5%BF%9C%E3%81%95%E3%81%9B%E3%82%8B>
-        /// </remarks>
-        public static readonly Dictionary<BlendShapePreset, VRChatUtility.Anim> MappingBlendShapeToVRChatAnim = new Dictionary<BlendShapePreset, VRChatUtility.Anim> {
-            { BlendShapePreset.Joy, VRChatUtility.Anim.VICTORY },
-            { BlendShapePreset.Angry, VRChatUtility.Anim.HANDGUN },
-            { BlendShapePreset.Sorrow, VRChatUtility.Anim.THUMBSUP },
-            { BlendShapePreset.Fun, VRChatUtility.Anim.ROCKNROLL },
-        };
-
         /// <summary>
         /// Cats Blender PluginでVRChat用に生成されるまばたきのシェイプキー名。
         /// </summary>
@@ -43,6 +26,23 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// </remarks>
         internal static readonly IEnumerable<string> OrderedBlinkGeneratedByCatsBlenderPlugin
             = new string[] { "vrc.blink_left", "vrc.blink_right", "vrc.lowerlid_left", "vrc.lowerlid_right" };
+
+        /// <summary>
+        /// 表情の変更に関するVIVEタッチパッド上の位置について、バーチャルキャストとVRchatの対応関係。
+        /// </summary>
+        /// <remarks>
+        /// 参照:
+        /// おぐら@VDRAW ver1.2.1公開さんのツイート: “Vキャスでの表情の変え方について。VRMファイルで設定した「喜怒哀楽」はこのように割り振られているみたいです。 Unityで設定する時のBlendShapeのClip名は 喜：JOY　怒：ANGRY　哀：SORROW　楽：FUN　です。 #バーチャルキャスト #VirtualCast… https://t.co/pYgHLoelG2”
+        /// <https://twitter.com/ogog_ogura/status/987522017678114816>
+        /// アニメーションオーバーライドで表情をつけよう — VRで美少女になりたい人の備忘録
+        /// <http://shiasakura.hatenablog.com/entry/2018/03/30/190811#%E3%83%A2%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3%E3%82%92%E3%82%B3%E3%83%B3%E3%83%88%E3%83%AD%E3%83%BC%E3%83%A9%E3%83%BC%E3%81%A8%E5%AF%BE%E5%BF%9C%E3%81%95%E3%81%9B%E3%82%8B>
+        /// </remarks>
+        private static readonly Dictionary<BlendShapePreset, VRChatUtility.Anim> MappingBlendShapeToVRChatAnim = new Dictionary<BlendShapePreset, VRChatUtility.Anim> {
+            { BlendShapePreset.Joy, VRChatUtility.Anim.VICTORY },
+            { BlendShapePreset.Angry, VRChatUtility.Anim.HANDGUN },
+            { BlendShapePreset.Sorrow, VRChatUtility.Anim.THUMBSUP },
+            { BlendShapePreset.Fun, VRChatUtility.Anim.ROCKNROLL },
+        };
 
         ///
         /// <summary>

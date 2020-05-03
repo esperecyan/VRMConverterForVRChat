@@ -14,7 +14,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
     /// サイズ等に関する調整。
     /// </summary>
     /// <seealso cref="VRC_SdkControlPanel.OnGUIAvatarCheck"/>
-    public class GeometryCorrector
+    internal class GeometryCorrector
     {
         internal static IEnumerable<Converter.Message> Apply(GameObject avatar)
         {
