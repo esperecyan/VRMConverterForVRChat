@@ -1,3 +1,4 @@
+#if VRC_SDK_VRCSDK2
 using UnityEngine;
 using VRCSDK2.Validation;
 
@@ -16,3 +17,4 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         }
     }
 }
+#endif

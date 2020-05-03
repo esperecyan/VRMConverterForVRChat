@@ -1,3 +1,4 @@
+#if VRC_SDK_VRCSDK2
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -812,3 +813,4 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         }
     }
 }
+#endif

@@ -1,3 +1,4 @@
+#if VRC_SDK_VRCSDK2
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,8 +6,8 @@ using UnityEditor;
 using UnityEditor.Animations;
 using VRM;
 using UniGLTF;
-using VRCSDK2;
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
+using VRCSDK2;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 {
@@ -894,3 +895,4 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         }
     }
 }
+#endif

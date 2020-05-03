@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using VRM;
+#if VRC_SDK_VRCSDK2
 using VRC.Core;
 using Esperecyan.Unity.VRMConverterForVRChat.Components;
+#endif
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
@@ -65,6 +67,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             float addedArmaturePositionY = 0.0f,
             bool useAnimatorForBlinks = true
         ) {
+#if VRC_SDK_VRCSDK2
             var messages = new List<Converter.Message>();
             messages.AddRange(GeometryCorrector.Apply(avatar: prefabInstance));
             messages.AddRange(BlendShapeReplacer.Apply(
@@ -94,6 +97,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             ComponentsRemover.Apply(avatar: prefabInstance);
             Undo.RegisterCreatedObjectUndo(prefabInstance, "Convert VRM for VRChat");
             return messages;
+#else
+            throw new PlatformNotSupportedException("VRCHAT SDK2 (VRCSDK2) has not been imported.");
+#endif
         }
 
         /// <summary>

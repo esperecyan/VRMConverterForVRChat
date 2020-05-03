@@ -9,10 +9,12 @@ using UnityEngine.SceneManagement;
 using UnityEditor;
 using UniGLTF;
 using VRM;
+#if VRC_SDK_VRCSDK2
 using VRCSDK2.Validation.Performance;
 using VRCSDK2.Validation.Performance.Stats;
 using VRC.Core;
 using Esperecyan.Unity.VRMConverterForVRChat.Components;
+#endif
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
 
@@ -402,6 +404,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 indentStyle
             );
 
+#if VRC_SDK_VRCSDK2
             foreach (var type in Converter.RequiredComponents) {
                 if (!this.avatar.GetComponent(type))
                 {
@@ -486,10 +489,15 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                     maxPolycount
                 ), MessageType.Error);
             }
+#else
+            EditorGUILayout.HelpBox(_("VRCHAT SDK2 (VRCSDK2) has not been imported."), MessageType.Error);
+            isValid = false;
+#endif
 
             return true;
         }
 
+#if VRC_SDK_VRCSDK2
         /// <summary>
         /// Questの制限値に関するエラーメッセージを取得します。
         /// </summary>
@@ -671,6 +679,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
 
             ResultDialog.Open(messages: messages);
         }
+#endif
 
         /// <summary>
         /// プレハブのパスを取得します。
