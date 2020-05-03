@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEditor;
 using VRM;
 
-namespace Esperecyan.Unity.VRMConverterForVRChat
+namespace Esperecyan.Unity.VRMConverterForVRChat.UI
 {
     /// <summary>
     /// ウィンドウ上部のVRMメニューに追加するサブメニュー。

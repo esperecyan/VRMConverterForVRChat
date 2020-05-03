@@ -6,8 +6,9 @@ using UnityEditor.Animations;
 using VRM;
 using UniGLTF;
 using VRCSDK2;
+using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 
-namespace Esperecyan.Unity.VRMConverterForVRChat
+namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 {
     /// <summary>
     /// ブレンドシェイプに関する設定。
@@ -783,7 +784,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             ref IEnumerable<VRMBlendShapeClip> clips
         ) {
             var anim = Duplicator.DuplicateAssetToFolder<AnimationClip>(
-                source: UnityPath.FromUnityPath(Converter.RootFolderPath).Child("Editor")
+                source: UnityPath.FromUnityPath(Converter.RootFolderPath).Child("animations")
                     .Child(BlendShapeReplacer.MappingBlendShapeToVRChatAnim[preset] + ".anim").LoadAsset<AnimationClip>(),
                 prefabInstance: avatar,
                 fileName: preset + ".anim"

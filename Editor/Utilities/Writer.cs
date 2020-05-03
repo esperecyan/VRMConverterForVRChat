@@ -1,7 +1,7 @@
 using System.IO;
 using System.Text;
 
-namespace Esperecyan.Unity.VRMConverterForVRChat
+namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
 {
     internal class Writer : StringWriter
     {

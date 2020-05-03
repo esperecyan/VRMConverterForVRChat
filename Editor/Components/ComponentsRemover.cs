@@ -1,7 +1,7 @@
 using UnityEngine;
 using VRCSDK2.Validation;
 
-namespace Esperecyan.Unity.VRMConverterForVRChat
+namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 {
     /// <summary>
     /// <see cref="AvatarValidation.RemoveIllegalComponentsEnumerator"/>が動作しないため、その代替。

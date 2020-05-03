@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEditor;
 using VRM;
 using VRC.Core;
+using Esperecyan.Unity.VRMConverterForVRChat.Components;
+using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
 {

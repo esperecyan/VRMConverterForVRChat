@@ -9,13 +9,13 @@ using UnityEditor;
 using UniGLTF;
 using VRM;
 
-namespace Esperecyan.Unity.VRMConverterForVRChat
+namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
 {
     internal class Exporter
     {
         private static readonly Regex FilePathPattern
             = new Regex(pattern: "^(?:" + Regex.Escape(Converter.RootFolderPath)
-                + @"/(?!Editor/Exporter\.cs$)|Assets/Editor/CombineMeshesAndSubMeshes\.cs$)");
+                + @"/(?!Editor/Utilities/Exporter\.cs$)|Assets/Editor/CombineMeshesAndSubMeshes\.cs$)");
 
         private static readonly Regex ExcludedFilePathPatternInUniVRM = new Regex(pattern: @"/[^/]+-[^/]+\.shader$");
 

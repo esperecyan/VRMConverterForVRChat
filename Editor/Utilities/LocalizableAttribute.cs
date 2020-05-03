@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Esperecyan.Unity.VRMConverterForVRChat
+namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
 {
     /// <summary>
     /// L10N。

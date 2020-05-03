@@ -9,8 +9,9 @@ using UniGLTF;
 using VRCSDK2;
 using VRCSDK2.Validation.Performance;
 using VRCSDK2.Validation.Performance.Stats;
+using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 
-namespace Esperecyan.Unity.VRMConverterForVRChat
+namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 {
     /// <summary>
     /// キャラクター情報、視点、揺れ物に関する設定。

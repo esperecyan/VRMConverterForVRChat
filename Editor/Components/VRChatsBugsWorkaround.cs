@@ -11,8 +11,9 @@ using VRM;
 using UniHumanoid;
 using UniGLTF;
 using VRCSDK2;
+using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 
-namespace Esperecyan.Unity.VRMConverterForVRChat
+namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 {
     /// <summary>
     /// VRChatの不具合などに対処します。
@@ -743,7 +744,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             foreach (string anim in VRChatsBugsWorkaround.ProneVRChatAnims)
             {
                 AnimationClip clip = Duplicator.DuplicateAssetToFolder<AnimationClip>(
-                    source: UnityPath.FromUnityPath(Converter.RootFolderPath).Child("Editor").Child(anim + ".anim")
+                    source: UnityPath.FromUnityPath(Converter.RootFolderPath).Child("animations").Child(anim + ".anim")
                         .LoadAsset<AnimationClip>(),
                     prefabInstance: avatar,
                     fileName: anim + "-position-fixed.anim"

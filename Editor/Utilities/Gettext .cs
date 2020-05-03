@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Esperecyan.Unity.VRMConverterForVRChat
+namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
 {
     /// <summary>
     /// i18n。

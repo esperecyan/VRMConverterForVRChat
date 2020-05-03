@@ -12,8 +12,10 @@ using VRM;
 using VRCSDK2.Validation.Performance;
 using VRCSDK2.Validation.Performance.Stats;
 using VRC.Core;
+using Esperecyan.Unity.VRMConverterForVRChat.Components;
+using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 
-namespace Esperecyan.Unity.VRMConverterForVRChat
+namespace Esperecyan.Unity.VRMConverterForVRChat.UI
 {
     /// <summary>
     /// 変換ダイアログ。

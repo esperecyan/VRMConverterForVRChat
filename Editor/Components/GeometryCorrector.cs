@@ -1,11 +1,12 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using VRM;
 using VRCSDK2;
+using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 
-namespace Esperecyan.Unity.VRMConverterForVRChat
+namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 {
     /// <summary>
     /// サイズ等に関する調整。

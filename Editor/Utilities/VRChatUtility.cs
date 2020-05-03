@@ -6,7 +6,7 @@ using VRC.Core;
 using VRCSDK2;
 using VRCSDK2.Validation.Performance.Stats;
 
-namespace Esperecyan.Unity.VRMConverterForVRChat
+namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
 {
     /// <summary>
     /// VRChat関連の処理など。

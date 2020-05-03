@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
 {
