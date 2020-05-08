@@ -31,6 +31,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                         + " the avatar will not be converted correctly.",
                         "「メッシュの結合」を行わず、かつもっともシェイプキーを多くもつメッシュ以外を参照するVRMBlendShapeが存在するか"
                             + "そのメッシュがアバタールートの直下にない場合、正常に変換できません。"},
+                    { "Use Shape Key Normals And Tangents", "シェイプキーの法線・接線を利用" },
                     { "Use Animator For Blinks", "まばたきにAnimatorを使用" },
                     { "Callback Functions", "コールバック関数" },
                     { "Not set “{0}” component.", "{0}コンポーネントが設定されていません。" },

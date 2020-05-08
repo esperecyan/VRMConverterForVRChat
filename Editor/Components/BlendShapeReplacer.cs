@@ -247,22 +247,24 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// <param name="avatar"></param>
         /// <param name="clips"></param>
         /// <param name="useAnimatorForBlinks"></param>
+        /// <param name="useShapeKeyNormalsAndTangents"></param>
         internal static IEnumerable<Converter.Message> Apply(
             GameObject avatar,
             IEnumerable<VRMBlendShapeClip> clips,
-            bool useAnimatorForBlinks
+            bool useAnimatorForBlinks,
+            bool useShapeKeyNormalsAndTangents
         ) {
             var messages = new List<Converter.Message>();
 
-            SetLipSync(avatar: avatar, clips: clips);
+            SetLipSync(avatar, clips, useShapeKeyNormalsAndTangents);
 
             if (useAnimatorForBlinks)
             {
-                SetNeutralAndBlink(avatar: avatar, clips: clips);
+                SetNeutralAndBlink(avatar, clips, useShapeKeyNormalsAndTangents);
             }
             else
             {
-                SetBlinkWithoutAnimator(avatar: avatar, clips: clips);
+                SetBlinkWithoutAnimator(avatar, clips, useShapeKeyNormalsAndTangents);
                 SetNeutralWithoutAnimator(avatar: avatar, clips: clips);
             }
 
@@ -297,7 +299,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// </remarks>
         /// <param name="avatar"></param>
         /// <param name="clips"></param>
-        private static void SetLipSync(GameObject avatar, IEnumerable<VRMBlendShapeClip> clips)
+        /// <param name="useShapeKeyNormalsAndTangents"></param>
+        private static void SetLipSync(
+            GameObject avatar,
+            IEnumerable<VRMBlendShapeClip> clips,
+            bool useShapeKeyNormalsAndTangents
+        )
         {
             Transform transform = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath);
             var renderer = transform.GetComponent<SkinnedMeshRenderer>();
@@ -311,7 +318,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 }
             }
 
-            IEnumerable<BlendShape> shapeKeys = BlendShapeReplacer.GetAllShapeKeys(mesh: mesh);
+            IEnumerable<BlendShape> shapeKeys = BlendShapeReplacer.GetAllShapeKeys(mesh, useShapeKeyNormalsAndTangents);
 
             foreach (var newNameAndValues in BlendShapeReplacer.VisemeShapeKeyNamesAndValues)
             {
@@ -376,7 +383,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// </remarks>
         /// <param name="avatar"></param>
         /// <param name="clips"></param>
-        private static void SetNeutralAndBlink(GameObject avatar, IEnumerable<VRMBlendShapeClip> clips)
+        /// <paramref name="useShapeKeyNormalsAndTangents"/>
+        private static void SetNeutralAndBlink(
+            GameObject avatar,
+            IEnumerable<VRMBlendShapeClip> clips,
+            bool useShapeKeyNormalsAndTangents
+        )
         {
             AnimatorController neutralAndBlinkController
                 = BlendShapeReplacer.CreateSingleAnimatorController(avatar: avatar, name: "blink");
@@ -458,7 +470,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 
             // VRChat側の自動まばたきを回避
             Mesh mesh = transform.GetSharedMesh();
-            IEnumerable<BlendShape> shapeKeys = BlendShapeReplacer.GetAllShapeKeys(mesh: mesh);
+            IEnumerable<BlendShape> shapeKeys = BlendShapeReplacer.GetAllShapeKeys(mesh, useShapeKeyNormalsAndTangents);
             mesh.ClearBlendShapes();
             foreach (string name in BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin)
             {
@@ -521,7 +533,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// </remarks>
         /// <param name="avatar"></param>
         /// <param name="clips"></param>
-        private static void SetBlinkWithoutAnimator(GameObject avatar, IEnumerable<VRMBlendShapeClip> clips)
+        /// <param name="useShapeKeyNormalsAndTangents"></param>
+        private static void SetBlinkWithoutAnimator(
+            GameObject avatar,
+            IEnumerable<VRMBlendShapeClip> clips,
+            bool useShapeKeyNormalsAndTangents
+        )
         {
             var renderer = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath).GetComponent<SkinnedMeshRenderer>();
             Mesh mesh = renderer.sharedMesh;
@@ -533,7 +550,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 return;
             }
 
-            IEnumerable<BlendShape> shapeKeys = BlendShapeReplacer.GetAllShapeKeys(mesh: mesh);
+            IEnumerable<BlendShape> shapeKeys = BlendShapeReplacer.GetAllShapeKeys(mesh, useShapeKeyNormalsAndTangents);
             mesh.ClearBlendShapes();
 
             var dummyShapeKeyNames = new List<string>();
@@ -628,8 +645,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// 指定したメッシュのすべてのシェイプキーを取得します。
         /// </summary>
         /// <param name="mesh"></param>
+        /// <param name="useShapeKeyNormalsAndTangents"></param>
         /// <returns></returns>
-        private static IEnumerable<BlendShape> GetAllShapeKeys(Mesh mesh)
+        private static IEnumerable<BlendShape> GetAllShapeKeys(Mesh mesh, bool useShapeKeyNormalsAndTangents)
         {
             var shapeKeys = new List<BlendShape>();
 
@@ -640,7 +658,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 var deltaNormals = new Vector3[meshVertexCount];
                 var deltaTangents = new Vector3[meshVertexCount];
 
-                mesh.GetBlendShapeFrameVertices(i, 0, deltaVertices, deltaNormals, deltaTangents);
+                mesh.GetBlendShapeFrameVertices(
+                    i,
+                    0,
+                    deltaVertices,
+                    useShapeKeyNormalsAndTangents ? deltaNormals : null,
+                    useShapeKeyNormalsAndTangents ? deltaTangents : null
+                );
 
                 shapeKeys.Add(new BlendShape(name: mesh.GetBlendShapeName(i)) {
                     Positions = deltaVertices.ToList(),

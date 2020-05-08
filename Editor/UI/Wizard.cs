@@ -97,6 +97,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         [SerializeField, Localizable]
         private List<string> notCombineRendererObjectNames = new List<string>();
 
+        /// <summary>
+        /// <c>false</c> の場合、シェイプキーの法線・接線を削除します。
+        /// </summary>
+        [SerializeField, Localizable]
+        private bool useShapeKeyNormalsAndTangents = false;
+
         [Header("For PC")]
 
         /// <summary>
@@ -643,7 +649,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 moveEyeBoneToFrontForEyeMovement: this.moveEyeBoneToFrontForEyeMovement,
                 forQuest: this.forQuest,
                 addedArmaturePositionY: this.armatureHeight,
-                useAnimatorForBlinks: this.useAnimatorForBlinks
+                useAnimatorForBlinks: this.useAnimatorForBlinks,
+                useShapeKeyNormalsAndTangents: this.useShapeKeyNormalsAndTangents
             ));
 
             // 変換前のプレハブのPipeline ManagerのBlueprint IDを反映

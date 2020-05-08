@@ -86,6 +86,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="addedArmaturePositionY">VRChat上で足が沈む問題について、Hipsボーンの一つ上のオブジェクトのPositionのYに加算する値。</param>
         /// <param name="useAnimatorForBlinks">まばたきにAnimatorコンポーネントを利用するなら <c>true</c>。
         ///     <c>forQuest</c> が <c>false</c> の場合、常にAnimatorコンポーネントが利用され、このパラメータは無視されます。</param>
+        /// <param name="useShapeKeyNormalsAndTangents"><c>false</c> の場合、シェイプキーの法線・接線を削除します。</param>
         /// <returns>変換中に発生したメッセージ。</returns>
         public static IEnumerable<Converter.Message> Convert(
             GameObject prefabInstance,
@@ -99,7 +100,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             float moveEyeBoneToFrontForEyeMovement = 0.0f,
             bool forQuest = false,
             float addedArmaturePositionY = 0.0f,
-            bool useAnimatorForBlinks = true
+            bool useAnimatorForBlinks = true,
+            bool useShapeKeyNormalsAndTangents = false
         ) {
 #if VRC_SDK_VRCSDK2
             var messages = new List<Converter.Message>();
@@ -107,7 +109,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             messages.AddRange(BlendShapeReplacer.Apply(
                 avatar: prefabInstance,
                 clips: clips,
-                useAnimatorForBlinks: forQuest ? useAnimatorForBlinks : true
+                useAnimatorForBlinks: forQuest ? useAnimatorForBlinks : true,
+                useShapeKeyNormalsAndTangents
             ));
             messages.AddRange(ComponentsReplacer.Apply(
                 avatar: prefabInstance,
