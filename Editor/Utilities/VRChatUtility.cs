@@ -23,6 +23,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             ROCKNROLL,
             HANDGUN,
             THUMBSUP,
+            FINGERPOINT,
         }
 
         /// <summary>

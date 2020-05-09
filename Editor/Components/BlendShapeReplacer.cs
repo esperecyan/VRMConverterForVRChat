@@ -42,6 +42,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             { BlendShapePreset.Angry, VRChatUtility.Anim.HANDGUN },
             { BlendShapePreset.Sorrow, VRChatUtility.Anim.THUMBSUP },
             { BlendShapePreset.Fun, VRChatUtility.Anim.ROCKNROLL },
+            { BlendShapePreset.Unknown, VRChatUtility.Anim.FINGERPOINT },
         };
 
         ///
@@ -248,11 +249,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// <param name="clips"></param>
         /// <param name="useAnimatorForBlinks"></param>
         /// <param name="useShapeKeyNormalsAndTangents"></param>
+        /// <param name="vrmBlendShapeForFINGERPOINT"></param>
         internal static IEnumerable<Converter.Message> Apply(
             GameObject avatar,
             IEnumerable<VRMBlendShapeClip> clips,
             bool useAnimatorForBlinks,
-            bool useShapeKeyNormalsAndTangents
+            bool useShapeKeyNormalsAndTangents,
+            VRMBlendShapeClip vrmBlendShapeForFINGERPOINT
         ) {
             var messages = new List<Converter.Message>();
 
@@ -268,7 +271,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 SetNeutralWithoutAnimator(avatar: avatar, clips: clips);
             }
 
-            SetFeelings(avatar: avatar, clips: clips);
+            SetFeelings(avatar, clips, vrmBlendShapeForFINGERPOINT);
 
             return messages;
         }
@@ -775,7 +778,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// </summary>
         /// <param name="avatar"></param>
         /// <param name="clips"></param>
-        private static void SetFeelings(GameObject avatar, IEnumerable<VRMBlendShapeClip> clips)
+        /// <param name="vrmBlendShapeForFINGERPOINT"></param>
+        private static void SetFeelings(
+            GameObject avatar,
+            IEnumerable<VRMBlendShapeClip> clips,
+            VRMBlendShapeClip vrmBlendShapeForFINGERPOINT
+        )
         {
             VRChatUtility.AddCustomAnims(avatar: avatar);
 
@@ -783,13 +791,15 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 
             foreach (var preset in BlendShapeReplacer.MappingBlendShapeToVRChatAnim.Keys)
             {
-                VRMBlendShapeClip blendShapeClip = clips.FirstOrDefault(c => c.Preset == preset);
+                VRMBlendShapeClip blendShapeClip = preset == BlendShapePreset.Unknown
+                    ? vrmBlendShapeForFINGERPOINT
+                    : clips.FirstOrDefault(c => c.Preset == preset);
                 if (!blendShapeClip)
                 {
                     continue;
                 }
 
-                AnimationClip animationClip = CreateFeeling(avatar: avatar, preset: preset, clips: ref clips);
+                AnimationClip animationClip = CreateFeeling(avatar, blendShapeClip, ref clips);
                 string anim = BlendShapeReplacer.MappingBlendShapeToVRChatAnim[preset].ToString();
                 avatarDescriptor.CustomStandingAnims[anim] = animationClip;
                 avatarDescriptor.CustomSittingAnims[anim] = animationClip;
@@ -800,19 +810,20 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// 表情の設定を行うアニメーションクリップを作成します。
         /// </summary>
         /// <param name="avatar"></param>
-        /// <param name="preset"></param>
+        /// <param name="vrmBlendShape"></param>
         /// <param name="clips"></param>
         /// <returns></returns>
         private static AnimationClip CreateFeeling(
             GameObject avatar,
-            BlendShapePreset preset,
+            VRMBlendShapeClip clip,
             ref IEnumerable<VRMBlendShapeClip> clips
         ) {
             var anim = Duplicator.DuplicateAssetToFolder<AnimationClip>(
                 source: UnityPath.FromUnityPath(Converter.RootFolderPath).Child("animations")
-                    .Child(BlendShapeReplacer.MappingBlendShapeToVRChatAnim[preset] + ".anim").LoadAsset<AnimationClip>(),
+                    .Child(BlendShapeReplacer.MappingBlendShapeToVRChatAnim[clip.Preset] + ".anim")
+                    .LoadAsset<AnimationClip>(),
                 prefabInstance: avatar,
-                fileName: preset + ".anim"
+                fileName: clip.Preset + ".anim"
             );
 
             Transform transform = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath);
@@ -830,12 +841,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                     curve
                 );
 
-                clips = BlendShapeReplacer.DuplicateShapeKeyToUnique(avatar: avatar, preset: preset, clips: clips);
+                clips = BlendShapeReplacer.DuplicateShapeKeyToUnique(avatar, clip, clips);
             }
 
             SetBlendShapeCurves(
                 animationClip: anim,
-                clip: clips.First(clip => clip.Preset == preset),
+                clip: clip,
                 keys: new Dictionary<float, float> {
                     { 0, 1 },
                     { anim.length, 1 },
@@ -865,12 +876,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// 同一のシェイプキーが含まれていれば、そのシェイプキーを複製します。
         /// </summary>
         /// <param name="avatar"></param>
-        /// <param name="preset"></param>
+        /// <param name="clip"></param>
         /// <param name="clips"></param>
         /// <returns>置換後のVRMのブレンドシェイプ一覧。</returns>
         private static IEnumerable<VRMBlendShapeClip> DuplicateShapeKeyToUnique(
             GameObject avatar,
-            BlendShapePreset preset,
+            VRMBlendShapeClip clip,
             IEnumerable<VRMBlendShapeClip> clips
         )
         {
@@ -881,7 +892,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 .Select(selector: nameAndWeight => nameAndWeight.Key)
                 .ToArray();
 
-            VRMBlendShapeClip clip = clips.FirstOrDefault(c => c.Preset == preset);
             Mesh mesh = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath).GetSharedMesh();
             foreach (KeyValuePair<string, float> nameAndWeight in clip.ShapeKeyValues)
             {

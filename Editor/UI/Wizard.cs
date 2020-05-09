@@ -103,6 +103,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         [SerializeField, Localizable]
         private bool useShapeKeyNormalsAndTangents = false;
 
+        /// <summary>
+        /// FINGERPOINTへ割り当てる表情を <see cref="BlendShapeClip.BlendShapeName"/> で指定。
+        /// </summary>
+        [SerializeField, Localizable]
+        private string blendShapeForFingerpoint = "";
+
         [Header("For PC")]
 
         /// <summary>
@@ -458,6 +464,15 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                     + " the avatar will not be converted correctly."), MessageType.Warning);
             }
 
+            if (!string.IsNullOrEmpty(this.blendShapeForFingerpoint)
+                && !VRMUtility.GetUserDefinedBlendShapeClip(this.avatar, this.blendShapeForFingerpoint))
+            {
+                EditorGUILayout.HelpBox(string.Format(
+                    _("There is no user-defined VRMBlensShape with the name “{0}”."),
+                    this.blendShapeForFingerpoint
+                ), MessageType.Warning);
+            }
+
             string version = VRChatUtility.GetSupportedUnityVersion();
             if (version != "" && Application.unityVersion != version)
             {
@@ -637,9 +652,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 UnityEngine.Object.DestroyImmediate(springBone);
             }
 
+            var clips = VRMUtility.GetAllVRMBlendShapeClips(avatar: this.avatar.gameObject);
             messages.AddRange(Converter.Convert(
                 prefabInstance: prefabInstance,
-                clips: VRMUtility.GetAllVRMBlendShapeClips(avatar: this.avatar.gameObject),
+                clips: clips,
                 swayingObjectsConverterSetting: this.swayingObjects,
                 takingOverSwayingParameters: this.takeOverSwayingParameters,
                 swayingParametersConverter: this.swayingParametersConverter,
@@ -650,7 +666,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 forQuest: this.forQuest,
                 addedArmaturePositionY: this.armatureHeight,
                 useAnimatorForBlinks: this.useAnimatorForBlinks,
-                useShapeKeyNormalsAndTangents: this.useShapeKeyNormalsAndTangents
+                useShapeKeyNormalsAndTangents: this.useShapeKeyNormalsAndTangents,
+                vrmBlendShapeForFINGERPOINT: !string.IsNullOrEmpty(this.blendShapeForFingerpoint)
+                    ? VRMUtility.GetUserDefinedBlendShapeClip(clips, this.blendShapeForFingerpoint) as VRMBlendShapeClip
+                    : null
             ));
 
             // 変換前のプレハブのPipeline ManagerのBlueprint IDを反映

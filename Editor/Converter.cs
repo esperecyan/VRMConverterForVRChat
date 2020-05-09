@@ -87,6 +87,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="useAnimatorForBlinks">まばたきにAnimatorコンポーネントを利用するなら <c>true</c>。
         ///     <c>forQuest</c> が <c>false</c> の場合、常にAnimatorコンポーネントが利用され、このパラメータは無視されます。</param>
         /// <param name="useShapeKeyNormalsAndTangents"><c>false</c> の場合、シェイプキーの法線・接線を削除します。</param>
+        /// <param name="vrmBlendShapeForFINGERPOINT">FINGERPOINTへ割り当てる表情。</param>
         /// <returns>変換中に発生したメッセージ。</returns>
         public static IEnumerable<Converter.Message> Convert(
             GameObject prefabInstance,
@@ -101,7 +102,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             bool forQuest = false,
             float addedArmaturePositionY = 0.0f,
             bool useAnimatorForBlinks = true,
-            bool useShapeKeyNormalsAndTangents = false
+            bool useShapeKeyNormalsAndTangents = false,
+            VRMBlendShapeClip vrmBlendShapeForFINGERPOINT = null
         ) {
 #if VRC_SDK_VRCSDK2
             var messages = new List<Converter.Message>();
@@ -110,7 +112,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 avatar: prefabInstance,
                 clips: clips,
                 useAnimatorForBlinks: forQuest ? useAnimatorForBlinks : true,
-                useShapeKeyNormalsAndTangents
+                useShapeKeyNormalsAndTangents,
+                vrmBlendShapeForFINGERPOINT
             ));
             messages.AddRange(ComponentsReplacer.Apply(
                 avatar: prefabInstance,
