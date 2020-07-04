@@ -13,41 +13,30 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
 {
     internal class Exporter
     {
-        private static readonly Regex FilePathPattern
-            = new Regex(pattern: "^" + Regex.Escape(Converter.RootFolderPath) + @"/(?!Editor/Utilities/Exporter\.cs$)");
+        private static readonly Regex FilePathPattern = new Regex(
+            $@"^{Regex.Escape(Converter.RootFolderPath)}/(?!Editor/Utilities/Exporter\.cs$)|^Assets/(?:VRM|VRMShaders)/"
+        );
 
-        private static readonly string PackageName = Converter.Name + "-" + Converter.Version;
+        private static readonly string PackageName = $"{Converter.Name}-{Converter.Version} + {VRMVersion.VRM_VERSION}";
 
         [MenuItem("Assets/Export " + Converter.Name, false, 30)]
         private static void Export()
         {
-            string[] allAssetPathNames = AssetDatabase.GetAllAssetPaths();
+            var packagePath = Path.Combine(Application.temporaryCachePath, Exporter.PackageName + ".unitypackage");
+            AssetDatabase.ExportPackage(
+                AssetDatabase.GetAllAssetPaths().Where(path => Exporter.FilePathPattern.IsMatch(input: path)).ToArray(),
+                packagePath
+            );
 
-            IEnumerable<string> assetPathNames
-                = allAssetPathNames.Where(path => Exporter.FilePathPattern.IsMatch(input: path));
-            
-            IEnumerable<string> packagePaths = new[] { false, true }.Select(withUniVRM => {
-                string name = Exporter.PackageName;
-
-                if (withUniVRM) {
-                    name += " + " + VRMVersion.VRM_VERSION;
-                    assetPathNames
-                        = assetPathNames.Concat(allAssetPathNames.Where(path => path.StartsWith("Assets/VRM/")));
-                }
-
-                var packagePath = Path.Combine(Application.temporaryCachePath, name + ".unitypackage");
-                AssetDatabase.ExportPackage(assetPathNames.ToArray(), packagePath);
-                return packagePath;
-            });
-
-            Process.Start(fileName: "PowerShell", arguments: "-Command \"Compress-Archive"
-                + " -Path @(" + string.Join(separator: ",", value: packagePaths.Select(path => "'" + path + "'").ToArray()) + ")"
-                + " -DestinationPath '" + Path.Combine(Environment.GetFolderPath(folder: Environment.SpecialFolder.DesktopDirectory), Exporter.PackageName + ".zip") + "'\"")
+            Process.Start(fileName: "PowerShell", arguments: $@"-Command ""Compress-Archive `
+                -Path @('{packagePath}') `
+                -DestinationPath '{Path.Combine(
+                    Environment.GetFolderPath(folder: Environment.SpecialFolder.DesktopDirectory),
+                    Exporter.PackageName.Replace(" + ", " +") + ".zip" // BOOTHのファイル名字数制限 (50文字) 対策
+                )}'""")
                 .WaitForExit();
 
-            foreach (string packagePath in packagePaths) {
-                File.Delete(path: packagePath);
-            }
+            File.Delete(path: packagePath);
         }
     }
 }
