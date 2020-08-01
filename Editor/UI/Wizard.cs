@@ -682,7 +682,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 this.postConverting(prefabInstance, prefabInstance.GetComponent<VRMMeta>());
             }
 
-            PrefabUtility.RecordPrefabInstancePropertyModifications(prefabInstance);
+            PrefabUtility.ApplyPrefabInstance(prefabInstance, InteractionMode.AutomatedAction);
 
             // 変換前のプレハブインスタンスのPipeline ManagerのBlueprint IDを反映
             GameObject[] rootGameObjects = SceneManager.GetActiveScene().GetRootGameObjects();
