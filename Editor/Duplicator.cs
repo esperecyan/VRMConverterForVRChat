@@ -81,11 +81,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         {
             var destinationFolderUnityPath
                 = UnityPath.FromUnityPath(PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(prefabInstance));
-            foreach (KeyValuePair<Type, string> typeAndSuffix in Duplicator.FolderNameSuffixes)
+            foreach (var (assetType, suffix) in Duplicator.FolderNameSuffixes)
             {
-                if (typeAndSuffix.Key.IsAssignableFrom(type))
+                if (assetType.IsAssignableFrom(type))
                 {
-                    destinationFolderUnityPath = destinationFolderUnityPath.GetAssetFolder(suffix: typeAndSuffix.Value);
+                    destinationFolderUnityPath = destinationFolderUnityPath.GetAssetFolder(suffix);
                     break;
                 }
             }

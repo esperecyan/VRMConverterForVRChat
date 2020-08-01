@@ -679,14 +679,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
 
             // 変換前のプレハブインスタンスのPipeline ManagerのBlueprint IDを反映
             GameObject[] rootGameObjects = SceneManager.GetActiveScene().GetRootGameObjects();
-            foreach (var avatarAndBlueprintId in blueprintIds)
+            foreach (var (avatarIndex, blueprintId) in blueprintIds)
             {
-                if (string.IsNullOrEmpty(avatarAndBlueprintId.Value))
+                if (string.IsNullOrEmpty(blueprintId))
                 {
                     continue;
                 }
-                rootGameObjects[avatarAndBlueprintId.Key].GetComponent<PipelineManager>().blueprintId
-                    = avatarAndBlueprintId.Value;
+                rootGameObjects[avatarIndex].GetComponent<PipelineManager>().blueprintId = blueprintId;
             }
 
             if (blueprintIds.Count > 0)
