@@ -80,12 +80,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         private float armatureHeight = default;
 
         /// <summary>
-        /// 伏せたときのアバターの位置が、自分視点と他者視点で異なるVRChatのバグに対処するなら <c>true</c>。
-        /// </summary>
-        [SerializeField, Localizable]
-        private bool fixProneAvatarPosition = true;
-
-        /// <summary>
         /// メッシュ・サブメッシュの結合を行うなら <c>true</c>。
         /// </summary>
         [SerializeField, Localizable]
@@ -661,7 +655,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 swayingParametersConverter: this.swayingParametersConverter,
                 enableAutoEyeMovement: this.enableEyeMovement,
                 addedShouldersPositionY: this.shoulderHeights,
-                fixProneAvatarPosition: this.fixProneAvatarPosition,
                 moveEyeBoneToFrontForEyeMovement: this.moveEyeBoneToFrontForEyeMovement,
                 forQuest: this.forQuest,
                 addedArmaturePositionY: this.armatureHeight,

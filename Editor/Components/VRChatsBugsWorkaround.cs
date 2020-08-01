@@ -62,18 +62,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         };
 
         /// <summary>
-        /// VRChatで伏せ姿勢に使用するアニメーション名。
-        /// </summary>
-        private static readonly IEnumerable<string> ProneVRChatAnims = new[] { "PRONEIDLE", "PRONEFWD" };
-
-        /// <summary>
         /// クラスに含まれる処理を適用します。
         /// </summary>
         /// <param name="avatar"></param>
         /// <param name="enableAutoEyeMovement">オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。</param>
         /// <param name="addedShouldersPositionY">VRChat上でモデルがなで肩・いかり肩になる問題について、Shoulder/UpperArmボーンのPositionのYに加算する値。</param>
         /// <param name="addedArmaturePositionY"></param>
-        /// <param name="fixProneAvatarPosition">伏せたときのアバターの位置が、自分視点と他者視点で異なるVRChatのバグに対処するなら <c>true</c>。</param>
         /// <param name="moveEyeBoneToFrontForEyeMovement"></param>
         /// <param name="forQuest"></param>
         /// <returns>変換中に発生したメッセージ。</returns>
@@ -81,7 +75,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             GameObject avatar,
             bool enableAutoEyeMovement,
             float addedShouldersPositionY,
-            bool fixProneAvatarPosition,
             float addedArmaturePositionY,
             float moveEyeBoneToFrontForEyeMovement,
             bool forQuest
@@ -115,10 +108,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 addedValueToShoulders: addedShouldersPositionY,
                 addedValueToEyes: moveEyeBoneToFrontForEyeMovement
             );
-            if (fixProneAvatarPosition)
-            {
-                VRChatsBugsWorkaround.FixProneAvatarPosition(avatar: avatar);
-            }
             messages.AddRange(VRChatsBugsWorkaround.EnableTextureMipmapStreaming(avatar: avatar));
 
             return messages;
@@ -481,45 +470,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                     }
                 }
             });
-        }
-
-        /// <summary>
-        /// 伏せ姿勢のときに、アバターの位置が自分視点と他者視点でズレるバグについて、位置を補正します。
-        /// </summary>
-        /// <param name="avatar"></param>
-        /// <remarks>
-        /// 参照:
-        /// Fix the prone animation head position | Bug Reports | VRChat
-        /// <https://vrchat.canny.io/bug-reports/p/fix-the-prone-animation-head-position>
-        /// Sigさんのツイート: “VRChatにて、フルボディトラッキングじゃないけど寝たい！って人向けのモーションをアップデート。腕もある程度動かせます 画像を参考に導入し、あとはリアルの床に寝るだけ。 VR睡眠の沼に落ちよう！ ・目線のずれを若干修正 ・体や手の指が微妙に揺れるように https://t.co/DDEoOQNLnk … #VRChat… https://t.co/Cd0QKipSO7”
-        /// <https://twitter.com/sleepyslowsheep/status/1035007669537406977>
-        /// </remarks>
-        private static void FixProneAvatarPosition(GameObject avatar)
-        {
-            VRChatUtility.AddCustomAnims(avatar: avatar);
-
-            var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
-
-            Vector3 gap = avatarDescriptor.ViewPosition
-                - avatar.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips).position;
-            float zGap = gap.y - gap.z;
-
-            foreach (string anim in VRChatsBugsWorkaround.ProneVRChatAnims)
-            {
-                AnimationClip clip = Duplicator.DuplicateAssetToFolder<AnimationClip>(
-                    source: UnityPath.FromUnityPath(Converter.RootFolderPath).Child("animations").Child(anim + ".anim")
-                        .LoadAsset<AnimationClip>(),
-                    prefabInstance: avatar,
-                    fileName: anim + "-position-fixed.anim"
-                );
-
-                var curve = new AnimationCurve();
-                curve.AddKey(0, -zGap);
-                curve.AddKey(clip.length, -zGap);
-                clip.SetCurve("", typeof(Animator), "RootT.z", curve);
-
-                avatarDescriptor.CustomStandingAnims[anim] = clip;
-            }
         }
 
         /// <summary>

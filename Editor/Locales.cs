@@ -23,7 +23,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     { "Take Over Swaying Parameters", "揺れパラメータ引き継ぎ" },
                     { "Shoulder Heights", "肩の高さ" },
                     { "Armature Height", "Armatureの高さ" },
-                    { "Fix Prone Avatar Position", "伏せアバターの位置ズレ補正" },
                     { "Combine Meshes", "メッシュの結合" },
                     { "If you do not “Combine Meshes”,"
                         + " and any of VRMBlendShapes references meshes other than the mesh having most shape keys"
