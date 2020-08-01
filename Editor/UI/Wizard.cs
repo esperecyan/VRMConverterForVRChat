@@ -614,7 +614,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
 
                 GameObject[] previousRootGameObjects = SceneManager.GetActiveScene().GetRootGameObjects();
                 blueprintIds = previousRootGameObjects
-                    .Where(root => PrefabUtility.GetNearestPrefabInstanceRoot(root) == previousPrefab)
+                    .Where(root => PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(root) == this.destinationPath)
                     .Select(root =>
                     {
                         var manager = root.GetComponent<PipelineManager>();
