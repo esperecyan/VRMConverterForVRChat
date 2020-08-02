@@ -118,7 +118,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     elementSelector: nameAndWeight => nameAndWeight.Value
                 );
                 return clip;
-            });
+            }).ToList();
         }
 
         /// <summary>
