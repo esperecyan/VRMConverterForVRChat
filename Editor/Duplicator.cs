@@ -34,22 +34,19 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </summary>
         /// <param name="sourceAvatar">プレハブ、またはHierarchy上のオブジェクト。</param>
         /// <param name="destinationPath">「Assets/」から始まり「.prefab」で終わる複製先のパス。</param>
-        /// <param name="duplicatingOptionals">モデル情報 (VRMMeta) とVRMのBlendShapeとテクスチャも複製するなら <c>true</c>。</param>
         /// <param name="notCombineRendererObjectNames">結合しないメッシュレンダラーのオブジェクト名。</param>
         /// <param name="combineMeshesAndSubMeshes">メッシュ・サブメッシュを結合するなら <c>true</c>。</param>
         /// <returns>複製後のインスタンス。</returns>
         public static GameObject Duplicate(
             GameObject sourceAvatar,
             string destinationPath,
-            bool duplicatingOptionals = false,
             IEnumerable<string> notCombineRendererObjectNames = null,
             bool combineMeshesAndSubMeshes = true
         )
         {
             GameObject destinationPrefab = Duplicator.DuplicatePrefab(
                 sourceAvatar: sourceAvatar,
-                destinationPath: destinationPath,
-                duplicatingOptionals: duplicatingOptionals
+                destinationPath: destinationPath
             );
             var destinationPrefabInstance = PrefabUtility.InstantiatePrefab(destinationPrefab) as GameObject;
 
@@ -59,11 +56,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 notCombineRendererObjectNames: notCombineRendererObjectNames
             );
             Duplicator.DuplicateMaterials(prefabInstance: destinationPrefabInstance);
-            if (duplicatingOptionals)
-            {
-                Duplicator.DuplicateTextures(prefabInstance: destinationPrefabInstance);
-                Duplicator.DuplicateVRMBlendShapes(prefabInstance: destinationPrefabInstance);
-            }
 
             PrefabUtility.RecordPrefabInstancePropertyModifications(destinationPrefabInstance);
             destinationPrefabInstance.transform.SetAsLastSibling();
@@ -197,12 +189,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </summary>
         /// <param name="sourceAvatar">プレハブ、またはHierarchy上のオブジェクト。</param>
         /// <param name="destinationPath">「Assets/」から始まり「.prefab」で終わる複製先のパス。</param>
-        /// <param name="duplicatingOptionals">モデル情報 (VRMMeta) も複製するなら <c>true</c>。</param>
         /// <returns></returns>
         private static GameObject DuplicatePrefab(
             GameObject sourceAvatar,
-            string destinationPath,
-            bool duplicatingOptionals
+            string destinationPath
         ) {
             // プレハブ
             GameObject sourceInstance = UnityEngine.Object.Instantiate(sourceAvatar);
@@ -237,23 +227,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             {
                 humanoidDescription.Description = Duplicator.DuplicateAssetInstance(humanoidDescription.Description) as AvatarDescription;
                 AssetDatabase.AddObjectToAsset(humanoidDescription.Description, destinationPrefab);
-            }
-
-            if (duplicatingOptionals)
-            {
-                // Meta
-                var meta = destinationPrefab.GetComponent<VRMMeta>();
-                var vrmMetaObject = AssetDatabase.LoadAssetAtPath<VRMMetaObject>(destinationPath);
-                if (vrmMetaObject)
-                {
-                    EditorUtility.CopySerialized(humanoidDescription.Description, vrmMetaObject);
-                    meta.Meta = vrmMetaObject;
-                }
-                else
-                {
-                    meta.Meta = Duplicator.DuplicateAssetInstance(meta.Meta) as VRMMetaObject;
-                    AssetDatabase.AddObjectToAsset(meta.Meta, destinationPrefab);
-                }
             }
 
             return destinationPrefab;
@@ -369,107 +342,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                         = Duplicator.DuplicateAssetToFolder<Material>(source: material, prefabInstance: prefabInstance);
                 }).ToArray();
             }
-        }
-
-        /// <summary>
-        /// プレハブが依存しているテクスチャを複製します。
-        /// </summary>
-        /// <remarks>
-        /// 参照:
-        /// Get all textures from a material? — Unity Answers
-        /// <https://answers.unity.com/answers/1116025/view.html>
-        /// </remarks>
-        /// <param name="prefabInstance"></param>
-        private static void DuplicateTextures(GameObject prefabInstance)
-        {
-            var alreadyDuplicatedTextures = new Dictionary<Texture, Texture>();
-
-            foreach (var renderer in prefabInstance.GetComponentsInChildren<Renderer>())
-            {
-                foreach (Material material in renderer.sharedMaterials)
-                {
-                    if (!material)
-                    {
-                        continue;
-                    }
-
-                    Shader shader = material.shader;
-                    for (var i = 0; i < ShaderUtil.GetPropertyCount(shader); i++)
-                    {
-                        if (ShaderUtil.GetPropertyType(shader, i) != ShaderUtil.ShaderPropertyType.TexEnv)
-                        {
-                            continue;
-                        }
-
-                        string propertyName = ShaderUtil.GetPropertyName(shader, i);
-                        Texture texture = material.GetTexture(propertyName);
-                        if (!texture || alreadyDuplicatedTextures.ContainsValue(texture))
-                        {
-                            continue;
-                        }
-
-                        Texture newTexture;
-                        if (alreadyDuplicatedTextures.ContainsKey(texture))
-                        {
-                            newTexture = alreadyDuplicatedTextures[texture];
-                        }
-                        else
-                        {
-                            newTexture = Duplicator
-                                .DuplicateAssetToFolder<Texture>(source: texture, prefabInstance: prefabInstance);
-                            alreadyDuplicatedTextures[texture] = newTexture;
-                        }
-
-                        material.SetTexture(propertyName, newTexture);
-                    }
-                }
-            }
-
-            VRMMetaObject meta = prefabInstance.GetComponent<VRMMeta>().Meta;
-            Texture2D thumbnail = meta.Thumbnail;
-            if (!thumbnail)
-            {
-                return;
-            }
-            meta.Thumbnail = (alreadyDuplicatedTextures.ContainsKey(thumbnail)
-                ? alreadyDuplicatedTextures[thumbnail] as Texture2D
-                : Duplicator.DuplicateAssetToFolder<Texture2D>(source: thumbnail, prefabInstance: prefabInstance));
-            alreadyDuplicatedTextures[thumbnail] = meta.Thumbnail;
-        }
-
-
-        /// <summary>
-        /// プレハブが依存しているVRMブレンドシェイプを複製します。
-        /// </summary>
-        /// <param name="prefabInstance"></param>
-        private static void DuplicateVRMBlendShapes(GameObject prefabInstance)
-        {
-            var prefab = PrefabUtility.GetCorrespondingObjectFromSource(prefabInstance) as GameObject;
-
-            var proxy = prefab.GetComponent<VRMBlendShapeProxy>();
-            if (!proxy || !proxy.BlendShapeAvatar)
-            {
-                return;
-            }
-
-            proxy.BlendShapeAvatar = Duplicator.DuplicateAssetToFolder<BlendShapeAvatar>(source: proxy.BlendShapeAvatar, prefabInstance: prefabInstance); 
-
-            var alreadyDuplicatedBlendShapeClips = new Dictionary<BlendShapeClip, BlendShapeClip>();
-
-            proxy.BlendShapeAvatar.Clips = proxy.BlendShapeAvatar.Clips.Select(clip => {
-                if (!clip)
-                {
-                    return clip;
-                }
-
-                if (alreadyDuplicatedBlendShapeClips.ContainsKey(clip))
-                {
-                    return alreadyDuplicatedBlendShapeClips[clip];
-                }
-
-                return alreadyDuplicatedBlendShapeClips[clip]
-                    = Duplicator.DuplicateAssetToFolder<BlendShapeClip>(source: clip, prefabInstance: prefabInstance);
-            }).ToList();
         }
     }
 }
