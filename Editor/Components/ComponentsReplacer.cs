@@ -204,6 +204,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 
                 DynamicBoneType.GetField("m_Gravity")
                     .SetValue(dynamicBone, springBone.m_gravityDir * springBone.m_gravityPower);
+                DynamicBoneType.GetField("m_Radius").SetValue(dynamicBone, springBone.m_hitRadius);
                 if (dynamicBoneColliderGroups != null)
                 {
                     var colliders = Activator.CreateInstance(type: DynamicBoneColliderBaseListType);
