@@ -86,10 +86,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             {
                 VRChatsBugsWorkaround.SetEyeBonesForCecilHenShin(avatar: avatar);
             }
-            if (enableAutoEyeMovement || forQuest)
-            {
-                VRChatsBugsWorkaround.EnableAutoEyeMovement(avatar: avatar);
-            }
             if (enableAutoEyeMovement)
             {
                 if (!VRChatsBugsWorkaround.ApplyAutoEyeMovementDegreeMapping(avatar: avatar))
@@ -108,6 +104,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 addedValueToShoulders: addedShouldersPositionY,
                 addedValueToEyes: moveEyeBoneToFrontForEyeMovement
             );
+            if (enableAutoEyeMovement || forQuest)
+            {
+                // VRChatsBugsWorkaround.AddShouldersPositionYAndEyesPositionZ() より後に実行しないと
+                // 同メソッド内部で使用しているUniVRMが、同名ボーンのエラーを出す場合がある
+                VRChatsBugsWorkaround.EnableAutoEyeMovement(avatar: avatar);
+            }
             messages.AddRange(VRChatsBugsWorkaround.EnableTextureMipmapStreaming(avatar: avatar));
 
             return messages;
