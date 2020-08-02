@@ -214,20 +214,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 AssetDatabase.AddObjectToAsset(animator.avatar, destinationPrefab);
             }
 
-            // AvatarDescription
+            // AvatarDescription (最終的に削除するので、アセットは複製しない)
             var humanoidDescription = destinationPrefab.GetComponent<VRMHumanoidDescription>();
             humanoidDescription.Avatar = animator.avatar;
-            var destinationAvatarDescription = AssetDatabase.LoadAssetAtPath<AvatarDescription>(destinationPath);
-            if (destinationAvatarDescription)
-            {
-                EditorUtility.CopySerialized(humanoidDescription.Description, destinationAvatarDescription);
-                humanoidDescription.Description = destinationAvatarDescription;
-            }
-            else
-            {
-                humanoidDescription.Description = Duplicator.DuplicateAssetInstance(humanoidDescription.Description) as AvatarDescription;
-                AssetDatabase.AddObjectToAsset(humanoidDescription.Description, destinationPrefab);
-            }
+            humanoidDescription.Description
+                = Duplicator.DuplicateAssetInstance(humanoidDescription.Description) as AvatarDescription;
 
             return destinationPrefab;
         }
