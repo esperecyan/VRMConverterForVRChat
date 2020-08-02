@@ -707,10 +707,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// <summary>
         /// アニメーションクリップに、指定されたブレンドシェイプを追加します。
         /// </summary>
+        /// <param name="avatar"></param>
         /// <param name="animationClip"></param>
         /// <param name="clip"></param>
         /// <param name="keys"></param>
         private static void SetBlendShapeCurves(
+            GameObject avatar,
             AnimationClip animationClip,
             VRMBlendShapeClip clip,
             IDictionary<float, float> keys
@@ -720,11 +722,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 BlendShapeReplacer.SetBlendShapeCurve(animationClip, name, weight, keys, setRelativePath: true);
             }
 
-            foreach (MaterialValueBinding binding in clip.MaterialValues)
+            foreach (var bindings in clip.MaterialValues.GroupBy(binding => binding.MaterialName))
             {
-
-                // TODO
-
+                BlendShapeReplacer.SetBlendShapeCurve(animationClip, avatar, clip.BlendShapeName, bindings, keys.Keys);
             }
         }
 
@@ -754,6 +754,48 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 typeof(SkinnedMeshRenderer),
                 "blendShape." + shapeKeyName,
                 curve
+            );
+        }
+
+        /// <summary>
+        /// アニメーションクリップに、指定されたマテリアルを追加します。
+        /// </summary>
+        /// <param name="avatar"></param>
+        /// <param name="animationClip"></param>
+        /// <param name="name"></param>
+        /// <param name="binding"></param>
+        /// <param name="secondsList"></param>
+        private static void SetBlendShapeCurve(
+            AnimationClip animationClip,
+            GameObject avatar,
+            string vrmBlendShapeName,
+            IEnumerable<MaterialValueBinding> bindings,
+            IEnumerable<float> secondsList
+        )
+        {
+            var materials = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath)
+                .GetComponent<SkinnedMeshRenderer>().sharedMaterials;
+
+            var materialIndex = materials.ToList().FindIndex(m => m.name == bindings.First().MaterialName);
+            
+            var material = Duplicator.DuplicateAssetToFolder<Material>(
+                source: materials[materialIndex],
+                prefabInstance: avatar,
+                fileName: $"{materials[materialIndex].name}-{vrmBlendShapeName}.mat"
+            );
+
+            VRMUtility.Bake(material, bindings);
+
+            AnimationUtility.SetObjectReferenceCurve(
+                animationClip,
+                new EditorCurveBinding()
+                {
+                    path = VRChatUtility.AutoBlinkMeshPath,
+                    type = typeof(SkinnedMeshRenderer),
+                    propertyName = $"m_Materials.Array.data[{materialIndex}]",
+                },
+                secondsList
+                    .Select(seconds => new ObjectReferenceKeyframe() { time = seconds, value = material }).ToArray()
             );
         }
 
@@ -829,6 +871,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             }
 
             SetBlendShapeCurves(
+                avatar,
                 animationClip: anim,
                 clip: clip,
                 keys: new Dictionary<float, float> {
