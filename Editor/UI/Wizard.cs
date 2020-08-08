@@ -489,7 +489,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 avatarObject: this.avatar.gameObject,
                 perfStats: statistics
             );
-            int currentPolycount = statistics.polyCount;
+            int currentPolycount = (int)statistics.polyCount;
 
             int maxPolycount = VRChatUtility.AvatarPerformanceStatsLevelSets["Quest"].medium.polyCount;
 
