@@ -54,6 +54,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             { BlendShapePreset.Unknown, VRChatUtility.Anim.FINGERPOINT },
         };
 
+        /// <summary>
+        /// 表情用のテンプレートAnimatorControllerのGUID。
+        /// </summary>
+        private static readonly string FXTemplateGUID = "4dab2bc02bfaabc4faea4c6b4d8a142b";
+
         ///
         /// <summary>
         /// <see cref="VRC_AvatarDescriptor.VisemeBlendShapes"/>に対応する、生成するシェイプキー名と生成するための値。
@@ -915,6 +920,63 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             VRChatUtility.AddCustomAnims(avatar: avatar);
 
             var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
+#elif VRC_SDK_VRCSDK3
+            var fxController = Duplicator.DuplicateAssetToFolder(
+                source: AssetDatabase.LoadAssetAtPath<AnimatorController>(
+                    AssetDatabase.GUIDToAssetPath(BlendShapeReplacer.FXTemplateGUID)
+                ),
+                prefabInstance: avatar
+            );
+
+            var avatarDescriptor = avatar.GetOrAddComponent<VRCAvatarDescriptor>();
+            avatarDescriptor.customizeAnimationLayers = true;
+            avatarDescriptor.baseAnimationLayers = new[] {
+                new VRCAvatarDescriptor.CustomAnimLayer()
+                {
+                    type = VRCAvatarDescriptor.AnimLayerType.Base,
+                    isDefault = true,
+                },
+                new VRCAvatarDescriptor.CustomAnimLayer()
+                {
+                    type = VRCAvatarDescriptor.AnimLayerType.Additive,
+                    isDefault = true,
+                },
+                new VRCAvatarDescriptor.CustomAnimLayer()
+                {
+                    type = VRCAvatarDescriptor.AnimLayerType.Gesture,
+                    isDefault = true,
+                },
+                new VRCAvatarDescriptor.CustomAnimLayer()
+                {
+                    type = VRCAvatarDescriptor.AnimLayerType.Action,
+                    isDefault = true,
+                },
+                new VRCAvatarDescriptor.CustomAnimLayer()
+                {
+                    type = VRCAvatarDescriptor.AnimLayerType.FX,
+                    animatorController = fxController,
+                },
+            };
+            avatarDescriptor.specialAnimationLayers = new[] {
+                new VRCAvatarDescriptor.CustomAnimLayer()
+                {
+                    type = VRCAvatarDescriptor.AnimLayerType.Sitting,
+                    isDefault = true,
+                },
+                new VRCAvatarDescriptor.CustomAnimLayer()
+                {
+                    type = VRCAvatarDescriptor.AnimLayerType.TPose,
+                    isDefault = true,
+                },
+                new VRCAvatarDescriptor.CustomAnimLayer()
+                {
+                    type = VRCAvatarDescriptor.AnimLayerType.IKPose,
+                    isDefault = true,
+                },
+            };
+
+            var states = fxController.layers[1].stateMachine.states.Select(childState => childState.state).ToList();
+#endif
 
             foreach (var preset in BlendShapeReplacer.MappingBlendShapeToVRChatAnim.Keys)
             {
@@ -928,12 +990,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 
                 AnimationClip animationClip = CreateFeeling(avatar, blendShapeClip, ref clips);
                 string anim = BlendShapeReplacer.MappingBlendShapeToVRChatAnim[preset].ToString();
+#if VRC_SDK_VRCSDK2
                 avatarDescriptor.CustomStandingAnims[anim] = animationClip;
                 avatarDescriptor.CustomSittingAnims[anim] = animationClip;
-            }
 #elif VRC_SDK_VRCSDK3
-            throw new System.NotImplementedException();
+                states.First(s => s.name.ToLower() == anim.ToLower()).motion = animationClip;
 #endif
+            }
         }
 
         /// <summary>
@@ -947,13 +1010,16 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             GameObject avatar,
             VRMBlendShapeClip clip,
             ref IEnumerable<VRMBlendShapeClip> clips
-        ) {
+        )
+        {
+            var fileName = clip.Preset + ".anim";
+#if VRC_SDK_VRCSDK2
             var anim = Duplicator.DuplicateAssetToFolder<AnimationClip>(
                 source: UnityPath.FromUnityPath(Converter.RootFolderPath).Child("animations")
                     .Child(BlendShapeReplacer.MappingBlendShapeToVRChatAnim[clip.Preset] + ".anim")
                     .LoadAsset<AnimationClip>(),
                 prefabInstance: avatar,
-                fileName: clip.Preset + ".anim"
+                fileName
             );
 
             Transform transform = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath);
@@ -973,6 +1039,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 
                 clips = BlendShapeReplacer.DuplicateShapeKeyToUnique(avatar, clip, clips);
             }
+#else
+            var anim = new AnimationClip();
+            AssetDatabase.CreateAsset(
+                anim,
+                Duplicator.DetermineAssetPath(prefabInstance: avatar, typeof(AnimationClip), fileName)
+            );
+            clips = BlendShapeReplacer.DuplicateShapeKeyToUnique(avatar, clip, clips);
+#endif
 
             SetBlendShapeCurves(
                 avatar,

@@ -147,9 +147,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                     fileName: "CustomSittingAnims.overrideController"
                 );
             }
-        }
-#elif VRC_SDK_VRCSDK3
-            throw new System.NotImplementedException();
 #endif
         }
     }
