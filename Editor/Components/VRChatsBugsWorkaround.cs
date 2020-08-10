@@ -1,4 +1,3 @@
-#if VRC_SDK_VRCSDK2
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -7,7 +6,11 @@ using UnityEditor;
 using VRM;
 using UniHumanoid;
 using UniGLTF;
+#if VRC_SDK_VRCSDK2
 using VRCSDK2;
+#elif VRC_SDK_VRCSDK3
+using VRC.SDKBase;
+#endif
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
 
@@ -18,6 +21,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
     /// </summary>
     internal class VRChatsBugsWorkaround
     {
+#if VRC_SDK_VRCSDK2
         /// <summary>
         /// 正常に動作する<see cref="VRC_AvatarDescriptor.Animations"/>の値。
         /// </summary>
@@ -28,6 +32,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// </remarks>
         internal static readonly VRC_AvatarDescriptor.AnimationSet DefaultAnimationSetValue
             = VRC_AvatarDescriptor.AnimationSet.Female;
+#endif
 
         /// <summary>
         /// オートアイムーブメントにおける目のボーンの回転角度の最大値。
@@ -431,7 +436,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             float addedValueToArmature,
             float addedValueToShoulders,
             float addedValueToEyes
-        ) {
+        )
+        {
+#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
             if (addedValueToArmature == 0.0f && addedValueToShoulders == 0.0f && addedValueToEyes == 0.0f)
             {
                 return;
@@ -472,6 +479,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                     }
                 }
             });
+#endif
         }
 
         /// <summary>
@@ -482,7 +490,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         {
             var messages = new List<Converter.Message>();
 
-#if UNITY_2018_4_OR_NEWER
             var paths = new List<string>();
             foreach (Texture texture
                 in EditorUtility.CollectDependencies(new[] { avatar }).Where(obj => obj is Texture))
@@ -520,10 +527,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 ),
                 type = MessageType.Warning,
             });
-#endif
 
             return messages;
         }
     }
 }
-#endif

@@ -9,7 +9,7 @@ using UnityEngine.SceneManagement;
 using UnityEditor;
 using UniGLTF;
 using VRM;
-#if VRC_SDK_VRCSDK2
+#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
 using VRCSDK2.Validation.Performance;
 using VRCSDK2.Validation.Performance.Stats;
 using VRC.Core;
@@ -409,7 +409,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 indentStyle
             );
 
-#if VRC_SDK_VRCSDK2
+#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
             foreach (var type in Converter.RequiredComponents) {
                 if (!this.avatar.GetComponent(type))
                 {
@@ -504,14 +504,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 ), MessageType.Error);
             }
 #else
-            EditorGUILayout.HelpBox(_("VRCHAT SDK2 (VRCSDK2) has not been imported."), MessageType.Error);
+            EditorGUILayout.HelpBox(_("VRChat SDK2 or SDK3 has not been imported."), MessageType.Error);
             isValid = false;
 #endif
 
             return true;
         }
 
-#if VRC_SDK_VRCSDK2
+#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
         /// <summary>
         /// Questの制限値に関するエラーメッセージを取得します。
         /// </summary>

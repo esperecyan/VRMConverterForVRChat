@@ -1,4 +1,3 @@
-#if VRC_SDK_VRCSDK2
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,7 +6,11 @@ using UnityEditor.Animations;
 using VRM;
 using UniGLTF;
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
+#if VRC_SDK_VRCSDK2
 using VRCSDK2;
+#elif VRC_SDK_VRCSDK3
+using VRC.SDKBase;
+#endif
 
 namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 {
@@ -363,11 +366,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             }
             EditorUtility.SetDirty(mesh);
 
-            var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
+#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
+            var avatarDescriptor = avatar.GetComponent<VRC_AvatarDescriptor>();
             avatarDescriptor.lipSync = VRC_AvatarDescriptor.LipSyncStyle.VisemeBlendShape;
             avatarDescriptor.VisemeSkinnedMesh = renderer;
             avatarDescriptor.VisemeBlendShapes
                 = BlendShapeReplacer.VisemeShapeKeyNamesAndValues.Select(nameAndValues => nameAndValues.Key).ToArray();
+#endif
         }
 
         /// <summary>
@@ -811,6 +816,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             VRMBlendShapeClip vrmBlendShapeForFINGERPOINT
         )
         {
+#if VRC_SDK_VRCSDK2
             VRChatUtility.AddCustomAnims(avatar: avatar);
 
             var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
@@ -830,6 +836,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 avatarDescriptor.CustomStandingAnims[anim] = animationClip;
                 avatarDescriptor.CustomSittingAnims[anim] = animationClip;
             }
+#elif VRC_SDK_VRCSDK3
+            throw new System.NotImplementedException();
+#endif
         }
 
         /// <summary>
@@ -956,4 +965,3 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         }
     }
 }
-#endif

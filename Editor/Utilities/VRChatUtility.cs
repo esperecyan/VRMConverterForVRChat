@@ -1,11 +1,16 @@
-#if VRC_SDK_VRCSDK2
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEditor;
-using VRC.Core;
+#if VRC_SDK_VRCSDK2
 using VRCSDK2;
+#elif VRC_SDK_VRCSDK3
+using VRC.SDK3.Avatars.Components;
+#endif
+#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
+using VRC.Core;
 using VRCSDK2.Validation.Performance.Stats;
+#endif
 
 namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
 {
@@ -53,19 +58,20 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
         /// アニメーションオーバーライドの有効化に必須となるボーン。
         /// </summary>
         internal static readonly IDictionary<HumanBodyBones, HumanBodyBones[]>
-			RequiredHumanBodyBonesForAnimationOverride = new Dictionary<HumanBodyBones, HumanBodyBones[]> {
-				{ HumanBodyBones.LeftHand, new[] {
-					HumanBodyBones.LeftThumbProximal,
-					HumanBodyBones.LeftIndexProximal,
-					HumanBodyBones.LeftMiddleProximal,
-				} },
-				{ HumanBodyBones.RightHand, new[] {
-					HumanBodyBones.RightThumbProximal,
-					HumanBodyBones.RightIndexProximal,
-					HumanBodyBones.RightMiddleProximal,
-				} },
-			};
+            RequiredHumanBodyBonesForAnimationOverride = new Dictionary<HumanBodyBones, HumanBodyBones[]> {
+                { HumanBodyBones.LeftHand, new[] {
+                    HumanBodyBones.LeftThumbProximal,
+                    HumanBodyBones.LeftIndexProximal,
+                    HumanBodyBones.LeftMiddleProximal,
+                } },
+                { HumanBodyBones.RightHand, new[] {
+                    HumanBodyBones.RightThumbProximal,
+                    HumanBodyBones.RightIndexProximal,
+                    HumanBodyBones.RightMiddleProximal,
+                } },
+            };
 
+#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
         /// <summary>
         /// プラットフォームごとの<see cref="AvatarPerformanceStatsLevelSet"/>。
         /// </summary>
@@ -78,6 +84,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                     "Validation/Performance/StatsLevels/Quest/AvatarPerformanceStatLevels_Quest"
                 ) },
             };
+#endif
 
         /// <summary>
         /// VRChat SDKに含まれるカスタムアニメーション設定用のテンプレートファイルのGUID。
@@ -96,7 +103,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
         /// <returns>取得できなかった場合は空文字列を返します。</returns>
         internal static string GetSupportedUnityVersion()
         {
+#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
             return RemoteConfig.HasKey("sdkUnityVersion") ? RemoteConfig.GetString("sdkUnityVersion") : "";
+#else
+            return "";
+#endif
         }
 
         /// <summary>
@@ -107,6 +118,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
         /// <returns></returns>
         internal static void AddCustomAnims(GameObject avatar)
         {
+#if VRC_SDK_VRCSDK2
             var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
             var templatePath = AssetDatabase.GUIDToAssetPath(VRChatUtility.CustomAnimsTemplateGUID);
             if (string.IsNullOrEmpty(templatePath))
@@ -118,8 +130,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             {
                 new FileNotFoundException("VRChat SDKに含まれるカスタムアニメーション設定用のテンプレートファイルが見つかりません。", fileName: templatePath);
             }
-
-
             if (!avatarDescriptor.CustomStandingAnims)
             {
                 avatarDescriptor.CustomStandingAnims = Duplicator.DuplicateAssetToFolder<AnimatorOverrideController>(
@@ -138,6 +148,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                 );
             }
         }
+#elif VRC_SDK_VRCSDK3
+            throw new System.NotImplementedException();
+#endif
+        }
     }
 }
-#endif

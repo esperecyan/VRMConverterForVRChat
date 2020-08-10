@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using VRM;
-#if VRC_SDK_VRCSDK2
+#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
 using VRC.Core;
-using Esperecyan.Unity.VRMConverterForVRChat.Components;
 #endif
-using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
+#if VRC_SDK_VRCSDK2
+using VRCSDK2;
+#elif VRC_SDK_VRCSDK3
+using VRC.SDK3.Avatars.Components;
+#endif
+using Esperecyan.Unity.VRMConverterForVRChat.Components;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
 {
@@ -102,8 +106,18 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             bool useAnimatorForBlinks = true,
             bool useShapeKeyNormalsAndTangents = false,
             VRMBlendShapeClip vrmBlendShapeForFINGERPOINT = null
-        ) {
+        )
+        {
 #if VRC_SDK_VRCSDK2
+            prefabInstance.AddComponent<VRC_AvatarDescriptor>();
+#elif VRC_SDK_VRCSDK3
+            prefabInstance.AddComponent<VRCAvatarDescriptor>();
+#else
+            throw new PlatformNotSupportedException("VRChat SDK2 or SDK3 has not been imported.");
+#endif
+#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
+            prefabInstance.GetOrAddComponent<PipelineManager>();
+#endif
             var messages = new List<Converter.Message>();
             messages.AddRange(GeometryCorrector.Apply(avatar: prefabInstance));
             messages.AddRange(BlendShapeReplacer.Apply(
@@ -130,13 +144,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 moveEyeBoneToFrontForEyeMovement: moveEyeBoneToFrontForEyeMovement,
                 forQuest: forQuest
             ));
-            prefabInstance.GetOrAddComponent<PipelineManager>();
             ComponentsRemover.Apply(avatar: prefabInstance);
             Undo.RegisterCreatedObjectUndo(prefabInstance, "Convert VRM for VRChat");
             return messages;
-#else
-            throw new PlatformNotSupportedException("VRCHAT SDK2 (VRCSDK2) has not been imported.");
-#endif
         }
 
         /// <summary>

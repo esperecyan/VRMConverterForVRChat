@@ -1,10 +1,6 @@
-#if VRC_SDK_VRCSDK2
-using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using VRM;
-using VRCSDK2;
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
 
@@ -52,4 +48,3 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         }
     }
 }
-#endif

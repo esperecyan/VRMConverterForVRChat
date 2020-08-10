@@ -1,4 +1,3 @@
-#if VRC_SDK_VRCSDK2
 using System;
 using System.Reflection;
 using System.Linq;
@@ -7,9 +6,15 @@ using UnityEngine;
 using UnityEditor;
 using VRM;
 using UniGLTF;
+#if VRC_SDK_VRCSDK2
 using VRCSDK2;
+#elif VRC_SDK_VRCSDK3
+using VRC.SDK3.Avatars.Components;
+#endif
+#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
 using VRCSDK2.Validation.Performance;
 using VRCSDK2.Validation.Performance.Stats;
+#endif
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
 
@@ -71,8 +76,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// <param name="avatar"></param>
         private static void ConvertMeta(GameObject avatar)
         {
-            var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
+#if VRC_SDK_VRCSDK2
+            var avatarDescriptor = avatar.GetComponent<VRC_AvatarDescriptor>();
             avatarDescriptor.Animations = VRChatsBugsWorkaround.DefaultAnimationSetValue;
+#endif
         }
 
         /// <summary>
@@ -81,9 +88,15 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// <param name="avatar"></param>
         private static void ConvertVRMFirstPerson(GameObject avatar)
         {
-            var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
+#if VRC_SDK_VRCSDK2
+            var avatarDescriptor = avatar.GetComponent<VRC_AvatarDescriptor>();
+#elif VRC_SDK_VRCSDK3
+            var avatarDescriptor = avatar.GetComponent<VRCAvatarDescriptor>();
+#endif
+#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
             var firstPerson = avatar.GetComponent<VRMFirstPerson>();
             avatarDescriptor.ViewPosition = firstPerson.FirstPersonBone.position + firstPerson.FirstPersonOffset - avatar.transform.localPosition;
+#endif
         }
 
         /// <summary>
@@ -229,6 +242,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         private static IEnumerable<Converter.Message> GetMessagesAboutDynamicBoneLimits(GameObject avatar)
         {
             var messages = new List<Converter.Message>();
+#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
             AvatarPerformanceStats statistics = new AvatarPerformanceStats();
             AvatarPerformance.CalculatePerformanceStats(avatar.GetComponent<VRMMeta>().Meta.Title, avatar, statistics);
 
@@ -264,9 +278,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                     type = MessageType.Warning,
                 });
             }
+#endif
 
             return messages;
         }
     }
 }
-#endif

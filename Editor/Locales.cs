@@ -16,7 +16,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         {
             Gettext.SetLocalizedTexts(localizedTexts: new Dictionary<string, IDictionary<string, string>> {
                 { "ja", new Dictionary<string, string> {
-                    { "VRCHAT SDK2 (VRCSDK2) has not been imported.", "VRCHAT SDK2 (VRCSDK2) がインポートされていません。" },
+                    { "VRChat SDK2 or SDK3 has not been imported.", "VRChat SDK2、または SDK3 がインポートされていません。" },
                     { "Enable Eye Movement", "視線追従を有効化" },
                     { "Move Eye Bone To Front For Eye Movement", "目ボーンを手前に移動(視線用)" },
                     { "Swaying Objects", "揺れ物" },
