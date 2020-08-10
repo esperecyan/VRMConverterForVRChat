@@ -58,13 +58,17 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// <summary>
         /// オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。
         /// </summary>
+#if VRC_SDK_VRCSDK2
         [SerializeField, Localizable]
+#endif
         private bool enableEyeMovement = true;
 
         /// <summary> 
         /// オートアイムーブメント有効化時、目ボーンのPositionのZに加算する値。 
-        /// </summary> 
+        /// </summary>
+#if VRC_SDK_VRCSDK2
         [SerializeField, Localizable(0, 0.1f)]
+#endif
         private float moveEyeBoneToFrontForEyeMovement = default;
 
         /// <summary>
@@ -134,7 +138,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// <summary>
         /// まばたきにAnimatorコンポーネントを利用するなら <c>true</c>。
         /// </summary>
+#if VRC_SDK_VRCSDK2
         [SerializeField, Localizable]
+#endif
         private bool useAnimatorForBlinks = true;
 
         [Header("Callback")]

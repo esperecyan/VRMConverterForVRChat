@@ -82,12 +82,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="swayingObjectsConverterSetting">揺れ物を変換するか否かの設定。<c>forQuest</c> が <c>true</c> の場合は無視されます。</param>
         /// <param name="takingOverSwayingParameters">揺れ物のパラメータを変換せずDynamic Boneのデフォルト値を利用するなら<c>false</c>。</param>
         /// <param name="swayingParametersConverter"></param>
-        /// <param name="enableAutoEyeMovement">オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。</param>
+        /// <param name="enableAutoEyeMovement">【SDK2のみ】オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。</param>
         /// <param name="addedShouldersPositionY">VRChat上でモデルがなで肩・いかり肩になる問題について、Shoulder/UpperArmボーンのPositionのYに加算する値。</param>
-        /// <param name="moveEyeBoneToFrontForEyeMovement">オートアイムーブメント有効化時、目ボーンのPositionのZに加算する値。</param>
+        /// <param name="moveEyeBoneToFrontForEyeMovement">【SDK2のみ】オートアイムーブメント有効化時、目ボーンのPositionのZに加算する値。</param>
         /// <param name="forQuest">Quest版用アバター向けに変換するなら <c>true</c>。</param>
         /// <param name="addedArmaturePositionY">VRChat上で足が沈む問題について、Hipsボーンの一つ上のオブジェクトのPositionのYに加算する値。</param>
-        /// <param name="useAnimatorForBlinks">まばたきにAnimatorコンポーネントを利用するなら <c>true</c>。
+        /// <param name="useAnimatorForBlinks">【SDK2のみ】まばたきにAnimatorコンポーネントを利用するなら <c>true</c>。
         ///     <c>forQuest</c> が <c>false</c> の場合、常にAnimatorコンポーネントが利用され、このパラメータは無視されます。</param>
         /// <param name="useShapeKeyNormalsAndTangents"><c>false</c> の場合、シェイプキーの法線・接線を削除します。</param>
         /// <param name="vrmBlendShapeForFINGERPOINT">FINGERPOINTへ割り当てる表情。</param>

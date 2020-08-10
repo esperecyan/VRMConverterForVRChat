@@ -10,6 +10,7 @@ using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 using VRCSDK2;
 #elif VRC_SDK_VRCSDK3
 using VRC.SDKBase;
+using VRC.SDK3.Avatars.Components;
 #endif
 
 namespace Esperecyan.Unity.VRMConverterForVRChat.Components
@@ -29,6 +30,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// </remarks>
         internal static readonly IEnumerable<string> OrderedBlinkGeneratedByCatsBlenderPlugin
             = new string[] { "vrc.blink_left", "vrc.blink_right", "vrc.lowerlid_left", "vrc.lowerlid_right" };
+
+        /// <summary>
+        /// まばたき用に生成するシェイプキー名。
+        /// </summary>
+        private static readonly string BlinkShapeKeyName = "vrc.blink";
 
         /// <summary>
         /// 表情の変更に関するVIVEタッチパッド上の位置について、バーチャルキャストとVRchatの対応関係。
@@ -264,6 +270,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 
             SetLipSync(avatar, clips, useShapeKeyNormalsAndTangents);
 
+#if VRC_SDK_VRCSDK2
             if (useAnimatorForBlinks)
             {
                 SetNeutralAndBlink(avatar, clips, useShapeKeyNormalsAndTangents);
@@ -273,6 +280,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 SetBlinkWithoutAnimator(avatar, clips, useShapeKeyNormalsAndTangents);
                 SetNeutralWithoutAnimator(avatar: avatar, clips: clips);
             }
+#else
+            SetNeutralWithoutAnimator(avatar, clips);
+            EnableEyeLook(avatar, clips, useShapeKeyNormalsAndTangents);
+#endif
 
             SetFeelings(avatar, clips, vrmBlendShapeForFINGERPOINT);
 
@@ -637,6 +648,90 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             {
                 renderer.SetBlendShapeWeight(mesh.GetBlendShapeIndex(name), weight);
             }
+        }
+
+        /// <summary>
+        /// 【SDK3】<see cref="BlendShapePreset.Blink"/>を変換し、視線追従を有効化します。
+        /// </summary>
+        /// <param name="avatar"></param>
+        /// <param name="clips"></param>
+        /// <param name="useShapeKeyNormalsAndTangents"/>
+        private static void EnableEyeLook(
+            GameObject avatar,
+            IEnumerable<VRMBlendShapeClip> clips,
+            bool useShapeKeyNormalsAndTangents
+        )
+        {
+            VRMBlendShapeClip clip = clips.FirstOrDefault(c => c.Preset == BlendShapePreset.Blink);
+            var lookAtBoneApplyer = avatar.GetComponent<VRMLookAtBoneApplyer>();
+            if (!clip && !lookAtBoneApplyer)
+            {
+                return;
+            }
+
+            var renderer = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath).GetComponent<SkinnedMeshRenderer>();
+            var mesh = renderer.sharedMesh;
+            if (clip)
+            {
+                mesh.AddBlendShapeFrame(
+                    BlendShapeReplacer.BlinkShapeKeyName,
+                    1,
+                    BlendShapeReplacer.GenerateShapeKey(
+                        clip.ShapeKeyValues,
+                        BlendShapeReplacer.GetAllShapeKeys(mesh, useShapeKeyNormalsAndTangents)
+                    ),
+                    null,
+                    null
+                );
+                EditorUtility.SetDirty(mesh);
+            }
+
+#if VRC_SDK_VRCSDK3
+            var descriptor = avatar.GetComponent<VRCAvatarDescriptor>();
+            descriptor.enableEyeLook = true;
+
+            var settings = new VRCAvatarDescriptor.CustomEyeLookSettings();
+
+            if (clip)
+            {
+                settings.eyelidType = VRCAvatarDescriptor.EyelidType.Blendshapes;
+                settings.eyelidsSkinnedMesh = renderer;
+                settings.eyelidsBlendshapes = new[] { mesh.blendShapeCount - 1, -1, -1 };
+            }
+
+            if (lookAtBoneApplyer)
+            {
+                settings.eyeMovement = new VRCAvatarDescriptor.CustomEyeLookSettings.EyeMovements()
+                {
+                    excitement = 0.5f,
+                    confidence = 0,
+                };
+                settings.leftEye = lookAtBoneApplyer.LeftEye.Transform;
+                settings.rightEye = lookAtBoneApplyer.RightEye.Transform;
+                settings.eyesLookingUp = new VRCAvatarDescriptor.CustomEyeLookSettings.EyeRotations()
+                {
+                    left = Quaternion.Euler(x: -lookAtBoneApplyer.VerticalUp.CurveYRangeDegree, 0, 0),
+                    right = Quaternion.Euler(x: -lookAtBoneApplyer.VerticalUp.CurveYRangeDegree, 0, 0),
+                };
+                settings.eyesLookingDown = new VRCAvatarDescriptor.CustomEyeLookSettings.EyeRotations()
+                {
+                    left = Quaternion.Euler(x: lookAtBoneApplyer.VerticalUp.CurveYRangeDegree, 0, 0),
+                    right = Quaternion.Euler(x: lookAtBoneApplyer.VerticalUp.CurveYRangeDegree, 0, 0),
+                };
+                settings.eyesLookingLeft = new VRCAvatarDescriptor.CustomEyeLookSettings.EyeRotations()
+                {
+                    left = Quaternion.Euler(0, y: -lookAtBoneApplyer.HorizontalOuter.CurveYRangeDegree, 0),
+                    right = Quaternion.Euler(0, y: -lookAtBoneApplyer.HorizontalInner.CurveYRangeDegree, 0),
+                };
+                settings.eyesLookingRight = new VRCAvatarDescriptor.CustomEyeLookSettings.EyeRotations()
+                {
+                    left = Quaternion.Euler(0, y: lookAtBoneApplyer.HorizontalInner.CurveYRangeDegree, 0),
+                    right = Quaternion.Euler(0, y: lookAtBoneApplyer.HorizontalOuter.CurveYRangeDegree, 0),
+                };
+            }
+
+            descriptor.customEyeLookSettings = settings;
+#endif
         }
 
         /// <summary>

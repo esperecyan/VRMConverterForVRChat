@@ -10,6 +10,7 @@ using UniGLTF;
 using VRCSDK2;
 #elif VRC_SDK_VRCSDK3
 using VRC.SDKBase;
+using VRC.SDK3.Avatars.Components;
 #endif
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
@@ -87,6 +88,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             var messages = new List<Converter.Message>();
             
             VRChatsBugsWorkaround.EnableAnimationOvrride(avatar: avatar);
+#if VRC_SDK_VRCSDK2
             if (enableAutoEyeMovement)
             {
                 VRChatsBugsWorkaround.SetEyeBonesForCecilHenShin(avatar: avatar);
@@ -103,18 +105,23 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 VRChatsBugsWorkaround.DisableAutoEyeMovement(avatar: avatar);
                 moveEyeBoneToFrontForEyeMovement = 0.0f;
             }
+#else
+            moveEyeBoneToFrontForEyeMovement = 0.0f;
+#endif
             VRChatsBugsWorkaround.AddShouldersPositionYAndEyesPositionZ(
                 avatar: avatar,
                 addedValueToArmature: addedArmaturePositionY,
                 addedValueToShoulders: addedShouldersPositionY,
                 addedValueToEyes: moveEyeBoneToFrontForEyeMovement
             );
+#if VRC_SDK_VRCSDK2
             if (enableAutoEyeMovement || forQuest)
             {
                 // VRChatsBugsWorkaround.AddShouldersPositionYAndEyesPositionZ() より後に実行しないと
                 // 同メソッド内部で使用しているUniVRMが、同名ボーンのエラーを出す場合がある
                 VRChatsBugsWorkaround.EnableAutoEyeMovement(avatar: avatar);
             }
+#endif
             messages.AddRange(VRChatsBugsWorkaround.EnableTextureMipmapStreaming(avatar: avatar));
 
             return messages;
