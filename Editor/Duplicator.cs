@@ -4,6 +4,7 @@ using System.Linq;
 using System.IO;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.Animations;
 using UniGLTF;
 using VRM;
 using UniHumanoid;
@@ -151,7 +152,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             UnityEngine.Object destination = AssetDatabase.LoadMainAssetAtPath(destinationPath);
             if (destination)
             {
-                if (AssetDatabase.IsNativeAsset(source) || !sourceUnityPath.IsUnderAssetsFolder)
+                if (AssetDatabase.IsNativeAsset(source) && !(source is AnimatorController)
+                    || !sourceUnityPath.IsUnderAssetsFolder)
                 {
                     EditorUtility.CopySerialized(source, destination);
                 }
