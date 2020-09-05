@@ -12,6 +12,7 @@ using VRCSDK2;
 #elif VRC_SDK_VRCSDK3
 using VRC.SDKBase;
 using VRC.SDK3.Avatars.Components;
+using VRC.SDK3.Avatars.ScriptableObjects;
 #endif
 
 namespace Esperecyan.Unity.VRMConverterForVRChat.Components
@@ -56,9 +57,30 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         };
 
         /// <summary>
+        /// 各表情の上から時計回りの位置。
+        /// </summary>
+        private static readonly IList<BlendShapePreset> FacialExpressionsOrder = new[]
+        {
+            BlendShapePreset.Sorrow,
+            BlendShapePreset.Joy,
+            BlendShapePreset.Fun,
+            BlendShapePreset.Angry,
+        }.ToList();
+
+        /// <summary>
         /// 表情用のテンプレートAnimatorControllerのGUID。
         /// </summary>
         private static readonly string FXTemplateGUID = "4dab2bc02bfaabc4faea4c6b4d8a142b";
+
+        /// <summary>
+        /// 表情用の<see cref="VRCExpressionsMenu"/>のGUID。
+        /// </summary>
+        private static readonly string VRCExpressionsMenuGUID = "91a5a0002bd103f448d572330b087f57";
+
+        /// <summary>
+        /// 表情用の<see cref="VRCExpressionParameters"/>のGUID。
+        /// </summary>
+        private static readonly string VRCExpressionParametersGUID = "d492b41c65685944a96df77628e204bc";
 
         ///
         /// <summary>
@@ -981,6 +1003,30 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             };
 
             var states = fxController.layers[1].stateMachine.states.Select(childState => childState.state).ToList();
+
+            avatarDescriptor.customExpressions = true;
+            avatarDescriptor.expressionsMenu = Duplicator.DuplicateAssetToFolder(
+                source: AssetDatabase.LoadAssetAtPath<VRCExpressionsMenu>(
+                    AssetDatabase.GUIDToAssetPath(BlendShapeReplacer.VRCExpressionsMenuGUID)
+                ),
+                prefabInstance: avatar
+            );
+            avatarDescriptor.expressionParameters = Duplicator.DuplicateAssetToFolder(
+                source: AssetDatabase.LoadAssetAtPath<VRCExpressionParameters>(
+                    AssetDatabase.GUIDToAssetPath(BlendShapeReplacer.VRCExpressionParametersGUID)
+                ),
+                prefabInstance: avatar
+            );
+
+            var blendTree = (BlendTree)fxController.layers.First(layer => layer.name == "FaceMood").stateMachine.states
+                .First(childState => childState.state.name == "FaceBlend").state.motion;
+            var motions = blendTree.children;
+
+            var neutral = new AnimationClip();
+            AssetDatabase.CreateAsset(
+                neutral,
+                Duplicator.DetermineAssetPath(prefabInstance: avatar, typeof(AnimationClip), "Neutral.anim")
+            );
 #endif
 
             foreach (var preset in BlendShapeReplacer.MappingBlendShapeToVRChatAnim.Keys)
@@ -1000,8 +1046,26 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 avatarDescriptor.CustomSittingAnims[anim] = animationClip;
 #elif VRC_SDK_VRCSDK3
                 states.First(s => s.name.ToLower() == anim.ToLower()).motion = animationClip;
+                if (preset != BlendShapePreset.Unknown)
+                {
+                    var index = BlendShapeReplacer.FacialExpressionsOrder.IndexOf(preset) + 1;
+                    var motion = motions[index];
+                    motion.motion = animationClip;
+                    motions[index] = motion;
+
+                    BlendShapeReplacer.SetBlendShapeCurves(
+                        avatar,
+                        neutral,
+                        clips.First(clip => clip.Preset == preset),
+                        new Dictionary<float, float>() { { 0, 0 } }
+                    );
+                }
 #endif
             }
+#if VRC_SDK_VRCSDK3
+            motions[0].motion = neutral;
+            blendTree.children = motions;
+#endif
         }
 
         /// <summary>
