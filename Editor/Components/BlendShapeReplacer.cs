@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
@@ -723,15 +724,19 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                     left = Quaternion.Euler(x: lookAtBoneApplyer.VerticalDown.CurveYRangeDegree, 0, 0),
                     right = Quaternion.Euler(x: lookAtBoneApplyer.VerticalDown.CurveYRangeDegree, 0, 0),
                 };
+                var horizontal = Math.Min(
+                    lookAtBoneApplyer.HorizontalOuter.CurveYRangeDegree,
+                    lookAtBoneApplyer.HorizontalInner.CurveYRangeDegree
+                );
                 settings.eyesLookingLeft = new VRCAvatarDescriptor.CustomEyeLookSettings.EyeRotations()
                 {
-                    left = Quaternion.Euler(0, y: -lookAtBoneApplyer.HorizontalOuter.CurveYRangeDegree, 0),
-                    right = Quaternion.Euler(0, y: -lookAtBoneApplyer.HorizontalInner.CurveYRangeDegree, 0),
+                    left = Quaternion.Euler(0, y: -horizontal, 0),
+                    right = Quaternion.Euler(0, y: -horizontal, 0),
                 };
                 settings.eyesLookingRight = new VRCAvatarDescriptor.CustomEyeLookSettings.EyeRotations()
                 {
-                    left = Quaternion.Euler(0, y: lookAtBoneApplyer.HorizontalInner.CurveYRangeDegree, 0),
-                    right = Quaternion.Euler(0, y: lookAtBoneApplyer.HorizontalOuter.CurveYRangeDegree, 0),
+                    left = Quaternion.Euler(0, y: horizontal, 0),
+                    right = Quaternion.Euler(0, y: horizontal, 0),
                 };
             }
 
