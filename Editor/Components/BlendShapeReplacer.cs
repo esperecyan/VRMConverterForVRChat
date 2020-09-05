@@ -720,8 +720,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 };
                 settings.eyesLookingDown = new VRCAvatarDescriptor.CustomEyeLookSettings.EyeRotations()
                 {
-                    left = Quaternion.Euler(x: lookAtBoneApplyer.VerticalUp.CurveYRangeDegree, 0, 0),
-                    right = Quaternion.Euler(x: lookAtBoneApplyer.VerticalUp.CurveYRangeDegree, 0, 0),
+                    left = Quaternion.Euler(x: lookAtBoneApplyer.VerticalDown.CurveYRangeDegree, 0, 0),
+                    right = Quaternion.Euler(x: lookAtBoneApplyer.VerticalDown.CurveYRangeDegree, 0, 0),
                 };
                 settings.eyesLookingLeft = new VRCAvatarDescriptor.CustomEyeLookSettings.EyeRotations()
                 {
