@@ -78,6 +78,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         private static readonly string VRCExpressionsMenuGUID = "91a5a0002bd103f448d572330b087f57";
 
         /// <summary>
+        /// デフォルトの<see cref="VRCExpressionsMenu"/>を再現したアセットのGUID。
+        /// </summary>
+        private static readonly string VRCEmoteGUID = "b824836cefba43040b1cfce3a0859812";
+
+        /// <summary>
         /// 表情用の<see cref="VRCExpressionParameters"/>のGUID。
         /// </summary>
         private static readonly string VRCExpressionParametersGUID = "d492b41c65685944a96df77628e204bc";
@@ -1011,6 +1016,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 ),
                 prefabInstance: avatar
             );
+            avatarDescriptor.expressionsMenu.controls.First(control => control.subMenu != null).subMenu
+                = Duplicator.DuplicateAssetToFolder(
+                    source: AssetDatabase.LoadAssetAtPath<VRCExpressionsMenu>(
+                        AssetDatabase.GUIDToAssetPath(BlendShapeReplacer.VRCEmoteGUID)
+                    ),
+                    prefabInstance: avatar
+                );
             avatarDescriptor.expressionParameters = Duplicator.DuplicateAssetToFolder(
                 source: AssetDatabase.LoadAssetAtPath<VRCExpressionParameters>(
                     AssetDatabase.GUIDToAssetPath(BlendShapeReplacer.VRCExpressionParametersGUID)

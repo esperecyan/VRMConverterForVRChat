@@ -33,3 +33,13 @@ MonoBehaviour:
       icon: {fileID: 2800000, guid: af1ba8919b0ccb94a99caf43ac36f97d, type: 3}
     - name: Angry
       icon: {fileID: 2800000, guid: 48e41265a34c05d45b49ca189dc1a992, type: 3}
+  - name: Emote
+    icon: {fileID: 0}
+    type: 103
+    parameter:
+      name: 
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: 024fb8ef5b3988c46b446863c92f4522, type: 2}
+    subParameters: []
+    labels: []
