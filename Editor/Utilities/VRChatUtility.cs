@@ -86,6 +86,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             };
 #endif
 
+#if VRC_SDK_VRCSDK2
         /// <summary>
         /// VRChat SDKに含まれるカスタムアニメーション設定用のテンプレートファイルのGUID。
         /// </summary>
@@ -96,6 +97,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
         /// </summary>
         private static readonly string CustomAnimsTemplatePath
             = "Assets/VRCSDK/Examples2/Animation/SDK2/CustomOverrideEmpty.overrideController";
+#endif
 
         /// <summary>
         /// VRChat SDKがサポートするUnityのバージョンを取得します。
