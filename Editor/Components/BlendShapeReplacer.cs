@@ -741,6 +741,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 };
                 settings.leftEye = lookAtBoneApplyer.LeftEye.Transform;
                 settings.rightEye = lookAtBoneApplyer.RightEye.Transform;
+                settings.eyesLookingStraight = new VRCAvatarDescriptor.CustomEyeLookSettings.EyeRotations()
+                {
+                    left = Quaternion.identity,
+                    right = Quaternion.identity,
+                };
                 settings.eyesLookingUp = new VRCAvatarDescriptor.CustomEyeLookSettings.EyeRotations()
                 {
                     left = Quaternion.Euler(x: -lookAtBoneApplyer.VerticalUp.CurveYRangeDegree, 0, 0),
