@@ -708,7 +708,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             {
                 mesh.AddBlendShapeFrame(
                     BlendShapeReplacer.BlinkShapeKeyName,
-                    1,
+                    BlendShapeReplacer.MaxBlendShapeFrameWeight,
                     BlendShapeReplacer.GenerateShapeKey(
                         clip.ShapeKeyValues,
                         BlendShapeReplacer.GetAllShapeKeys(mesh, useShapeKeyNormalsAndTangents)
