@@ -60,13 +60,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             HumanBodyBones.RightUpperArm
         };
 
-        /// 『セシル変身アプリ』の目ボーンのパス。
-        /// </summary>
-        internal static readonly IDictionary<HumanBodyBones, string> CecilHenShinEyeBonePaths = new Dictionary<HumanBodyBones, string>() {
-            { HumanBodyBones.LeftEye,  "Armature/Hips/Spine/Spine1/Spine2/Neck/Head/MeRoot/Me_L/LeftEyeRoot/LeftEye"   },
-            { HumanBodyBones.RightEye, "Armature/Hips/Spine/Spine1/Spine2/Neck/Head/MeRoot/Me_R/RightEyeRoot/RightEye" },
-        };
-
         /// <summary>
         /// クラスに含まれる処理を適用します。
         /// </summary>
@@ -89,10 +82,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             
             VRChatsBugsWorkaround.EnableAnimationOvrride(avatar: avatar);
 #if VRC_SDK_VRCSDK2
-            if (enableAutoEyeMovement)
-            {
-                VRChatsBugsWorkaround.SetEyeBonesForCecilHenShin(avatar: avatar);
-            }
             if (enableAutoEyeMovement)
             {
                 if (!VRChatsBugsWorkaround.ApplyAutoEyeMovementDegreeMapping(avatar: avatar))
@@ -157,37 +146,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             }
             
             avatarDescription.human = avatarDescription.human.Concat(addedBoneLimits).ToArray();
-            ApplyAvatarDescription(avatar: avatar);
-        }
-
-        /// <summary>
-        /// 『セシル変身アプリ』で出力されたモデルに<see cref="HumanBodyBones.LeftEye"/>、<see cref="HumanBodyBones.RightEye"/>を設定します。
-        /// </summary>
-        /// <param name="avatar"></param>
-        private static void SetEyeBonesForCecilHenShin(GameObject avatar)
-        {
-            AvatarDescription avatarDescription = avatar.GetComponent<VRMHumanoidDescription>().Description;
-
-            List<BoneLimit> boneLimits = avatarDescription.human.ToList();
-
-            var eyeHumanBones = new[] { HumanBodyBones.LeftEye, HumanBodyBones.RightEye };
-
-            foreach (HumanBodyBones humanBone in eyeHumanBones) {
-                string path = VRChatsBugsWorkaround.CecilHenShinEyeBonePaths[humanBone];
-
-                if (!string.IsNullOrEmpty(boneLimits.FirstOrDefault(predicate: boneLimit => boneLimit.humanBone == humanBone).boneName)
-                    || !avatar.transform.Find(path))
-                {
-                    return;
-                }
-
-                boneLimits.Add(new BoneLimit {
-                    humanBone = humanBone,
-                    boneName = path.Split('/').Last(),
-                });
-            }
-
-            avatarDescription.human = boneLimits.ToArray();
             ApplyAvatarDescription(avatar: avatar);
         }
 
