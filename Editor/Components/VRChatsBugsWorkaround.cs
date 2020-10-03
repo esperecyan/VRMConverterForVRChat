@@ -81,36 +81,40 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             var messages = new List<Converter.Message>();
             
             VRChatsBugsWorkaround.EnableAnimationOvrride(avatar: avatar);
-#if VRC_SDK_VRCSDK2
-            if (enableAutoEyeMovement)
+            if (VRChatUtility.SDK2)
             {
-                if (!VRChatsBugsWorkaround.ApplyAutoEyeMovementDegreeMapping(avatar: avatar))
+                if (enableAutoEyeMovement)
                 {
+                    if (!VRChatsBugsWorkaround.ApplyAutoEyeMovementDegreeMapping(avatar: avatar))
+                    {
+                        moveEyeBoneToFrontForEyeMovement = 0.0f;
+                    }
+                }
+                else
+                {
+                    VRChatsBugsWorkaround.DisableAutoEyeMovement(avatar: avatar);
                     moveEyeBoneToFrontForEyeMovement = 0.0f;
                 }
             }
             else
             {
-                VRChatsBugsWorkaround.DisableAutoEyeMovement(avatar: avatar);
                 moveEyeBoneToFrontForEyeMovement = 0.0f;
             }
-#else
-            moveEyeBoneToFrontForEyeMovement = 0.0f;
-#endif
             VRChatsBugsWorkaround.AddShouldersPositionYAndEyesPositionZ(
                 avatar: avatar,
                 addedValueToArmature: addedArmaturePositionY,
                 addedValueToShoulders: addedShouldersPositionY,
                 addedValueToEyes: moveEyeBoneToFrontForEyeMovement
             );
-#if VRC_SDK_VRCSDK2
-            if (enableAutoEyeMovement || forQuest)
+            if (VRChatUtility.SDK2)
             {
-                // VRChatsBugsWorkaround.AddShouldersPositionYAndEyesPositionZ() より後に実行しないと
-                // 同メソッド内部で使用しているUniVRMが、同名ボーンのエラーを出す場合がある
-                VRChatsBugsWorkaround.EnableAutoEyeMovement(avatar: avatar);
+                if (enableAutoEyeMovement || forQuest)
+                {
+                    // VRChatsBugsWorkaround.AddShouldersPositionYAndEyesPositionZ() より後に実行しないと
+                    // 同メソッド内部で使用しているUniVRMが、同名ボーンのエラーを出す場合がある
+                    VRChatsBugsWorkaround.EnableAutoEyeMovement(avatar: avatar);
+                }
             }
-#endif
             messages.AddRange(VRChatsBugsWorkaround.EnableTextureMipmapStreaming(avatar: avatar));
 
             return messages;
@@ -403,7 +407,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             float addedValueToEyes
         )
         {
-#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
             if (addedValueToArmature == 0.0f && addedValueToShoulders == 0.0f && addedValueToEyes == 0.0f)
             {
                 return;
@@ -421,7 +424,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                     humanDescription.skeleton[skeltonBones.FindIndex(match: skeltonBone => skeltonBone.name == armatureName)].position
                         += addedPosition;
 
+#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
                     avatar.GetComponent<VRC_AvatarDescriptor>().ViewPosition += addedPosition;
+#endif
                 }
                 if (addedValueToShoulders != 0.0f)
                 {
@@ -444,7 +449,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                     }
                 }
             });
-#endif
         }
 
         /// <summary>

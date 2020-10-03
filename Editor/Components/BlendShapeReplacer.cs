@@ -303,20 +303,23 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 
             SetLipSync(avatar, clips, useShapeKeyNormalsAndTangents);
 
-#if VRC_SDK_VRCSDK2
-            if (useAnimatorForBlinks)
+            if (VRChatUtility.SDK2)
             {
-                SetNeutralAndBlink(avatar, clips, useShapeKeyNormalsAndTangents);
+                if (useAnimatorForBlinks)
+                {
+                    SetNeutralAndBlink(avatar, clips, useShapeKeyNormalsAndTangents);
+                }
+                else
+                {
+                    SetBlinkWithoutAnimator(avatar, clips, useShapeKeyNormalsAndTangents);
+                    SetNeutralWithoutAnimator(avatar: avatar, clips: clips);
+                }
             }
             else
             {
-                SetBlinkWithoutAnimator(avatar, clips, useShapeKeyNormalsAndTangents);
-                SetNeutralWithoutAnimator(avatar: avatar, clips: clips);
+                SetNeutralWithoutAnimator(avatar, clips);
+                EnableEyeLook(avatar, clips, useShapeKeyNormalsAndTangents);
             }
-#else
-            SetNeutralWithoutAnimator(avatar, clips);
-            EnableEyeLook(avatar, clips, useShapeKeyNormalsAndTangents);
-#endif
 
             SetFeelings(avatar, clips, vrmBlendShapeForFINGERPOINT);
 
@@ -1099,40 +1102,44 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         )
         {
             var fileName = clip.Preset + ".anim";
-#if VRC_SDK_VRCSDK2
-            var anim = Duplicator.DuplicateAssetToFolder<AnimationClip>(
-                source: UnityPath.FromUnityPath(Converter.RootFolderPath).Child("animations")
-                    .Child(BlendShapeReplacer.MappingBlendShapeToVRChatAnim[clip.Preset] + ".anim")
-                    .LoadAsset<AnimationClip>(),
-                prefabInstance: avatar,
-                fileName
-            );
-
-            Transform transform = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath);
-            if (transform.GetComponent<Animator>())
+            AnimationClip anim;
+            if (VRChatUtility.SDK2)
             {
-                var curve = new AnimationCurve();
-                foreach (var (seconds, value) in BlendShapeReplacer.NeutralAndBlinkStopperWeights)
-                {
-                    curve.AddKey(new Keyframe(seconds, value));
-                }
-                anim.SetCurve(
-                    VRChatUtility.AutoBlinkMeshPath,
-                    typeof(Behaviour),
-                    "m_Enabled",
-                    curve
+                anim = Duplicator.DuplicateAssetToFolder<AnimationClip>(
+                    source: UnityPath.FromUnityPath(Converter.RootFolderPath).Child("animations")
+                        .Child(BlendShapeReplacer.MappingBlendShapeToVRChatAnim[clip.Preset] + ".anim")
+                        .LoadAsset<AnimationClip>(),
+                    prefabInstance: avatar,
+                    fileName
                 );
 
+                Transform transform = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath);
+                if (transform.GetComponent<Animator>())
+                {
+                    var curve = new AnimationCurve();
+                    foreach (var (seconds, value) in BlendShapeReplacer.NeutralAndBlinkStopperWeights)
+                    {
+                        curve.AddKey(new Keyframe(seconds, value));
+                    }
+                    anim.SetCurve(
+                        VRChatUtility.AutoBlinkMeshPath,
+                        typeof(Behaviour),
+                        "m_Enabled",
+                        curve
+                    );
+
+                    clips = BlendShapeReplacer.DuplicateShapeKeyToUnique(avatar, clip, clips);
+                }
+            }
+            else
+            {
+                anim = new AnimationClip();
+                AssetDatabase.CreateAsset(
+                    anim,
+                    Duplicator.DetermineAssetPath(prefabInstance: avatar, typeof(AnimationClip), fileName)
+                );
                 clips = BlendShapeReplacer.DuplicateShapeKeyToUnique(avatar, clip, clips);
             }
-#else
-            var anim = new AnimationClip();
-            AssetDatabase.CreateAsset(
-                anim,
-                Duplicator.DetermineAssetPath(prefabInstance: avatar, typeof(AnimationClip), fileName)
-            );
-            clips = BlendShapeReplacer.DuplicateShapeKeyToUnique(avatar, clip, clips);
-#endif
 
             SetBlendShapeCurves(
                 avatar,

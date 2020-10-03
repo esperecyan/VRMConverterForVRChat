@@ -517,7 +517,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
             return true;
         }
 
-#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
         /// <summary>
         /// Questの制限値に関するエラーメッセージを取得します。
         /// </summary>
@@ -527,6 +526,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         {
             var messages = new List<Converter.Message>();
 
+#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
             AvatarPerformanceStats statistics = new AvatarPerformanceStats();
             AvatarPerformance.CalculatePerformanceStats("", prefab, statistics);
 
@@ -568,12 +568,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                     });
                 }
             }
+#endif
 
             return messages;
         }
 
         private void OnWizardCreate()
         {
+#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
             if (string.IsNullOrEmpty(this.destinationPath))
             {
                 string sourcePath = this.GetAssetsPath(vrm: this.avatar.gameObject);
@@ -701,8 +703,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
             }
 
             ResultDialog.Open(messages: messages);
-        }
 #endif
+        }
 
         /// <summary>
         /// プレハブのパスを取得します。

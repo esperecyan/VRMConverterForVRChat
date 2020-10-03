@@ -4,8 +4,6 @@ using UnityEngine;
 using UnityEditor;
 #if VRC_SDK_VRCSDK2
 using VRCSDK2;
-#elif VRC_SDK_VRCSDK3
-using VRC.SDK3.Avatars.Components;
 #endif
 #if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
 using VRC.Core;
@@ -86,7 +84,16 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             };
 #endif
 
+        /// <summary>
+        /// VRChat SDK2がインポートされていれば <c>true</c>、VRChat SDK3がインポートされている、もしくはいずれもインポートされていなければ <c>false</c>。
+        /// </summary>
+        internal static readonly bool SDK2
 #if VRC_SDK_VRCSDK2
+            = true;
+#else
+            = false;
+#endif
+
         /// <summary>
         /// VRChat SDKに含まれるカスタムアニメーション設定用のテンプレートファイルのGUID。
         /// </summary>
@@ -97,7 +104,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
         /// </summary>
         private static readonly string CustomAnimsTemplatePath
             = "Assets/VRCSDK/Examples2/Animation/SDK2/CustomOverrideEmpty.overrideController";
-#endif
 
         /// <summary>
         /// VRChat SDKがサポートするUnityのバージョンを取得します。
@@ -120,8 +126,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
         /// <returns></returns>
         internal static void AddCustomAnims(GameObject avatar)
         {
-#if VRC_SDK_VRCSDK2
-            var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
             var templatePath = AssetDatabase.GUIDToAssetPath(VRChatUtility.CustomAnimsTemplateGUID);
             if (string.IsNullOrEmpty(templatePath))
             {
@@ -132,6 +136,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             {
                 new FileNotFoundException("VRChat SDKに含まれるカスタムアニメーション設定用のテンプレートファイルが見つかりません。", fileName: templatePath);
             }
+#if VRC_SDK_VRCSDK2
+            var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
             if (!avatarDescriptor.CustomStandingAnims)
             {
                 avatarDescriptor.CustomStandingAnims = Duplicator.DuplicateAssetToFolder<AnimatorOverrideController>(
