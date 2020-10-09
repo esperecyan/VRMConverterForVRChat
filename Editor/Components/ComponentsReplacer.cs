@@ -11,12 +11,8 @@ using VRCSDK2;
 #elif VRC_SDK_VRCSDK3
 using VRC.SDK3.Avatars.Components;
 #endif
-#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
-using VRCSDK2.Validation.Performance;
-using VRCSDK2.Validation.Performance.Stats;
-#endif
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
-using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
+using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.VRChatUtility;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 {
@@ -25,11 +21,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
     /// </summary>
     internal class ComponentsReplacer
     {
-        private static readonly Type DynamicBoneType = Type.GetType("DynamicBone, Assembly-CSharp");
-        private static readonly Type DynamicBoneColliderType = Type.GetType("DynamicBoneCollider, Assembly-CSharp");
-        private static readonly Type DynamicBoneColliderBaseListType
-            = Type.GetType("System.Collections.Generic.List`1[[DynamicBoneColliderBase, Assembly-CSharp]]");
-
         /// <summary>
         /// クラスに含まれる処理を適用します。
         /// </summary>
@@ -65,7 +56,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 swayingParametersConverter: swayingParametersConverter
             );
 
-            messages.AddRange(GetMessagesAboutDynamicBoneLimits(avatar: avatar));
+            messages.AddRange(VRChatUtility.CalculateDynamicBoneLimitations(prefabInstance: avatar));
 
             return messages;
         }
@@ -231,56 +222,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                     DynamicBoneType.GetField("m_Colliders").SetValue(dynamicBone, colliders);
                 }
             }
-        }
-
-        /// <summary>
-        /// DynamicBoneの制限の既定値を超えていた場合、警告メッセージを返します。
-        /// </summary>
-        /// <seealso cref="AvatarPerformance.AnalyzeDynamicBone"/>
-        /// <param name="prefabInstance"></param>
-        /// <returns></returns>
-        private static IEnumerable<Converter.Message> GetMessagesAboutDynamicBoneLimits(GameObject avatar)
-        {
-            var messages = new List<Converter.Message>();
-#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
-            AvatarPerformanceStats statistics = new AvatarPerformanceStats();
-            AvatarPerformance.CalculatePerformanceStats(avatar.GetComponent<VRMMeta>().Meta.Title, avatar, statistics);
-
-            AvatarPerformanceStatsLevel mediumPerformanceStatLimits
-                = VRChatUtility.AvatarPerformanceStatsLevelSets["PC"].medium;
-
-            if (statistics.dynamicBoneSimulatedBoneCount > mediumPerformanceStatLimits.dynamicBoneSimulatedBoneCount)
-            {
-                messages.Add(new Converter.Message
-                {
-                    message = string.Format(
-                        _("The “Dynamic Bone Simulated Bone Count” is {0}."),
-                        statistics.dynamicBoneSimulatedBoneCount
-                    ) + string.Format(
-                        _("If this value exceeds {0}, the default user setting disable all Dynamic Bones."),
-                        mediumPerformanceStatLimits.dynamicBoneSimulatedBoneCount
-                    ),
-                    type = MessageType.Warning,
-                });
-            }
-
-            if (statistics.dynamicBoneCollisionCheckCount > mediumPerformanceStatLimits.dynamicBoneCollisionCheckCount)
-            {
-                messages.Add(new Converter.Message
-                {
-                    message = string.Format(
-                        _("The “Dynamic Bone Collision Check Count” is {0}."),
-                        statistics.dynamicBoneCollisionCheckCount
-                    ) + string.Format(
-                        _("If this value exceeds {0}, the default user setting disable all Dynamic Bones."),
-                        mediumPerformanceStatLimits.dynamicBoneCollisionCheckCount
-                    ),
-                    type = MessageType.Warning,
-                });
-            }
-#endif
-
-            return messages;
         }
     }
 }

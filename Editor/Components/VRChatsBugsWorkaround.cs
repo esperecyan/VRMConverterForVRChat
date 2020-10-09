@@ -81,7 +81,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             var messages = new List<Converter.Message>();
             
             VRChatsBugsWorkaround.EnableAnimationOvrride(avatar: avatar);
-            if (VRChatUtility.SDK2)
+            if (VRChatUtility.SDKVersion == 2)
             {
                 if (enableAutoEyeMovement)
                 {
@@ -106,7 +106,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 addedValueToShoulders: addedShouldersPositionY,
                 addedValueToEyes: moveEyeBoneToFrontForEyeMovement
             );
-            if (VRChatUtility.SDK2)
+            if (VRChatUtility.SDKVersion == 2)
             {
                 if (enableAutoEyeMovement || forQuest)
                 {

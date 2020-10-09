@@ -12,6 +12,7 @@ using VRCSDK2;
 using VRC.SDK3.Avatars.Components;
 #endif
 using Esperecyan.Unity.VRMConverterForVRChat.Components;
+using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
 {
@@ -144,7 +145,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 moveEyeBoneToFrontForEyeMovement: moveEyeBoneToFrontForEyeMovement,
                 forQuest: forQuest
             ));
-            ComponentsRemover.Apply(avatar: prefabInstance);
+            VRChatUtility.RemoveBlockedComponents(prefabInstance, forQuest);
             Undo.RegisterCreatedObjectUndo(prefabInstance, "Convert VRM for VRChat");
             return messages;
         }

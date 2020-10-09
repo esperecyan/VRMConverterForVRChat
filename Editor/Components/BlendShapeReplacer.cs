@@ -303,7 +303,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 
             SetLipSync(avatar, clips, useShapeKeyNormalsAndTangents);
 
-            if (VRChatUtility.SDK2)
+            if (VRChatUtility.SDKVersion == 2)
             {
                 if (useAnimatorForBlinks)
                 {
@@ -1103,7 +1103,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         {
             var fileName = clip.Preset + ".anim";
             AnimationClip anim;
-            if (VRChatUtility.SDK2)
+            if (VRChatUtility.SDKVersion == 2)
             {
                 anim = Duplicator.DuplicateAssetToFolder<AnimationClip>(
                     source: UnityPath.FromUnityPath(Converter.RootFolderPath).Child("animations")

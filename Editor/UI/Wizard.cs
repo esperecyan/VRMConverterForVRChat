@@ -10,8 +10,6 @@ using UnityEditor;
 using UniGLTF;
 using VRM;
 #if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
-using VRCSDK2.Validation.Performance;
-using VRCSDK2.Validation.Performance.Stats;
 using VRC.Core;
 #endif
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
@@ -415,7 +413,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 indentStyle
             );
 
-#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
+            if (VRChatUtility.SDKVersion == null)
+            {
+                EditorGUILayout.HelpBox(_("VRChat SDK2 or SDK3 has not been imported."), MessageType.Error);
+                isValid = false;
+                return true;
+            }
+
             foreach (var type in Converter.RequiredComponents) {
                 if (!this.avatar.GetComponent(type))
                 {
@@ -489,88 +493,19 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 return true;
             }
 
-            AvatarPerformanceStats statistics = new AvatarPerformanceStats();
-            AvatarPerformance.CalculatePerformanceStats(
-                avatarName: avatar.GetComponent<VRMMeta>().Meta.Title,
-                avatarObject: this.avatar.gameObject,
-                perfStats: statistics
-            );
-            int currentPolycount = (int)statistics.polyCount;
-
-            int maxPolycount = VRChatUtility.AvatarPerformanceStatsLevelSets["Quest"].medium.polyCount;
-
-            if (currentPolycount > maxPolycount)
+            var currentTriangleCount = VRChatUtility.CountTriangle(this.avatar.gameObject);
+            if (currentTriangleCount > VRChatUtility.Limitations.triangleCount)
             {
                 EditorGUILayout.HelpBox(string.Format(
                     _("The number of polygons is {0}."),
-                    currentPolycount
+                    currentTriangleCount
                 ) + string.Format(
                     _("If this value exceeds {0}, the avatar will not shown under the default user setting."),
-                    maxPolycount
+                    VRChatUtility.Limitations.triangleCount
                 ), MessageType.Error);
             }
-#else
-            EditorGUILayout.HelpBox(_("VRChat SDK2 or SDK3 has not been imported."), MessageType.Error);
-            isValid = false;
-#endif
 
             return true;
-        }
-
-        /// <summary>
-        /// Questの制限値に関するエラーメッセージを取得します。
-        /// </summary>
-        /// <param name="prefab"></param>
-        /// <returns></returns>
-        private static IEnumerable<Converter.Message> GenerateQuestLimitationsErrorMessages(GameObject prefab)
-        {
-            var messages = new List<Converter.Message>();
-
-#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
-            AvatarPerformanceStats statistics = new AvatarPerformanceStats();
-            AvatarPerformance.CalculatePerformanceStats("", prefab, statistics);
-
-            AvatarPerformanceStatsLevel performanceStatLimits
-                = VRChatUtility.AvatarPerformanceStatsLevelSets["Quest"].medium;
-
-            foreach (var limitation in new[] {
-                new {
-                    current = statistics.skinnedMeshCount,
-                    limit = performanceStatLimits.skinnedMeshCount,
-                    message = _("The number of Skinned Mesh Renderer components is {0}.")
-                },
-                new {
-                    current = statistics.meshCount,
-                    limit = performanceStatLimits.meshCount,
-                    message = _("The number of (non-Skinned) Mesh Renderer components is {0}.")
-                },
-                new {
-                    current = statistics.materialCount,
-                    limit = performanceStatLimits.materialCount,
-                    message = _("The number of material slots (sub-meshes) is {0}.")
-                },
-                new {
-                    current = statistics.boneCount,
-                    limit = performanceStatLimits.boneCount,
-                    message = _("The number of Bones is {0}.")
-                },
-            })
-            {
-                if (limitation.current > limitation.limit)
-                {
-                    messages.Add(new Converter.Message
-                    {
-                        message = string.Format(limitation.message, limitation.current) + string.Format(
-                            _("If this value exceeds {0}, the avatar will not shown under the default user setting."),
-                            limitation.limit
-                        ),
-                        type = MessageType.Error,
-                    });
-                }
-            }
-#endif
-
-            return messages;
         }
 
         private void OnWizardCreate()
@@ -643,7 +578,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
 
             if (this.forQuest)
             {
-                messages.AddRange(Wizard.GenerateQuestLimitationsErrorMessages(prefab: prefabInstance));
+                messages.AddRange(VRChatUtility.CalculateQuestLimitations(prefabInstance));
             }
 
             this.SaveSettings();
