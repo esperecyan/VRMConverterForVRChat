@@ -1,0 +1,19 @@
+{
+    "name": "Esperecyan.Unity.VRMConverterForVRChat.Editor",
+    "references": [
+        "VRM",
+        "UniHumanoid",
+        "Esperecyan.Unity.VRMConverterForVRChat",
+        "Esperecyan.Unity.VRMConverterForVRChat.CombineMeshesAndSubMeshes"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": []
+}
