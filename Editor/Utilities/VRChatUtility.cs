@@ -250,15 +250,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             var dynamicBoneAffectedTransformCountPairs
                 = prefabInstance.GetComponentsInChildren(DynamicBoneType).ToDictionary(
                     dynamicBone => dynamicBone,
-                    dynamicBone => {
-                        var root = (Transform)DynamicBoneType.GetField("m_Root").GetValue(dynamicBone);
+                    (dynamic dynamicBone) => {
+                        var root = (Transform)dynamicBone.m_Root;
                         if (!root.IsChildOf(prefabInstance.transform))
                         {
                             return 0;
                         }
 
-                        var exclusions
-                            = (List<Transform>)DynamicBoneType.GetField("m_Exclusions").GetValue(dynamicBone);
+                        var exclusions = (List<Transform>)dynamicBone.m_Exclusions;
                         return root.GetComponentsInChildren<Transform>().Length
                             //- 1 // Collision checks counted incorrectly | Bug Reports | VRChat <https://vrchat.canny.io/bug-reports/p/collision-checks-counted-incorrectly>
                             - (exclusions != null
@@ -284,7 +283,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             }
 
             var collisionCheckCount = dynamicBoneAffectedTransformCountPairs.Sum(dynamicBoneAffectedTransformCountPair => {
-                var colliders = DynamicBoneType.GetField("m_Colliders").GetValue(dynamicBoneAffectedTransformCountPair.Key);
+                var colliders = dynamicBoneAffectedTransformCountPair.Key.m_Colliders;
                 if (colliders == null)
                 {
                     return 0;
