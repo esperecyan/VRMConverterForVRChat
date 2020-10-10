@@ -57,15 +57,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         }
 
         /// <summary>
-        /// <see cref="EditorGUILayout.HelpBox"/>で表示するメッセージ。
-        /// </summary>
-        public struct Message
-        {
-            public string message;
-            public MessageType type;
-        }
-
-        /// <summary>
         /// 変換元のアバターのルートに設定されている必要があるコンポーネント。
         /// </summary>
         public static readonly Type[] RequiredComponents = { typeof(Animator), typeof(VRMMeta), typeof(VRMHumanoidDescription), typeof(VRMFirstPerson) };
@@ -93,7 +84,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="useShapeKeyNormalsAndTangents"><c>false</c> の場合、シェイプキーの法線・接線を削除します。</param>
         /// <param name="vrmBlendShapeForFINGERPOINT">FINGERPOINTへ割り当てる表情。</param>
         /// <returns>変換中に発生したメッセージ。</returns>
-        public static IEnumerable<Converter.Message> Convert(
+        public static IEnumerable<(string message, MessageType type)> Convert(
             GameObject prefabInstance,
             IEnumerable<VRMBlendShapeClip> clips,
             SwayingObjectsConverterSetting swayingObjectsConverterSetting = default,
@@ -119,15 +110,15 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 #if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
             prefabInstance.GetOrAddComponent<PipelineManager>();
 #endif
-            var messages = new List<Converter.Message>();
+            var messages = new List<(string, MessageType)>();
             messages.AddRange(GeometryCorrector.Apply(avatar: prefabInstance));
-            messages.AddRange(BlendShapeReplacer.Apply(
+            BlendShapeReplacer.Apply(
                 avatar: prefabInstance,
                 clips: clips,
                 useAnimatorForBlinks: forQuest ? useAnimatorForBlinks : true,
                 useShapeKeyNormalsAndTangents,
                 vrmBlendShapeForFINGERPOINT
-            ));
+            );
             messages.AddRange(ComponentsReplacer.Apply(
                 avatar: prefabInstance,
                 swayingObjectsConverterSetting: forQuest

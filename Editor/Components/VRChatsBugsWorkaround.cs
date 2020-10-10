@@ -70,7 +70,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// <param name="moveEyeBoneToFrontForEyeMovement"></param>
         /// <param name="forQuest"></param>
         /// <returns>変換中に発生したメッセージ。</returns>
-        internal static IEnumerable<Converter.Message> Apply(
+        internal static IEnumerable<(string, MessageType)> Apply(
             GameObject avatar,
             bool enableAutoEyeMovement,
             float addedShouldersPositionY,
@@ -78,7 +78,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             float moveEyeBoneToFrontForEyeMovement,
             bool forQuest
         ) {
-            var messages = new List<Converter.Message>();
+            var messages = new List<(string, MessageType)>();
             
             VRChatsBugsWorkaround.EnableAnimationOvrride(avatar: avatar);
             if (VRChatUtility.SDKVersion == 2)
@@ -455,9 +455,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// テクスチャのMipmap Streamingが無効だとアップロードできないため、有効化します。
         /// </summary>
         /// <param name="avatar"></param>
-        private static IEnumerable<Converter.Message> EnableTextureMipmapStreaming(GameObject avatar)
+        private static IEnumerable<(string, MessageType)> EnableTextureMipmapStreaming(GameObject avatar)
         {
-            var messages = new List<Converter.Message>();
+            var messages = new List<(string, MessageType)>();
 
             var paths = new List<string>();
             foreach (Texture texture
@@ -487,15 +487,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 
             AssetDatabase.ForceReserializeAssets(paths);
 
-            messages.Add(new Converter.Message
-            {
-                message = string.Join(
-                    separator: "\n• ",
-                    value: new[] { _("“Texture Mipmap Streaming” was enabled on these each textures.") }
-                        .Concat(paths).ToArray()
-                ),
-                type = MessageType.Warning,
-            });
+            messages.Add((string.Join(
+                separator: "\n• ",
+                value: new[] { _("“Texture Mipmap Streaming” was enabled on these each textures.") }
+                    .Concat(paths).ToArray()
+            ), MessageType.Warning));
 
             return messages;
         }

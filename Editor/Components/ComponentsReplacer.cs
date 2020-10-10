@@ -26,13 +26,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// <param name="avatar"></param>
         /// <param name="swayingParametersConverter"></param>
         /// <returns></returns>
-        internal static IEnumerable<Converter.Message> Apply(
+        internal static IEnumerable<(string, MessageType)> Apply(
             GameObject avatar,
             Converter.SwayingObjectsConverterSetting swayingObjectsConverterSetting,
             Converter.SwayingParametersConverter swayingParametersConverter
         )
         {
-            var messages = new List<Converter.Message>();
+            var messages = new List<(string, MessageType)>();
 
             ConvertMeta(avatar: avatar);
             ConvertVRMFirstPerson(avatar: avatar);

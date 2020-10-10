@@ -9,13 +9,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
     /// </summary>
     internal class ResultDialog : ScriptableWizard
     {
-        private IEnumerable<Converter.Message> messages;
+        private IEnumerable<(string message, MessageType type)> messages;
 
         /// <summary>
         /// ダイアログを開きます。
         /// </summary>
         /// <param name="messages"></param>
-        internal static void Open(IEnumerable<Converter.Message> messages)
+        internal static void Open(IEnumerable<(string, MessageType)> messages)
         {
             var wizard = DisplayWizard<ResultDialog>(Converter.Name + " " + Converter.Version, _("OK"));
             wizard.messages = messages;
@@ -25,8 +25,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         {
             base.DrawWizardGUI();
             EditorGUILayout.LabelField(_("Converting is completed."));
-            foreach (var message in this.messages) {
-                EditorGUILayout.HelpBox(message.message, message.type);
+            foreach (var (message, type) in this.messages) {
+                EditorGUILayout.HelpBox(message, type);
             }
             return true;
         }

@@ -297,15 +297,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// <param name="useAnimatorForBlinks"></param>
         /// <param name="useShapeKeyNormalsAndTangents"></param>
         /// <param name="vrmBlendShapeForFINGERPOINT"></param>
-        internal static IEnumerable<Converter.Message> Apply(
+        internal static void Apply(
             GameObject avatar,
             IEnumerable<VRMBlendShapeClip> clips,
             bool useAnimatorForBlinks,
             bool useShapeKeyNormalsAndTangents,
             VRMBlendShapeClip vrmBlendShapeForFINGERPOINT
         ) {
-            var messages = new List<Converter.Message>();
-
             SetLipSync(avatar, clips, useShapeKeyNormalsAndTangents);
 
             if (VRChatUtility.SDKVersion == 2)
@@ -327,8 +325,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             }
 
             SetFeelings(avatar, clips, vrmBlendShapeForFINGERPOINT);
-
-            return messages;
         }
 
         /// <summary>

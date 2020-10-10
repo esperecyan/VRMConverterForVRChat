@@ -240,9 +240,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
         /// </summary>
         /// <param name="prefabInstance"></param>
         /// <returns></returns>
-        internal static IEnumerable<Converter.Message> CalculateDynamicBoneLimitations(GameObject prefabInstance)
+        internal static IEnumerable<(string, MessageType)> CalculateDynamicBoneLimitations(GameObject prefabInstance)
         {
-            var messages = new List<Converter.Message>();
+            var messages = new List<(string, MessageType)>();
 
             var dynamicBoneAffectedTransformCountPairs
                 = prefabInstance.GetComponentsInChildren(DynamicBoneType).ToDictionary(
@@ -266,17 +266,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
 
             if (affectedTransformCount > VRChatUtility.Limitations.dynamicBoneAffectedTransformCount)
             {
-                messages.Add(new Converter.Message
-                {
-                    message = string.Format(
-                        _("The “Dynamic Bone Simulated Bone Count” is {0}."),
-                        affectedTransformCount
-                    ) + string.Format(
-                        _("If this value exceeds {0}, the default user setting disable all Dynamic Bones."),
-                        VRChatUtility.Limitations.dynamicBoneAffectedTransformCount
-                    ),
-                    type = MessageType.Warning,
-                });
+                messages.Add((string.Format(
+                    _("The “Dynamic Bone Simulated Bone Count” is {0}."),
+                    affectedTransformCount
+                ) + string.Format(
+                    _("If this value exceeds {0}, the default user setting disable all Dynamic Bones."),
+                    VRChatUtility.Limitations.dynamicBoneAffectedTransformCount
+                ), MessageType.Warning));
             }
 
             var collisionCheckCount = dynamicBoneAffectedTransformCountPairs.Sum(dynamicBoneAffectedTransformCountPair => {
@@ -291,17 +287,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             });
             if (collisionCheckCount > VRChatUtility.Limitations.dynamicBoneCollisionCheckCount)
             {
-                messages.Add(new Converter.Message
-                {
-                    message = string.Format(
-                        _("The “Dynamic Bone Collision Check Count” is {0}."),
-                        collisionCheckCount
-                    ) + string.Format(
-                        _("If this value exceeds {0}, the default user setting disable all Dynamic Bones."),
-                        VRChatUtility.Limitations.dynamicBoneCollisionCheckCount
-                    ),
-                    type = MessageType.Warning,
-                });
+                messages.Add((string.Format(
+                    _("The “Dynamic Bone Collision Check Count” is {0}."),
+                    collisionCheckCount
+                ) + string.Format(
+                    _("If this value exceeds {0}, the default user setting disable all Dynamic Bones."),
+                    VRChatUtility.Limitations.dynamicBoneCollisionCheckCount
+                ), MessageType.Warning));
             }
 
             return messages;
@@ -312,9 +304,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
         /// </summary>
         /// <param name="prefabInstance"></param>
         /// <returns></returns>
-        internal static IEnumerable<Converter.Message> CalculateQuestLimitations(GameObject prefabInstance)
+        internal static IEnumerable<(string, MessageType)> CalculateQuestLimitations(GameObject prefabInstance)
         {
-            var messages = new List<Converter.Message>();
+            var messages = new List<(string, MessageType)>();
 
             foreach (var (current, limit, message) in new[] {
                 (
@@ -341,14 +333,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             {
                 if (current > limit)
                 {
-                    messages.Add(new Converter.Message
-                    {
-                        message = string.Format(message, current) + string.Format(
-                            _("If this value exceeds {0}, the avatar will not shown under the default user setting."),
-                            limit
-                        ),
-                        type = MessageType.Error,
-                    });
+                    messages.Add((string.Format(message, current) + string.Format(
+                        _("If this value exceeds {0}, the avatar will not shown under the default user setting."),
+                        limit
+                    ), MessageType.Error));
                 }
             }
 

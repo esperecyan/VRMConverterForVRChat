@@ -574,7 +574,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 combineMeshesAndSubMeshes: this.combineMeshes
             );
 
-            var messages = new List<Converter.Message>();
+            var messages = new List<(string, MessageType)>();
 
             if (this.forQuest)
             {
