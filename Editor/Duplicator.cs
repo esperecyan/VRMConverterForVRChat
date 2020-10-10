@@ -124,6 +124,54 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         }
 
         /// <summary>
+        /// オブジェクトをプレハブが置かれているディレクトリの直下のフォルダへ保存します。
+        /// </summary>
+        /// <remarks>
+        /// 保存先にすでにアセットが存在していれば上書きし、metaファイルは新規生成しません。
+        /// </remarks>
+        /// <typeparam name="T"></typeparam>
+        /// <exception cref="ArgumentException">source がすでにアセットとして存在するか、<see cref="AnimatorController"> の場合。</exception>
+        /// <param name="source">オブジェクト。</param>
+        /// <param name="prefabInstance">プレハブインスタンス。</param>
+        /// <param name="destinationFileName">ファイル名がオブジェクト名と異なる場合に指定。</param>
+        /// <returns></returns>
+        internal static T CreateObjectToFolder<T>(
+            T source,
+            GameObject prefabInstance,
+            string destinationFileName = null
+        ) where T : UnityEngine.Object
+        {
+            var path = AssetDatabase.GetAssetPath(source);
+            if (!string.IsNullOrEmpty(path))
+            {
+                throw new ArgumentException($"source はすでにアセットとして「{path}」に存在します。", nameof(T));
+            }
+
+            if (source is AnimatorController)
+            {
+                throw new ArgumentException($"{nameof(AnimatorController)} は上書きできません。", nameof(T));
+            }
+
+            string destinationPath = Duplicator.DetermineAssetPath(
+                prefabInstance,
+                typeof(T),
+                destinationFileName ?? source.name.EscapeFilePath() + ".asset"
+            );
+
+            var destination = AssetDatabase.LoadMainAssetAtPath(destinationPath);
+            if (destination)
+            {
+                EditorUtility.CopySerialized(source, destination);
+            }
+            else
+            {
+                AssetDatabase.CreateAsset(source, destinationPath);
+            }
+
+            return AssetDatabase.LoadAssetAtPath<T>(destinationPath);
+        }
+
+        /// <summary>
         /// アセットインスタンスを複製します。
         /// </summary>
         /// <remarks>

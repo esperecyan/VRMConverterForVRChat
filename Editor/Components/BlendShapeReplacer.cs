@@ -834,24 +834,36 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             var controllerPath = path + ".controller";
             var clipPath = path + ".anim";
 
-            var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(controllerPath);
             var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(clipPath);
-            if (controller && clip)
+            if (clip)
             {
                 clip.ClearCurves();
+            }
+
+            var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(controllerPath);
+            if (controller && clip)
+            {
                 return controller;
             }
 
-            AssetDatabase.MoveAssetToTrash(controllerPath);
-            AssetDatabase.MoveAssetToTrash(clipPath);
+            if (!clip)
+            {
+                clip = new AnimationClip();
+                AnimationClipSettings settings = AnimationUtility.GetAnimationClipSettings(clip);
+                settings.loopTime = true;
+                AnimationUtility.SetAnimationClipSettings(clip, settings);
+                AssetDatabase.CreateAsset(clip, clipPath);
+            }
 
-            clip = new AnimationClip();
-            AnimationClipSettings settings = AnimationUtility.GetAnimationClipSettings(clip);
-            settings.loopTime = true;
-            AnimationUtility.SetAnimationClipSettings(clip, settings);
-            AssetDatabase.CreateAsset(clip, clipPath);
-
-            return AnimatorController.CreateAnimatorControllerAtPathWithClip(controllerPath, clip);
+            if (controller)
+            {
+                controller.layers[0].stateMachine.states[0].state.motion = clip;
+                return controller;
+            }
+            else
+            {
+                return AnimatorController.CreateAnimatorControllerAtPathWithClip(controllerPath, clip);
+            }
         }
 
         /// <summary>
@@ -1047,10 +1059,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 .First(childState => childState.state.name == "FaceBlend").state.motion;
             var motions = blendTree.children;
 
-            var neutral = new AnimationClip();
-            AssetDatabase.CreateAsset(
-                neutral,
-                Duplicator.DetermineAssetPath(prefabInstance: avatar, typeof(AnimationClip), "Neutral.anim")
+            var neutral = Duplicator.CreateObjectToFolder(
+                source: new AnimationClip(),
+                prefabInstance: avatar,
+                destinationFileName: "Neutral.anim"
             );
 #endif
 
@@ -1139,10 +1151,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             }
             else
             {
-                anim = new AnimationClip();
-                AssetDatabase.CreateAsset(
-                    anim,
-                    Duplicator.DetermineAssetPath(prefabInstance: avatar, typeof(AnimationClip), fileName)
+                anim = Duplicator.CreateObjectToFolder(
+                    source: new AnimationClip(),
+                    prefabInstance: avatar,
+                    destinationFileName: fileName
                 );
                 clips = BlendShapeReplacer.DuplicateShapeKeyToUnique(avatar, clip, clips);
             }
