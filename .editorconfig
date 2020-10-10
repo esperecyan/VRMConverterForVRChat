@@ -13,3 +13,191 @@ indent_style = space
 [{*.meta,*.anim}]
 trim_trailing_whitespace = false
 indent_size = 2
+
+
+
+[*.cs]
+#### .NET コーディング規則 ####
+# https://docs.microsoft.com/visualstudio/ide/editorconfig-code-style-settings-reference
+
+### 言語規則 ###
+
+## .NET コード スタイルの設定
+
+# this. と Me. の設定
+dotnet_style_qualification_for_event = true:warning
+dotnet_style_qualification_for_field = true:warning
+dotnet_style_qualification_for_method = true:warning
+dotnet_style_qualification_for_property = true:warning
+
+# 言語キーワードと BCL の種類の設定
+dotnet_style_predefined_type_for_locals_parameters_members = true:warning
+dotnet_style_predefined_type_for_member_access = true:warning
+
+# 修飾子設定
+dotnet_style_require_accessibility_modifiers = always:warning
+csharp_preferred_modifier_order = public, private, protected, internal, static, extern, new, virtual, abstract, sealed, override, readonly, unsafe, volatile, async:warning
+
+# 式レベルの設定
+dotnet_style_prefer_inferred_tuple_names = true:warning
+dotnet_style_prefer_inferred_anonymous_type_member_names = true:warning
+dotnet_style_prefer_auto_properties = true:warning
+dotnet_style_prefer_is_null_check_over_reference_equality_method = true:warning
+
+# Null チェック設定
+dotnet_style_coalesce_expression = true:warning
+dotnet_style_null_propagation = true:warning
+
+# ドキュメント化されていないプロパティ
+# https://github.com/MicrosoftDocs/visualstudio-docs/issues/3641
+dotnet_style_operator_placement_when_wrapping = beginning_of_line
+
+## C# コード スタイルの設定
+
+# var を優先
+csharp_style_var_for_built_in_types = true:warning
+csharp_style_var_when_type_is_apparent = true:warning
+
+# 式のようなメンバー
+csharp_style_expression_bodied_properties = true:warning
+csharp_style_expression_bodied_accessors = true:warning
+
+# パターン マッチング設定
+csharp_style_pattern_matching_over_is_with_cast_check = true:warning
+csharp_style_pattern_matching_over_as_with_null_check = true:warning
+
+# インライン変数宣言
+csharp_style_inlined_variable_declaration = true:warning
+
+# 式レベルの設定
+csharp_prefer_simple_default_expression = true:warning
+
+# コード ブロックの設定
+csharp_prefer_braces = true:warning
+
+# インデックスと範囲のユーザー設定【C# 8.0】
+csharp_style_prefer_index_operator = false:error
+csharp_style_prefer_range_operator = false:error
+
+# その他のユーザー設定
+csharp_using_directive_placement = outside_namespace:warning
+# 【C# 8.0】
+csharp_style_prefer_switch_expression = false:error
+
+### 書式規則 ###
+
+## .NET 書式設定
+
+# using の整理
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+
+## C# 書式設定
+
+# 改行設定
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_new_line_before_members_in_object_initializers = true
+csharp_new_line_before_members_in_anonymous_types = true
+
+# インデント設定
+csharp_indent_case_contents = true
+csharp_indent_switch_labels = true
+csharp_indent_block_contents = true
+csharp_indent_braces = false
+csharp_indent_case_contents_when_block = false
+
+# スペース設定
+csharp_space_after_cast = false
+csharp_space_after_keywords_in_control_flow_statements = true
+csharp_space_before_colon_in_inheritance_clause = true
+csharp_space_after_colon_in_inheritance_clause = true
+csharp_space_around_binary_operators = before_and_after
+csharp_space_between_method_declaration_parameter_list_parentheses = false
+csharp_space_between_method_declaration_empty_parameter_list_parentheses = false
+csharp_space_between_method_declaration_name_and_open_parenthesis = false
+csharp_space_between_method_call_parameter_list_parentheses = false
+csharp_space_between_method_call_empty_parameter_list_parentheses = false
+csharp_space_between_method_call_name_and_opening_parenthesis = false
+csharp_space_after_comma = true
+csharp_space_before_comma = false
+csharp_space_after_dot = false
+csharp_space_before_dot = false
+csharp_space_after_semicolon_in_for_statement = true
+csharp_space_before_semicolon_in_for_statement = false
+csharp_space_around_declaration_statements = false
+csharp_space_before_open_square_brackets = false
+csharp_space_between_empty_square_brackets = false
+csharp_space_between_square_brackets = false
+
+# 折り返しの設定
+csharp_preserve_single_line_statements = false
+csharp_preserve_single_line_blocks = true
+
+### 命名規則 ###
+
+# 【camelCase】privateかつ非staticなフィールド、引数、ローカル変数
+# 【PascalCase】上記以外
+# インターフェース名には「I」を前置
+# 型パラメータ名には「T」を前置
+
+## 名前付けルール
+
+dotnet_naming_rule.private_field_should_be_camel_case.severity = warning
+dotnet_naming_rule.private_field_should_be_camel_case.symbols = private_field
+dotnet_naming_rule.private_field_should_be_camel_case.style = camel_case
+
+dotnet_naming_rule.parameter_or_local_should_be_camel_case.severity = warning
+dotnet_naming_rule.parameter_or_local_should_be_camel_case.symbols = parameter_or_local
+dotnet_naming_rule.parameter_or_local_should_be_camel_case.style = camel_case
+
+dotnet_naming_rule.others_should_be_pascal_case.severity = warning
+dotnet_naming_rule.others_should_be_pascal_case.symbols = others
+dotnet_naming_rule.others_should_be_pascal_case.style = pascal_case
+
+dotnet_naming_rule.private_static_field_should_be_camel_case.severity = warning
+dotnet_naming_rule.private_static_field_should_be_camel_case.symbols = private_static_field
+dotnet_naming_rule.private_static_field_should_be_camel_case.style = pascal_case
+
+dotnet_naming_rule.interface_should_be_prefix_i.severity = warning
+dotnet_naming_rule.interface_should_be_prefix_i.symbols = interface
+dotnet_naming_rule.interface_should_be_prefix_i.style = prefix_i
+
+dotnet_naming_rule.type_parameter_should_be_prefix_t.severity = warning
+dotnet_naming_rule.type_parameter_should_be_prefix_t.symbols = type_parameter
+dotnet_naming_rule.type_parameter_should_be_prefix_t.style = prefix_t
+
+## 記号の仕様
+
+dotnet_naming_symbols.private_field.applicable_kinds = field
+dotnet_naming_symbols.private_field.applicable_accessibilities = private
+
+dotnet_naming_symbols.parameter_or_local.applicable_kinds = parameter, local
+dotnet_naming_symbols.parameter_or_local.applicable_accessibilities = *
+
+dotnet_naming_symbols.others.applicable_kinds = *
+dotnet_naming_symbols.others.applicable_accessibilities = *
+
+dotnet_naming_symbols.private_static_field.applicable_kinds = field
+dotnet_naming_symbols.private_static_field.applicable_accessibilities = private
+dotnet_naming_symbols.private_static_field.required_modifiers = static
+
+dotnet_naming_symbols.interface.applicable_kinds = interface
+dotnet_naming_symbols.interface.applicable_accessibilities = *
+
+dotnet_naming_symbols.type_parameter.applicable_kinds = type_parameter
+dotnet_naming_symbols.type_parameter.applicable_accessibilities = *
+
+## 命名スタイル
+
+dotnet_naming_style.camel_case.capitalization = camel_case
+
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+
+dotnet_naming_style.prefix_i.required_prefix = I
+dotnet_naming_style.prefix_i.capitalization = pascal_case
+
+dotnet_naming_style.prefix_t.required_prefix = T
+dotnet_naming_style.prefix_t.capitalization = pascal_case
