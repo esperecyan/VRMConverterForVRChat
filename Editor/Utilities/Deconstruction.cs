@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
 {
+#pragma warning disable
     /// <summary>
     /// .NET Standard 2.1のpolyfill。
     /// </summary>
@@ -27,4 +28,5 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             item2 = x.Item2;
         }
     }
+#pragma warning restore
 }

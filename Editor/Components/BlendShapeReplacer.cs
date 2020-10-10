@@ -476,7 +476,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                         if (blinkClip && blinkClip.ShapeKeyValues.ContainsKey(shapeKeyName))
                         {
                             // NEUTRALとBlinkが同一のシェイプキーを参照していた場合
-                            float blinkShapeKeyWeight = blinkClip.ShapeKeyValues[shapeKeyName];
+                            var blinkShapeKeyWeight = blinkClip.ShapeKeyValues[shapeKeyName];
                             var animationCurve = new AnimationCurve();
                             foreach (var (seconds, blendShapePreset) in BlendShapeReplacer.NeutralAndBlinkWeights)
                             {
@@ -526,7 +526,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             Mesh mesh = transform.GetSharedMesh();
             IEnumerable<BlendShape> shapeKeys = BlendShapeReplacer.GetAllShapeKeys(mesh, useShapeKeyNormalsAndTangents);
             mesh.ClearBlendShapes();
-            foreach (string name in BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin)
+            foreach (var name in BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin)
             {
                 BlendShapeReplacer.AddDummyShapeKey(mesh: mesh, name: name);
             }
@@ -646,7 +646,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 dummyShapeKeyNames.Add(BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.ElementAt(1));
             }
             dummyShapeKeyNames.AddRange(BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.Skip(2));
-            foreach (string name in dummyShapeKeyNames)
+            foreach (var name in dummyShapeKeyNames)
             {
                 BlendShapeReplacer.AddDummyShapeKey(mesh: mesh, name: name);
             }
@@ -794,7 +794,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         {
             var shapeKeys = new List<BlendShape>();
 
-            int meshVertexCount = mesh.vertexCount;
+            var meshVertexCount = mesh.vertexCount;
             for (var i = 0; i < mesh.blendShapeCount; i++)
             {
                 var deltaVertices = new Vector3[meshVertexCount];
@@ -1077,7 +1077,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 }
 
                 AnimationClip animationClip = CreateFeeling(avatar, blendShapeClip, ref clips);
-                string anim = BlendShapeReplacer.MappingBlendShapeToVRChatAnim[preset].ToString();
+                var anim = BlendShapeReplacer.MappingBlendShapeToVRChatAnim[preset].ToString();
 #if VRC_SDK_VRCSDK2
                 avatarDescriptor.CustomStandingAnims[anim] = animationClip;
                 avatarDescriptor.CustomSittingAnims[anim] = animationClip;
@@ -1201,7 +1201,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             IEnumerable<VRMBlendShapeClip> clips
         )
         {
-            string[] neutralAndBlinkShapeKeyNames = new[] { BlendShapePreset.Neutral, BlendShapePreset.Blink }
+            var neutralAndBlinkShapeKeyNames = new[] { BlendShapePreset.Neutral, BlendShapePreset.Blink }
                 .Select(selector: blendShapePreset => clips.FirstOrDefault(c => c.Preset == blendShapePreset))
                 .SelectMany(selector: blendShapeClip =>
                     blendShapeClip ? blendShapeClip.ShapeKeyValues : new Dictionary<string, float>())

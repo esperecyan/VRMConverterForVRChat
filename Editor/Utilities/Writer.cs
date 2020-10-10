@@ -5,9 +5,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
 {
     internal class Writer : StringWriter
     {
-        public override Encoding Encoding
-        {
-            get { return Encoding.UTF8; }
-        }
+        public override Encoding Encoding => Encoding.UTF8;
     }
 }

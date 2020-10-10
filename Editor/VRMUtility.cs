@@ -76,7 +76,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                         continue;
                     }
 
-                    string shapeKeyName = mesh.GetBlendShapeName(binding.Index);
+                    var shapeKeyName = mesh.GetBlendShapeName(binding.Index);
                     if (clip.ShapeKeyValues.ContainsKey(shapeKeyName))
                     {
                         if (binding.Weight > clip.ShapeKeyValues[shapeKeyName])
@@ -161,6 +161,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// 
         /// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         /// </remarks>
+#pragma warning disable
         internal static void Bake(Material material, IEnumerable<MaterialValueBinding> bindings)
         {
             var item = MaterialItem.Create(material);
@@ -185,5 +186,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 }
             }
         }
+#pragma warning restore
     }
 }

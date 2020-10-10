@@ -165,7 +165,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         ) {
             var humanoidDescription = avatar.GetComponent<VRMHumanoidDescription>();
             AvatarDescription avatarDescription = humanoidDescription.Description;
-            HumanDescription humanDescription = avatarDescription.ToHumanDescription(avatar.transform);
+            var humanDescription = avatarDescription.ToHumanDescription(avatar.transform);
             if (humanDescriptionModifier != null) {
                 humanDescriptionModifier(humanDescription);
             }
@@ -246,7 +246,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             var boneLimits = avatarDescription.human.ToList();
             foreach (Transform bone in eyeBones)
             {
-                int index = boneLimits.FindIndex(match: limit => limit.boneName == bone.name);
+                var index = boneLimits.FindIndex(match: limit => limit.boneName == bone.name);
                 bone.name = bone.name.ToLower();
                 BoneLimit boneLimit = boneLimits[index];
                 boneLimit.boneName = bone.name;
@@ -305,11 +305,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             Mesh mesh = renderer.sharedMesh;
             EditorUtility.SetDirty(mesh);
 
-            float minDegree = new[] { lookAtBoneApplyer.HorizontalOuter, lookAtBoneApplyer.HorizontalInner, lookAtBoneApplyer.VerticalDown, lookAtBoneApplyer.VerticalUp }
+            var minDegree = new[] { lookAtBoneApplyer.HorizontalOuter, lookAtBoneApplyer.HorizontalInner, lookAtBoneApplyer.VerticalDown, lookAtBoneApplyer.VerticalUp }
                 .Select(mapper => mapper.CurveYRangeDegree)
                 .Min();
-            float eyeBoneWeight = minDegree / VRChatsBugsWorkaround.MaxAutoEyeMovementDegree;
-            float headBoneWeight = 1 - eyeBoneWeight;
+            var eyeBoneWeight = minDegree / VRChatsBugsWorkaround.MaxAutoEyeMovementDegree;
+            var headBoneWeight = 1 - eyeBoneWeight;
 
             Transform headBone = avatar.GetComponent<VRMFirstPerson>().FirstPersonBone;
             var headBoneIndicesAndBindposes = boneIndicesAndBones[headBone]
@@ -342,9 +342,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                     headBoneIndex = headBoneIndexAndBindpose.index;
                 }
 
-                foreach (int eyeBoneIndex in eyeBoneIndexes)
+                foreach (var eyeBoneIndex in eyeBoneIndexes)
                 {
-                    int index = boneIndexes.ToList().FindIndex(boneIndex => boneIndex == eyeBoneIndex);
+                    var index = boneIndexes.ToList().FindIndex(boneIndex => boneIndex == eyeBoneIndex);
                     switch (index)
                     {
                         case 0:
@@ -413,13 +413,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             }
 
             ApplyAvatarDescription(avatar: avatar, humanDescriptionModifier: humanDescription => {
-                List<HumanBone> humanBones = humanDescription.human.ToList();
-                List<SkeletonBone> skeltonBones = humanDescription.skeleton.ToList();
+                var humanBones = humanDescription.human.ToList();
+                var skeltonBones = humanDescription.skeleton.ToList();
                 if (addedValueToArmature != 0.0f)
                 {
                     var addedPosition = new Vector3(0, addedValueToArmature, 0);
 
-                    string armatureName
+                    var armatureName
                         = avatar.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips).parent.name;
                     humanDescription.skeleton[skeltonBones.FindIndex(match: skeltonBone => skeltonBone.name == armatureName)].position
                         += addedPosition;
@@ -433,7 +433,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                     foreach (HumanBodyBones bone in VRChatsBugsWorkaround.RequiredModifiedBonesForVRChat)
                     {
                         var humanName = bone.ToString();
-                        string name = humanBones.Find(match: humanBone => humanBone.humanName == humanName).boneName;
+                        var name = humanBones.Find(match: humanBone => humanBone.humanName == humanName).boneName;
                         humanDescription.skeleton[skeltonBones.FindIndex(match: skeltonBone => skeltonBone.name == name)].position
                             += new Vector3(0, addedValueToShoulders, 0);
                     }
@@ -443,7 +443,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                     foreach (HumanBodyBones bone in new[] { HumanBodyBones.LeftEye, HumanBodyBones.RightEye })
                     {
                         var humanName = bone.ToString();
-                        string name = humanBones.Find(match: humanBone => humanBone.humanName == humanName).boneName;
+                        var name = humanBones.Find(match: humanBone => humanBone.humanName == humanName).boneName;
                         humanDescription.skeleton[skeltonBones.FindIndex(match: skeltonBone => skeltonBone.name == name)].position
                             += new Vector3(0, 0, addedValueToEyes);
                     }
@@ -463,7 +463,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             foreach (Texture texture
                 in EditorUtility.CollectDependencies(new[] { avatar }).Where(obj => obj is Texture))
             {
-                string path = AssetDatabase.GetAssetPath(texture);
+                var path = AssetDatabase.GetAssetPath(texture);
                 if (string.IsNullOrEmpty(path))
                 {
                     continue;

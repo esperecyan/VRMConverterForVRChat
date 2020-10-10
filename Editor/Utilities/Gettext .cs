@@ -21,17 +21,17 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
         /// <summary>
         /// クライアントの言語。<see cref="Gettext.SetLocale"/>から変更されます。
         /// </summary>
-        private static string langtag = "en";
+        private static string Langtag = "en";
 
         /// <summary>
         /// クライアントの言語のlanguage部分。<see cref="Gettext.SetLocale"/>から変更されます。
         /// </summary>
-        private static string language = "en";
+        private static string Language = "en";
 
         /// <summary>
         /// 翻訳リソース。<see cref="Gettext.SetLocalizedTexts"/>から変更されます。
         /// </summary>
-        private static IDictionary<string, IDictionary<string, string>> multilingualLocalizedTexts = new Dictionary<string, IDictionary<string, string>>{ };
+        private static IDictionary<string, IDictionary<string, string>> MultilingualLocalizedTexts = new Dictionary<string, IDictionary<string, string>>{ };
 
         /// <summary>
         /// 翻訳リソースを追加します。
@@ -39,7 +39,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
         /// <param name="localizedTexts"></param>
         internal static void SetLocalizedTexts(IDictionary<string, IDictionary<string, string>> localizedTexts)
         {
-            Gettext.multilingualLocalizedTexts = localizedTexts;
+            Gettext.MultilingualLocalizedTexts = localizedTexts;
         }
         
         /// <summary>
@@ -48,13 +48,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
         /// <param name="clientLang">IETF言語タグ (「language」と「language-REGION」にのみ対応)。</param>
         internal static void SetLocale(string clientLang)
         {
-            string[] splitedClientLang = clientLang.Split(separator: '-');
-            Gettext.language = splitedClientLang[0].ToLower();
-            Gettext.langtag = string.Join(separator: "-", value: splitedClientLang, startIndex: 0, count: Math.Min(2, splitedClientLang.Length));
-            if (Gettext.language == "ja")
+            var splitedClientLang = clientLang.Split(separator: '-');
+            Gettext.Language = splitedClientLang[0].ToLower();
+            Gettext.Langtag = string.Join(separator: "-", value: splitedClientLang, startIndex: 0, count: Math.Min(2, splitedClientLang.Length));
+            if (Gettext.Language == "ja")
             {
                 // ja-JPをjaと同一視
-                Gettext.langtag = Gettext.language;
+                Gettext.Langtag = Gettext.Language;
             }
         }
         
@@ -65,23 +65,23 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
         /// <returns>翻訳語。</returns>
         internal static string _(string message)
         {
-            if (Gettext.langtag == Gettext.OriginalLocale) {
+            if (Gettext.Langtag == Gettext.OriginalLocale) {
                 // クライアントの言語が翻訳元の言語なら、そのまま返す
                 return message;
             }
 
-            foreach (string langtag in new[] {
+            foreach (var langtag in new[] {
                 // クライアントの言語の翻訳リソースが存在すれば、それを返す
-                Gettext.langtag,
+                Gettext.Langtag,
                 // 地域下位タグを取り除いた言語タグの翻訳リソースが存在すれば、それを返す
-                Gettext.language,
+                Gettext.Language,
                 // 既定言語の翻訳リソースが存在すれば、それを返す
                 Gettext.DefaultLocale,
             }) {
-                if (Gettext.multilingualLocalizedTexts.ContainsKey(key: langtag)
-                    && Gettext.multilingualLocalizedTexts[Gettext.langtag].ContainsKey(key: message)
-                    && Gettext.multilingualLocalizedTexts[Gettext.langtag][message] != "") {
-                    return Gettext.multilingualLocalizedTexts[Gettext.langtag][message];
+                if (Gettext.MultilingualLocalizedTexts.ContainsKey(key: langtag)
+                    && Gettext.MultilingualLocalizedTexts[Gettext.Langtag].ContainsKey(key: message)
+                    && Gettext.MultilingualLocalizedTexts[Gettext.Langtag][message] != "") {
+                    return Gettext.MultilingualLocalizedTexts[Gettext.Langtag][message];
                 }
             }
 

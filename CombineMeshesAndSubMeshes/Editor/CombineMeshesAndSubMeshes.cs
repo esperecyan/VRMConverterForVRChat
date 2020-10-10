@@ -120,7 +120,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 }
             }
 
-            string rootPath = AssetDatabase.GetAssetPath(root);
+            var rootPath = AssetDatabase.GetAssetPath(root);
             if (string.IsNullOrEmpty(rootPath))
             {
                 rootPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(root);
@@ -161,7 +161,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             destinationRenderer.name = destinationObjectName;
             destinationRenderer.sharedMesh.name = destinationRenderer.name;
 
-            string destinationFolderPath = "Assets";
+            var destinationFolderPath = "Assets";
             if (!string.IsNullOrEmpty(rootPath))
             {
                 destinationFolderPath = Path.ChangeExtension(rootPath, ".Meshes");
@@ -174,7 +174,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 }
             }
 
-            string destinationPath = destinationFolderPath + "/" + destinationRenderer.sharedMesh.name + ".asset";
+            var destinationPath = destinationFolderPath + "/" + destinationRenderer.sharedMesh.name + ".asset";
             var destination = AssetDatabase.LoadAssetAtPath<Mesh>(destinationPath);
             if (destination)
             {
@@ -254,8 +254,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
 
             IEnumerable<string> names = notCombineRendererObjectNames.Except(
-                root.GetComponentsInChildren<SkinnedMeshRenderer>()
-                    .Concat<Component>(root.GetComponentsInChildren<MeshRenderer>())
+                this.root.GetComponentsInChildren<SkinnedMeshRenderer>()
+                    .Concat<Component>(this.root.GetComponentsInChildren<MeshRenderer>())
                     .Select(renderer => renderer.name)
             );
 
@@ -323,6 +323,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
     /// </remarks>
     internal static class MeshIntegrator
     {
+#pragma warning disable
         const string ASSET_SUFFIX = ".mesh.asset";
         const string ASSET_WITH_BLENDSHAPE_SUFFIX = ".blendshape.asset";
 
@@ -696,4 +697,5 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             return integrated;
         }
     }
+#pragma warning restore
 }

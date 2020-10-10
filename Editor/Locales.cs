@@ -77,7 +77,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             {
                 case SerializedPropertyType.Float:
                     var attribute = (LocalizableAttribute)this.attribute;
-                    EditorGUI.Slider(position, property, attribute.min, attribute.max, label);
+                    EditorGUI.Slider(position, property, attribute.Min, attribute.Max, label);
                     break;
                 default:
                     EditorGUI.PropertyField(position, property, label);

@@ -7,8 +7,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
     /// </summary>
     internal class LocalizableAttribute : PropertyAttribute
     {
-        internal readonly float min;
-        internal readonly float max;
+        internal readonly float Min;
+        internal readonly float Max;
 
         internal LocalizableAttribute()
         {
@@ -16,8 +16,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
 
         internal LocalizableAttribute(float min, float max)
         {
-            this.min = min;
-            this.max = max;
+            this.Min = min;
+            this.Max = max;
         }
     }
 }
