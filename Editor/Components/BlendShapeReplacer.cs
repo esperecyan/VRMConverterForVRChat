@@ -36,7 +36,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// <summary>
         /// まばたき用に生成するシェイプキー名。
         /// </summary>
-        private static readonly string BlinkShapeKeyName = "vrc.blink";
+        private static readonly string BlinkShapeKeyName = "eyes_closed";
 
         /// <summary>
         /// 表情の変更に関するVIVEタッチパッド上の位置について、バーチャルキャストとVRchatの対応関係。
