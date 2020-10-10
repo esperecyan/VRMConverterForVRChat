@@ -115,13 +115,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
         /// <summary>
         /// VRChat SDKに含まれるカスタムアニメーション設定用のテンプレートファイルのGUID。
         /// </summary>
+        /// <remarks>
+        /// Assets/VRCSDK/Examples2/Animation/SDK2/CustomOverrideEmpty.overrideController
+        /// </remarks>
         private static readonly string CustomAnimsTemplateGUID = "4bd8fbaef3c3de041a22200917ae98b8";
-
-        /// <summary>
-        /// VRChat SDKに含まれるカスタムアニメーション設定用のテンプレートファイルのパス。
-        /// </summary>
-        private static readonly string CustomAnimsTemplatePath
-            = "Assets/VRCSDK/Examples2/Animation/SDK2/CustomOverrideEmpty.overrideController";
 
         /// <summary>
         /// PCアバターでのみ使用可能なコンポーネント。
@@ -372,20 +369,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
         /// <see cref="VRC_AvatarDescriptor.CustomStandingAnims"/>、および<see cref="VRC_AvatarDescriptor.CustomSittingAnims"/>を作成します。
         /// </summary>
         /// <param name="avatar"></param>
-        /// <exception cref="FileNotFoundException">VRChat SDKに含まれるカスタムアニメーション設定用のテンプレートファイルが見つからなかった場合。</exception>
         /// <returns></returns>
         internal static void AddCustomAnims(GameObject avatar)
         {
-            var templatePath = AssetDatabase.GUIDToAssetPath(VRChatUtility.CustomAnimsTemplateGUID);
-            if (string.IsNullOrEmpty(templatePath))
-            {
-                templatePath = VRChatUtility.CustomAnimsTemplatePath;
-            }
-            var template = AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>(templatePath);
-            if (!template)
-            {
-                new FileNotFoundException("VRChat SDKに含まれるカスタムアニメーション設定用のテンプレートファイルが見つかりません。", fileName: templatePath);
-            }
+            var template = AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>(
+                AssetDatabase.GUIDToAssetPath(VRChatUtility.CustomAnimsTemplateGUID)
+            );
 #if VRC_SDK_VRCSDK2
             var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
             if (!avatarDescriptor.CustomStandingAnims)

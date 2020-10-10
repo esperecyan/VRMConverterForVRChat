@@ -87,6 +87,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// </summary>
         private static readonly string VRCExpressionParametersGUID = "d492b41c65685944a96df77628e204bc";
 
+        /// <summary>
+        /// 【SDK2】ハンドサインアニメーションを格納するフォルダのGUID。
+        /// </summary>
+        private static readonly string HandSignAnimationsFolderGUID = "cdd041c20a1e5af4fb109fe3a08816ab";
+
         ///
         /// <summary>
         /// <see cref="VRC_AvatarDescriptor.VisemeBlendShapes"/>に対応する、生成するシェイプキー名と生成するための値。
@@ -1106,7 +1111,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             if (VRChatUtility.SDKVersion == 2)
             {
                 anim = Duplicator.DuplicateAssetToFolder<AnimationClip>(
-                    source: UnityPath.FromUnityPath(Converter.RootFolderPath).Child("animations")
+                    source: UnityPath
+                        .FromUnityPath(AssetDatabase.GUIDToAssetPath(BlendShapeReplacer.HandSignAnimationsFolderGUID))
                         .Child(BlendShapeReplacer.MappingBlendShapeToVRChatAnim[clip.Preset] + ".anim")
                         .LoadAsset<AnimationClip>(),
                     prefabInstance: avatar,

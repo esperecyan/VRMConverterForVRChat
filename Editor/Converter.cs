@@ -154,10 +154,5 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// 当エディタ拡張の名称。
         /// </summary>
         internal const string Name = "VRM Converter for VRChat";
-
-        /// <summary>
-        /// 当エディタ拡張が保存されているフォルダのパス。
-        /// </summary>
-        internal static readonly string RootFolderPath = "Assets/VRMConverterForVRChat";
     }
 }
