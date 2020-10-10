@@ -116,7 +116,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 destinationFileName = fileName;
             }
 
-            string destinationPath = Duplicator
+            var destinationPath = Duplicator
                 .DetermineAssetPath(prefabInstance: prefabInstance, type: typeof(T), fileName: destinationFileName);
             Duplicator.DuplicateAsset(source: source, destinationPath: destinationPath);
 
@@ -152,7 +152,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 throw new ArgumentException($"{nameof(AnimatorController)} は上書きできません。", nameof(T));
             }
 
-            string destinationPath = Duplicator.DetermineAssetPath(
+            var destinationPath = Duplicator.DetermineAssetPath(
                 prefabInstance,
                 typeof(T),
                 destinationFileName ?? source.name.EscapeFilePath() + ".asset"
@@ -181,7 +181,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <returns></returns>
         private static UnityEngine.Object DuplicateAssetInstance(UnityEngine.Object instance)
         {
-            UnityEngine.Object newInstance = UnityEngine.Object.Instantiate(instance);
+            var newInstance = UnityEngine.Object.Instantiate(instance);
             newInstance.name = instance.name;
             return newInstance;
         }
@@ -207,8 +207,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 }
                 else
                 {
-                    string sourceFullPath = sourceUnityPath.FullPath;
-                    string destinationFullPath = destinationPath.AssetPathToFullPath();
+                    var sourceFullPath = sourceUnityPath.FullPath;
+                    var destinationFullPath = destinationPath.AssetPathToFullPath();
                     if (File.GetLastWriteTime(sourceFullPath) != File.GetLastWriteTime(destinationFullPath))
                     {
                         File.Copy(
@@ -305,7 +305,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             if (combineMeshesAndSubMeshes)
             {
-                string prefabPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(prefabInstance);
+                var prefabPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(prefabInstance);
                 CombineMeshesAndSubMeshes.Combine(
                     root: prefabInstance,
                     notCombineRendererObjectNames: notCombineRendererObjectNames,

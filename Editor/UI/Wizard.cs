@@ -201,7 +201,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
             var defaultDocument = new XmlDocument();
             defaultDocument.AppendChild(defaultDocument.CreateElement(qualifiedName: "list", namespaceURI: Wizard.EditorUserSettingsXmlNamespace));
 
-            string configValue = EditorUserSettings.GetConfigValue(Wizard.EditorUserSettingsName);
+            var configValue = EditorUserSettings.GetConfigValue(Wizard.EditorUserSettingsName);
             if (string.IsNullOrEmpty(configValue))
             {
                 return defaultDocument;
@@ -244,7 +244,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// </summary>
         private void LoadSettings()
         {
-            string title = this.avatar.GetComponent<VRMMeta>().Meta.Title;
+            var title = this.avatar.GetComponent<VRMMeta>().Meta.Title;
             if (string.IsNullOrEmpty(title))
             {
                 return;
@@ -273,7 +273,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 }
                 else
                 {
-                    string value = settings.GetAttribute(info.Name);
+                    var value = settings.GetAttribute(info.Name);
                     if (string.IsNullOrEmpty(value))
                     {
                         continue;
@@ -309,7 +309,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// </summary>
         private void SaveSettings()
         {
-            string title = this.avatar.GetComponent<VRMMeta>().Meta.Title;
+            var title = this.avatar.GetComponent<VRMMeta>().Meta.Title;
             if (string.IsNullOrEmpty(title))
             {
                 return;
@@ -322,8 +322,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
             foreach (FieldInfo info in this.GetSavedFieldInfos())
             {
                 Type type = info.FieldType;
-                object fieldValue = info.GetValue(obj: this);
-                string value = "";
+                var fieldValue = info.GetValue(obj: this);
+                var value = "";
                 if (typeof(Enum).IsAssignableFrom(type) || type == typeof(bool) || type == typeof(float) || type == typeof(string))
                 {
                     value = fieldValue.ToString();
@@ -377,7 +377,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         protected override bool DrawWizardGUI()
         {
             base.DrawWizardGUI();
-            isValid = true;
+            this.isValid = true;
 
             if (this.callbackFunctions)
             {
@@ -416,7 +416,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
             if (VRChatUtility.SDKVersion == null)
             {
                 EditorGUILayout.HelpBox(_("VRChat SDK2 or SDK3 has not been imported."), MessageType.Error);
-                isValid = false;
+                this.isValid = false;
                 return true;
             }
 
@@ -424,7 +424,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 if (!this.avatar.GetComponent(type))
                 {
                     EditorGUILayout.HelpBox(string.Format(_("Not set “{0}” component."), type), MessageType.Error);
-                    isValid = false;
+                    this.isValid = false;
                 }
             }
 
@@ -477,7 +477,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 ), MessageType.Warning);
             }
 
-            string version = VRChatUtility.GetSupportedUnityVersion();
+            var version = VRChatUtility.GetSupportedUnityVersion();
             if (version != "" && Application.unityVersion != version)
             {
                 EditorGUILayout.HelpBox(string.Format(
@@ -488,7 +488,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 ), MessageType.Warning);
             }
 
-            if (!isValid || !this.forQuest)
+            if (!this.isValid || !this.forQuest)
             {
                 return true;
             }
@@ -513,7 +513,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
 #if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
             if (string.IsNullOrEmpty(this.destinationPath))
             {
-                string sourcePath = this.GetAssetsPath(vrm: this.avatar.gameObject);
+                var sourcePath = this.GetAssetsPath(vrm: this.avatar.gameObject);
                 this.destinationPath = UnityPath.FromUnityPath(sourcePath).Parent
                     .Child(Path.GetFileNameWithoutExtension(sourcePath) + " (VRChat).prefab").Value;
             }
@@ -527,7 +527,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 this.destinationPath = destinationFolderUnityPath.Child(Path.GetFileName(this.destinationPath)).Value;
             }
 
-            string destinationPath = EditorUtility.SaveFilePanelInProject(
+            var destinationPath = EditorUtility.SaveFilePanelInProject(
                 "",
                 Path.GetFileName(path: this.destinationPath),
                 "prefab",
@@ -541,7 +541,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
             this.destinationPath = destinationPath;
 
             // プレハブ、およびシーン上のプレハブインスタンスのBlueprint IDを取得
-            string prefabBlueprintId = "";
+            var prefabBlueprintId = "";
             var blueprintIds = new Dictionary<int, string>();
             var previousPrefab = AssetDatabase.LoadMainAssetAtPath(this.destinationPath) as GameObject;
             if (previousPrefab)
@@ -663,7 +663,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
 
             if (string.IsNullOrEmpty(path))
             {
-                path = "Assets/" + avatar.name;
+                path = "Assets/" + this.avatar.name;
             }
 
             return path;
