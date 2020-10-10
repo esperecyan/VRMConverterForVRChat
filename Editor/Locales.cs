@@ -66,7 +66,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     { "OK", "OK" },
                 }}
             });
-            
+
             Gettext.SetLocale(clientLang: Locales.ConvertToLangtagFromSystemLanguage(systemLanguage: Application.systemLanguage));
         }
 
@@ -92,7 +92,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <returns><see cref="SystemLanguage.Unknown"/>の場合は「und」、未知の<see cref="SystemLanguage"/>の場合は空文字列を返します。</returns>
         private static string ConvertToLangtagFromSystemLanguage(SystemLanguage systemLanguage)
         {
-            switch (systemLanguage) {
+            switch (systemLanguage)
+            {
                 case SystemLanguage.Afrikaans:
                     return "af";
                 case SystemLanguage.Arabic:

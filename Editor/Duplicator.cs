@@ -242,7 +242,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         private static GameObject DuplicatePrefab(
             GameObject sourceAvatar,
             string destinationPath
-        ) {
+        )
+        {
             // プレハブ
             GameObject sourceInstance = UnityEngine.Object.Instantiate(sourceAvatar);
             GameObject destinationPrefab = PrefabUtility
@@ -293,7 +294,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             GameObject prefabInstance,
             bool combineMeshesAndSubMeshes,
             IEnumerable<string> notCombineRendererObjectNames
-        ) {
+        )
+        {
             SkinnedMeshRenderer faceMeshRenderer
                 = combineMeshesAndSubMeshes ? null : Duplicator.GetFaceMeshRenderer(prefabInstance: prefabInstance);
 
@@ -372,7 +374,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             foreach (var renderer in prefabInstance.GetComponentsInChildren<Renderer>())
             {
-                renderer.sharedMaterials = renderer.sharedMaterials.Select(material => {
+                renderer.sharedMaterials = renderer.sharedMaterials.Select(material =>
+                {
                     if (alreadyDuplicatedMaterials.ContainsKey(material))
                     {
                         return alreadyDuplicatedMaterials[material];

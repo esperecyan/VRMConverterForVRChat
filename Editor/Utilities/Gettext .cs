@@ -31,7 +31,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
         /// <summary>
         /// 翻訳リソース。<see cref="Gettext.SetLocalizedTexts"/>から変更されます。
         /// </summary>
-        private static IDictionary<string, IDictionary<string, string>> MultilingualLocalizedTexts = new Dictionary<string, IDictionary<string, string>>{ };
+        private static IDictionary<string, IDictionary<string, string>> MultilingualLocalizedTexts = new Dictionary<string, IDictionary<string, string>> { };
 
         /// <summary>
         /// 翻訳リソースを追加します。
@@ -41,7 +41,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
         {
             Gettext.MultilingualLocalizedTexts = localizedTexts;
         }
-        
+
         /// <summary>
         /// クライアントの言語を設定します。
         /// </summary>
@@ -57,7 +57,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                 Gettext.Langtag = Gettext.Language;
             }
         }
-        
+
         /// <summary>
         /// テキストをクライアントの言語に変換します。
         /// </summary>
@@ -65,7 +65,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
         /// <returns>翻訳語。</returns>
         internal static string _(string message)
         {
-            if (Gettext.Langtag == Gettext.OriginalLocale) {
+            if (Gettext.Langtag == Gettext.OriginalLocale)
+            {
                 // クライアントの言語が翻訳元の言語なら、そのまま返す
                 return message;
             }
@@ -77,10 +78,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                 Gettext.Language,
                 // 既定言語の翻訳リソースが存在すれば、それを返す
                 Gettext.DefaultLocale,
-            }) {
+            })
+            {
                 if (Gettext.MultilingualLocalizedTexts.ContainsKey(key: langtag)
                     && Gettext.MultilingualLocalizedTexts[Gettext.Langtag].ContainsKey(key: message)
-                    && Gettext.MultilingualLocalizedTexts[Gettext.Langtag][message] != "") {
+                    && Gettext.MultilingualLocalizedTexts[Gettext.Langtag][message] != "")
+                {
                     return Gettext.MultilingualLocalizedTexts[Gettext.Langtag][message];
                 }
             }

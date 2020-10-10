@@ -11,7 +11,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// アバターの情報。
         /// </summary>
         public readonly VRMMeta VRMMeta;
-        
+
         public BoneInfo(VRMMeta vrmMeta)
         {
             this.VRMMeta = vrmMeta;

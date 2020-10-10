@@ -25,7 +25,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         {
             base.DrawWizardGUI();
             EditorGUILayout.LabelField(_("Converting is completed."));
-            foreach (var (message, type) in this.messages) {
+            foreach (var (message, type) in this.messages)
+            {
                 EditorGUILayout.HelpBox(message, type);
             }
             return true;

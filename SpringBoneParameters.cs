@@ -8,7 +8,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
     {
         public readonly float StiffnessForce = 1.0f;
         public readonly float DragForce = 0.4f;
-        
+
         public SpringBoneParameters(float stiffnessForce, float dragForce)
         {
             this.StiffnessForce = stiffnessForce;

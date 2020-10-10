@@ -1,7 +1,5 @@
-using System.Linq;
 using UnityEngine;
 using UnityEditor;
-using VRM;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat.UI
 {

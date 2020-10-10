@@ -303,7 +303,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             bool useAnimatorForBlinks,
             bool useShapeKeyNormalsAndTangents,
             VRMBlendShapeClip vrmBlendShapeForFINGERPOINT
-        ) {
+        )
+        {
             SetLipSync(avatar, clips, useShapeKeyNormalsAndTangents);
 
             if (VRChatUtility.SDKVersion == 2)
@@ -554,7 +555,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             IDictionary<string, float> namesAndWeights,
             IEnumerable<BlendShape> shapeKeys
 
-        ) {
+        )
+        {
             Vector3[] deltaVertices = null;
             foreach (var (name, weight) in namesAndWeights)
             {
@@ -805,7 +807,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                     useShapeKeyNormalsAndTangents ? deltaTangents : null
                 );
 
-                shapeKeys.Add(new BlendShape(name: mesh.GetBlendShapeName(i)) {
+                shapeKeys.Add(new BlendShape(name: mesh.GetBlendShapeName(i))
+                {
                     Positions = deltaVertices.ToList(),
                     Normals = deltaNormals.ToList(),
                     Tangents = deltaTangents.ToList(),
@@ -874,7 +877,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             AnimationClip animationClip,
             VRMBlendShapeClip clip,
             IDictionary<float, float> keys
-        ) {
+        )
+        {
             foreach (var (name, weight) in clip.ShapeKeyValues)
             {
                 BlendShapeReplacer.SetBlendShapeCurve(animationClip, name, weight, keys, setRelativePath: true);
@@ -900,7 +904,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             float shapeKeyWeight,
             IDictionary<float, float> keys,
             bool setRelativePath
-        ) {
+        )
+        {
             var curve = new AnimationCurve();
             foreach (var (seconds, value) in keys)
             {
@@ -935,7 +940,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 .GetComponent<SkinnedMeshRenderer>().sharedMaterials;
 
             var materialIndex = materials.ToList().FindIndex(m => m.name == bindings.First().MaterialName);
-            
+
             var material = Duplicator.DuplicateAssetToFolder<Material>(
                 source: materials[materialIndex],
                 prefabInstance: avatar,

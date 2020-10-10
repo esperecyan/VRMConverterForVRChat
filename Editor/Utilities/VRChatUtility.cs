@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using UnityEditor;
@@ -247,7 +246,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             var dynamicBoneAffectedTransformCountPairs
                 = prefabInstance.GetComponentsInChildren(DynamicBoneType).ToDictionary(
                     dynamicBone => dynamicBone,
-                    (dynamic dynamicBone) => {
+                    (dynamic dynamicBone) =>
+                    {
                         var root = (Transform)dynamicBone.m_Root;
                         if (!root.IsChildOf(prefabInstance.transform))
                         {
@@ -275,7 +275,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                 ), MessageType.Warning));
             }
 
-            var collisionCheckCount = dynamicBoneAffectedTransformCountPairs.Sum(dynamicBoneAffectedTransformCountPair => {
+            var collisionCheckCount = dynamicBoneAffectedTransformCountPairs.Sum(dynamicBoneAffectedTransformCountPair =>
+            {
                 var colliders = dynamicBoneAffectedTransformCountPair.Key.m_Colliders;
                 if (colliders == null)
                 {

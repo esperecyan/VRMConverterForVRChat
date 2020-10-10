@@ -134,7 +134,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         {
             var bone = colliderGroup.gameObject;
 
-            return colliderGroup.Colliders.Select(collider => {
+            return colliderGroup.Colliders.Select(collider =>
+            {
                 dynamic dynamicBoneCollider = bone.AddComponent(DynamicBoneColliderType);
                 dynamicBoneCollider.m_Center = collider.Offset;
                 dynamicBoneCollider.m_Radius = collider.Radius;

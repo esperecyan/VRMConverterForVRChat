@@ -2,7 +2,6 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using VRM;
-using UniGLTF;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat
 {
@@ -50,7 +49,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 clip.Values = blendShapeClip.Values;
                 clip.MaterialValues = blendShapeClip.MaterialValues;
                 clip.IsBinary = blendShapeClip.IsBinary;
-            
+
                 foreach (BlendShapeBinding binding in clip.Values)
                 {
                     Transform transform = avatar.transform.Find(binding.RelativePath);
@@ -111,8 +110,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             IEnumerable<VRMBlendShapeClip> clips,
             string oldName,
             string newName
-        ) {
-            return clips.Select(clip => {
+        )
+        {
+            return clips.Select(clip =>
+            {
                 clip.ShapeKeyValues = clip.ShapeKeyValues.ToDictionary(
                     keySelector: nameAndWeight => nameAndWeight.Key == oldName ? newName : nameAndWeight.Key,
                     elementSelector: nameAndWeight => nameAndWeight.Value

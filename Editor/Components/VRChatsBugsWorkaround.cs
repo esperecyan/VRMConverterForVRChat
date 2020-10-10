@@ -10,7 +10,6 @@ using UniGLTF;
 using VRCSDK2;
 #elif VRC_SDK_VRCSDK3
 using VRC.SDKBase;
-using VRC.SDK3.Avatars.Components;
 #endif
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
@@ -53,7 +52,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// <https://yu8as.hatenablog.com/entry/2018/08/25/004856>
         /// 猫田あゆむ🐈VTuber｜仮想秘密結社「ネコミミナティ」さんのツイート: “何度もすみません。FBXのRigからBone座標を設定する場合は、ShoulderのY座標をチョイあげ（0.12...くらい）、Upper ArmのY座標を0にするといい感じになるそうです。もしかしたらコレVRoidのモデル特有の話かもしれないのですが・・・。… https://t.co/d7Jw7qoXBX”
         /// <https://twitter.com/virtual_ayumu/status/1051146511197790208>
-        internal static readonly IEnumerable<HumanBodyBones> RequiredModifiedBonesForVRChat = new []{
+        internal static readonly IEnumerable<HumanBodyBones> RequiredModifiedBonesForVRChat = new[]{
             HumanBodyBones.LeftShoulder,
             HumanBodyBones.RightShoulder,
             HumanBodyBones.LeftUpperArm,
@@ -77,9 +76,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             float addedArmaturePositionY,
             float moveEyeBoneToFrontForEyeMovement,
             bool forQuest
-        ) {
+        )
+        {
             var messages = new List<(string, MessageType)>();
-            
+
             VRChatsBugsWorkaround.EnableAnimationOvrride(avatar: avatar);
             if (VRChatUtility.SDKVersion == 2)
             {
@@ -135,9 +135,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 
             IEnumerable<HumanBodyBones> existedHumanBodyBones = avatarDescription.human.Select(boneLimit => boneLimit.humanBone);
 
-            IEnumerable<BoneLimit> addedBoneLimits = VRChatUtility.RequiredHumanBodyBonesForAnimationOverride.Select(parentAndChildren => {
-				Transform parent = avatar.GetComponent<Animator>().GetBoneTransform(parentAndChildren.Key);
-				return parentAndChildren.Value.Except(existedHumanBodyBones).Select(child => {
+            IEnumerable<BoneLimit> addedBoneLimits = VRChatUtility.RequiredHumanBodyBonesForAnimationOverride.Select(parentAndChildren =>
+            {
+                Transform parent = avatar.GetComponent<Animator>().GetBoneTransform(parentAndChildren.Key);
+                return parentAndChildren.Value.Except(existedHumanBodyBones).Select(child =>
+                {
                     Transform dummyBone = new GameObject("vrc." + child).transform;
                     dummyBone.parent = parent;
                     parent = dummyBone;
@@ -145,10 +147,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 });
             }).ToList().SelectMany(boneLimit => boneLimit);
 
-            if (addedBoneLimits.Count() == 0) {
+            if (addedBoneLimits.Count() == 0)
+            {
                 return;
             }
-            
+
             avatarDescription.human = avatarDescription.human.Concat(addedBoneLimits).ToArray();
             ApplyAvatarDescription(avatar: avatar);
         }
@@ -162,11 +165,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         private static void ApplyAvatarDescription(
             GameObject avatar,
             Action<HumanDescription> humanDescriptionModifier = null
-        ) {
+        )
+        {
             var humanoidDescription = avatar.GetComponent<VRMHumanoidDescription>();
             AvatarDescription avatarDescription = humanoidDescription.Description;
             var humanDescription = avatarDescription.ToHumanDescription(avatar.transform);
-            if (humanDescriptionModifier != null) {
+            if (humanDescriptionModifier != null)
+            {
                 humanDescriptionModifier(humanDescription);
             }
             Avatar humanoidRig = AvatarBuilder.BuildHumanAvatar(avatar, humanDescription);
@@ -188,11 +193,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         private static void EnableAutoEyeMovement(GameObject avatar)
         {
             // ダミーの階層構造の作成
-            foreach (var path in VRChatUtility.RequiredPathForAutoEyeMovement.Concat(new string[] { VRChatUtility.AutoBlinkMeshPath })) {
+            foreach (var path in VRChatUtility.RequiredPathForAutoEyeMovement.Concat(new string[] { VRChatUtility.AutoBlinkMeshPath }))
+            {
                 var current = avatar.transform;
-                foreach (var name in path.Split(separator: '/')) {
+                foreach (var name in path.Split(separator: '/'))
+                {
                     Transform child = current.Find(name);
-                    if (!child) {
+                    if (!child)
+                    {
                         child = new GameObject(name).transform;
                         child.parent = current;
                     }
@@ -202,14 +210,16 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 
             // ダミーのまばたき用ブレンドシェイプの作成
             Mesh mesh = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath).GetSharedMesh();
-            if (mesh.blendShapeCount >= BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.Count()) {
+            if (mesh.blendShapeCount >= BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.Count())
+            {
                 return;
             }
-            
-            foreach (var name in BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.Skip(count: mesh.blendShapeCount)) {
+
+            foreach (var name in BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.Skip(count: mesh.blendShapeCount))
+            {
                 BlendShapeReplacer.AddDummyShapeKey(mesh: mesh, name: name);
             }
-            
+
             EditorUtility.SetDirty(mesh);
         }
 
@@ -240,7 +250,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             {
                 return;
             }
-            
+
             AvatarDescription avatarDescription = avatar.GetComponent<VRMHumanoidDescription>().Description;
 
             var boneLimits = avatarDescription.human.ToList();
@@ -315,7 +325,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             var headBoneIndicesAndBindposes = boneIndicesAndBones[headBone]
                 .Select(index => new { index, bindpose = mesh.bindposes[index] }).ToList();
 
-            mesh.boneWeights = mesh.boneWeights.Select(boneWeight => {
+            mesh.boneWeights = mesh.boneWeights.Select(boneWeight =>
+            {
                 IEnumerable<float> weights = new[] { boneWeight.weight0, boneWeight.weight1, boneWeight.weight2, boneWeight.weight3 }.Where(weight => weight > 0);
                 IEnumerable<int> boneIndexes = new[] { boneWeight.boneIndex0, boneWeight.boneIndex1, boneWeight.boneIndex2, boneWeight.boneIndex3 }.Take(weights.Count());
                 if (eyeBoneIndexes.Intersect(boneIndexes).Count() != boneIndexes.Count())
@@ -365,7 +376,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                     }
                 }
 
-                            return boneWeight;
+                return boneWeight;
             }).ToArray();
 
             return true;
@@ -377,9 +388,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// <returns></returns>
         private static Mesh CreateDummyMesh()
         {
-            var mesh = new Mesh();
-            mesh.name = "dummy-for-auto-eye-movement";
-            mesh.vertices = new[] { new Vector3(0, 0, 0) };
+            var mesh = new Mesh()
+            {
+                name = "dummy-for-auto-eye-movement",
+                vertices = new[] { new Vector3(0, 0, 0) }
+            };
             return mesh;
         }
 
@@ -412,7 +425,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 return;
             }
 
-            ApplyAvatarDescription(avatar: avatar, humanDescriptionModifier: humanDescription => {
+            ApplyAvatarDescription(avatar: avatar, humanDescriptionModifier: humanDescription =>
+            {
                 var humanBones = humanDescription.human.ToList();
                 var skeltonBones = humanDescription.skeleton.ToList();
                 if (addedValueToArmature != 0.0f)

@@ -230,7 +230,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         {
             XmlElement settings = document.GetElementsByTagName(localName: "settings", namespaceURI: Wizard.EditorUserSettingsXmlNamespace)
                 .Cast<XmlElement>().FirstOrDefault(predicate: element => element.GetAttribute(name: "title") == title);
-            if (settings != null) {
+            if (settings != null)
+            {
                 return settings;
             }
 
@@ -238,7 +239,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
             document.DocumentElement.AppendChild(settings);
             return settings;
         }
-        
+
         /// <summary>
         /// 選択されているアバターの変換設定を反映します。
         /// </summary>
@@ -318,7 +319,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
             XmlDocument document = this.GetSettingsList();
             XmlElement settings = this.GetSettings(document: document, title: title);
             settings.SetAttribute("title", title);
-            
+
             foreach (FieldInfo info in this.GetSavedFieldInfos())
             {
                 Type type = info.FieldType;
@@ -347,7 +348,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                     }
                     foreach (var content in fieldValue as List<string>)
                     {
-                        if (string.IsNullOrEmpty(content)) {
+                        if (string.IsNullOrEmpty(content))
+                        {
                             continue;
                         }
                         XmlElement element = document.CreateElement(
@@ -406,7 +408,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                     + " public static DynamicBoneParameters SwayingParametersConverter(SpringBoneParameters, BoneInfo)",
                 indentStyle
             );
-            
+
             EditorGUILayout.LabelField(
                 (this.postConverting != null ? "☑" : "☐")
                     + " public static void PostConverting(GameObject, VRMMeta)",
@@ -420,7 +422,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 return true;
             }
 
-            foreach (var type in Converter.RequiredComponents) {
+            foreach (var type in Converter.RequiredComponents)
+            {
                 if (!this.avatar.GetComponent(type))
                 {
                     EditorGUILayout.HelpBox(string.Format(_("Not set “{0}” component."), type), MessageType.Error);
@@ -534,7 +537,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 "",
                 Path.GetDirectoryName(path: this.destinationPath)
             );
-            if (string.IsNullOrEmpty(destinationPath)){
+            if (string.IsNullOrEmpty(destinationPath))
+            {
                 Wizard.Open(avatar: this.avatar.gameObject);
                 return;
             }
@@ -614,7 +618,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 prefabInstance.GetComponent<PipelineManager>().blueprintId = prefabBlueprintId;
             }
 
-            if (this.postConverting != null) {
+            if (this.postConverting != null)
+            {
                 this.postConverting(prefabInstance, prefabInstance.GetComponent<VRMMeta>());
             }
 

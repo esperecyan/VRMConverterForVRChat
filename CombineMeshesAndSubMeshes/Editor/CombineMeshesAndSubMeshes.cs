@@ -85,8 +85,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             Transform bone = renderer.transform.parent;
             renderer.bones = new[] { bone };
 
-            var mesh = UnityEngine.Object.Instantiate(renderer.sharedMesh) as Mesh;
-            mesh.boneWeights = new BoneWeight[mesh.vertexCount].Select(boneWeight => {
+            var mesh = UnityEngine.Object.Instantiate(renderer.sharedMesh);
+            mesh.boneWeights = new BoneWeight[mesh.vertexCount].Select(boneWeight =>
+            {
                 boneWeight.weight0 = 1;
                 return boneWeight;
             }).ToArray();
