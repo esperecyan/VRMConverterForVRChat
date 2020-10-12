@@ -305,15 +305,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 sameNameTransform.name += "-" + VRChatUtility.AutoBlinkMeshPath;
             }
 
+            var prefabPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(prefabInstance);
             if (combineMeshesAndSubMeshes)
             {
-                var prefabPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(prefabInstance);
                 CombineMeshesAndSubMeshes.Combine(
                     root: prefabInstance,
                     notCombineRendererObjectNames: notCombineRendererObjectNames,
                     destinationObjectName: VRChatUtility.AutoBlinkMeshPath
                 );
-                PrefabUtility.SaveAsPrefabAssetAndConnect(prefabInstance, prefabPath, InteractionMode.AutomatedAction);
             }
             else
             {
@@ -323,6 +322,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     faceMeshRenderer.transform.name = VRChatUtility.AutoBlinkMeshPath;
                 }
             }
+            PrefabUtility.SaveAsPrefabAssetAndConnect(prefabInstance, prefabPath, InteractionMode.AutomatedAction);
 
             var alreadyDuplicatedMeshes = new Dictionary<Mesh, Mesh>();
 
