@@ -328,7 +328,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
 
             foreach (var renderer in prefabInstance.GetComponentsInChildren<SkinnedMeshRenderer>())
             {
-                if (renderer.name == VRChatUtility.AutoBlinkMeshPath)
+                if (combineMeshesAndSubMeshes && renderer.name == VRChatUtility.AutoBlinkMeshPath)
                 {
                     continue;
                 }
