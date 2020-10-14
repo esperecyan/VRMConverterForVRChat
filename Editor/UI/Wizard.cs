@@ -620,7 +620,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
 
             if (this.postConverting != null)
             {
-                this.postConverting(prefabInstance, prefabInstance.GetComponent<VRMMeta>());
+                this.postConverting(prefabInstance, this.avatar.GetComponent<VRMMeta>());
             }
 
             PrefabUtility.ApplyPrefabInstance(prefabInstance, InteractionMode.AutomatedAction);
