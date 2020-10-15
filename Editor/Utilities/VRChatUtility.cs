@@ -89,7 +89,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             int boneCount
         ) Limitations = (
             // PC
-            dynamicBoneAffectedTransformCount: 7500,
+            dynamicBoneAffectedTransformCount: 32,
             dynamicBoneCollisionCheckCount: 8,
             // Quest
             triangleCount: 7500,
