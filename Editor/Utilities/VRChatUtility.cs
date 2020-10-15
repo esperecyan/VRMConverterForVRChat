@@ -351,7 +351,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
         /// <returns></returns>
         internal static int CountTriangle(GameObject prefabInstance)
         {
-            return VRChatUtility.GetMeshes(prefabInstance).Sum(mesh => mesh.triangles.Count());
+            return VRChatUtility.GetMeshes(prefabInstance).Sum(mesh => mesh.triangles.Count() / 3);
         }
 
         /// <summary>
