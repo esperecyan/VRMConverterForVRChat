@@ -480,7 +480,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 ), MessageType.Warning);
             }
 
-            var version = VRChatUtility.GetSupportedUnityVersion();
+            var version = VRChatUtility.SDKSupportedUnityVersion;
             if (version != "" && Application.unityVersion != version)
             {
                 EditorGUILayout.HelpBox(string.Format(

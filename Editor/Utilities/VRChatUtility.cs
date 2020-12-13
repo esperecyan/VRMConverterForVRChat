@@ -37,6 +37,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             = Type.GetType("System.Collections.Generic.List`1[[DynamicBoneColliderBase, Assembly-CSharp]]");
 
         /// <summary>
+        /// VRChat SDKが対応しているUnityのバージョン。
+        /// </summary>
+        internal static readonly string SDKSupportedUnityVersion = "2018.4.20f1";
+
+        /// <summary>
         /// アバターの最小の肩の位置。
         /// </summary>
         internal static readonly float MinShoulderHeight = 0.2f;
@@ -196,19 +201,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             "VRC.SDK3.Avatars.Components.VRCAvatarDescriptor",
             "VRC.SDK3.Avatars.Components.VRCStation",
         };
-
-        /// <summary>
-        /// VRChat SDKがサポートするUnityのバージョンを取得します。
-        /// </summary>
-        /// <returns>取得できなかった場合は空文字列を返します。</returns>
-        internal static string GetSupportedUnityVersion()
-        {
-#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
-            return RemoteConfig.HasKey("sdkUnityVersion") ? RemoteConfig.GetString("sdkUnityVersion") : "";
-#else
-            return "";
-#endif
-        }
 
         /// <summary>
         /// アバターで使用できないコンポーネントを削除します。
