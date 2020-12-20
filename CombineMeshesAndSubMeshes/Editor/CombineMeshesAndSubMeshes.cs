@@ -17,11 +17,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="root"></param>
         /// <param name="notCombineRendererObjectNames">結合しないメッシュレンダラーのオブジェクト名。</param>
         /// <param name="destinationObjectName">結合したメッシュのオブジェクト名。</param>
+        /// <param name="savingAsAsset">アセットとして保存しないなら <c>true</c> を指定。</param>
         /// <returns></returns>
         public static SkinnedMeshRenderer Combine(
             GameObject root,
             IEnumerable<string> notCombineRendererObjectNames,
-            string destinationObjectName
+            string destinationObjectName,
+            bool savingAsAsset = true
         )
         {
             CombineMeshesAndSubMeshes.MakeAllVerticesHaveWeights(
@@ -32,7 +34,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             return CombineMeshesAndSubMeshes.CombineAllMeshes(
                 root: root,
                 destinationObjectName: destinationObjectName,
-                notCombineRendererObjectNames: notCombineRendererObjectNames
+                notCombineRendererObjectNames: notCombineRendererObjectNames,
+                savingAsAsset: savingAsAsset
             );
         }
 
@@ -101,11 +104,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="root"></param>
         /// <param name="destinationObjectName"></param>
         /// <param name="notCombineRendererObjectNames"></param>
+        /// <param name="savingAsAsset"></param>
         /// <returns></returns>
         private static SkinnedMeshRenderer CombineAllMeshes(
             GameObject root,
             string destinationObjectName,
-            IEnumerable<string> notCombineRendererObjectNames
+            IEnumerable<string> notCombineRendererObjectNames,
+            bool savingAsAsset
         )
         {
             SkinnedMeshRenderer destinationRenderer
@@ -162,30 +167,33 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             destinationRenderer.name = destinationObjectName;
             destinationRenderer.sharedMesh.name = destinationRenderer.name;
 
-            var destinationFolderPath = "Assets";
-            if (!string.IsNullOrEmpty(rootPath))
+            if (savingAsAsset)
             {
-                destinationFolderPath = Path.ChangeExtension(rootPath, ".Meshes");
-                if (!AssetDatabase.IsValidFolder(destinationFolderPath))
+                var destinationFolderPath = "Assets";
+                if (!string.IsNullOrEmpty(rootPath))
                 {
-                    AssetDatabase.CreateFolder(
-                        Path.GetDirectoryName(destinationFolderPath),
-                        Path.GetFileName(destinationFolderPath)
-                    );
+                    destinationFolderPath = Path.ChangeExtension(rootPath, ".Meshes");
+                    if (!AssetDatabase.IsValidFolder(destinationFolderPath))
+                    {
+                        AssetDatabase.CreateFolder(
+                            Path.GetDirectoryName(destinationFolderPath),
+                            Path.GetFileName(destinationFolderPath)
+                        );
+                    }
                 }
-            }
 
-            var destinationPath = destinationFolderPath + "/" + destinationRenderer.sharedMesh.name + ".asset";
-            var destination = AssetDatabase.LoadAssetAtPath<Mesh>(destinationPath);
-            if (destination)
-            {
-                destination.Clear(false);
-                EditorUtility.CopySerialized(destinationRenderer.sharedMesh, destination);
-                destinationRenderer.sharedMesh = destination;
-            }
-            else
-            {
-                AssetDatabase.CreateAsset(destinationRenderer.sharedMesh, destinationPath);
+                var destinationPath = destinationFolderPath + "/" + destinationRenderer.sharedMesh.name + ".asset";
+                var destination = AssetDatabase.LoadAssetAtPath<Mesh>(destinationPath);
+                if (destination)
+                {
+                    destination.Clear(false);
+                    EditorUtility.CopySerialized(destinationRenderer.sharedMesh, destination);
+                    destinationRenderer.sharedMesh = destination;
+                }
+                else
+                {
+                    AssetDatabase.CreateAsset(destinationRenderer.sharedMesh, destinationPath);
+                }
             }
 
             return destinationRenderer;
