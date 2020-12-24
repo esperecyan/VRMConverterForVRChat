@@ -173,7 +173,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             Converter.SwayingParametersConverter swayingParametersConverter
         )
         {
-            var springBoneParameters = new SpringBoneParameters(stiffnessForce: springBone.m_stiffnessForce, dragForce: springBone.m_dragForce);
+            var springBoneParameters = new SpringBoneParameters()
+            {
+                StiffnessForce = springBone.m_stiffnessForce,
+                DragForce = springBone.m_dragForce,
+            };
             var boneInfo = new BoneInfo(vrmMeta: springBone.gameObject.GetComponentsInParent<VRMMeta>()[0]);
 
             foreach (var transform in springBone.RootBones)

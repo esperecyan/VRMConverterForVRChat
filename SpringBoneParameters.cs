@@ -6,13 +6,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
     /// </summary>
     public class SpringBoneParameters
     {
-        public readonly float StiffnessForce = 1.0f;
-        public readonly float DragForce = 0.4f;
-
-        public SpringBoneParameters(float stiffnessForce, float dragForce)
-        {
-            this.StiffnessForce = stiffnessForce;
-            this.DragForce = dragForce;
-        }
+        public float StiffnessForce = 1.0f;
+        public float DragForce = 0.4f;
     }
 }
