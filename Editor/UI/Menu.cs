@@ -19,6 +19,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         private const string ItemName = "VRM/Duplicate and Convert for VRChat";
 
         /// <summary>
+        /// 追加するメニューアイテム名。
+        /// </summary>
+        private const string VRChatToVRMItemName = "VRM/Export VRM file from VRChat avatar";
+
+        /// <summary>
         /// 選択されているアバターの変換ダイアログを開きます。
         /// </summary>
         [MenuItem(Menu.ItemName, false, Menu.Priority)]
@@ -33,6 +38,25 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// <returns></returns>
         [MenuItem(itemName: Menu.ItemName, isValidateFunction: true)]
         private static bool DuplicateAndConvertForVRChatIsEnable()
+        {
+            return ClosestModel();
+        }
+
+        /// <summary>
+        /// 選択されているアバターのVRM化設定ダイアログを開きます。
+        /// </summary>
+        [MenuItem(Menu.VRChatToVRMItemName, isValidateFunction: false, Menu.Priority + 1)]
+        private static void ExportVRM()
+        {
+            VRChatToVRMWizard.Open(ClosestModel());
+        }
+
+        /// <summary>
+        /// 選択されている、または祖先のオブジェクトで変換可能なら<c>true</c>を返します。
+        /// </summary>
+        /// <returns></returns>
+        [MenuItem(Menu.VRChatToVRMItemName, isValidateFunction: true)]
+        private static bool ExportVRMIsEnable()
         {
             return ClosestModel();
         }

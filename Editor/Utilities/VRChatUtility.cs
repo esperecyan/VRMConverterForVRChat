@@ -1,16 +1,21 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using UnityEditor;
 #if VRC_SDK_VRCSDK2
 using VRCSDK2;
+#else
+using VRC.SDK3.Avatars.Components;
 #endif
 #if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
 using VRC.Core;
 #endif
 using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
+using Esperecyan.Unity.VRMConverterForVRChat.Components;
+using Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
 {
@@ -29,6 +34,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             HANDGUN,
             THUMBSUP,
             FINGERPOINT,
+            HANDOPEN,
+            FIST,
         }
 
         internal static readonly Type DynamicBoneType = Type.GetType("DynamicBone, Assembly-CSharp");
@@ -117,12 +124,41 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
 #endif
 
         /// <summary>
+        /// <see cref="ExpressionPreset"/>と<see cref="VRC_AvatarDescriptor.VisemeBlendShapes"/>のインデックスの対応関係。
+        /// </summary>
+        internal static readonly IDictionary<ExpressionPreset, int> ExpressionPresetVRChatVisemeIndexPairs
+            = new Dictionary<ExpressionPreset, int>()
+            {
+                { ExpressionPreset.Aa, 10 },
+                { ExpressionPreset.Ih, 12 },
+                { ExpressionPreset.Ou, 14 },
+                { ExpressionPreset.Ee, 11 },
+                { ExpressionPreset.Oh, 13 },
+            };
+
+        /// <summary>
         /// VRChat SDKに含まれるカスタムアニメーション設定用のテンプレートファイルのGUID。
         /// </summary>
         /// <remarks>
         /// Assets/VRCSDK/Examples2/Animation/SDK2/CustomOverrideEmpty.overrideController
         /// </remarks>
         private static readonly string CustomAnimsTemplateGUID = "4bd8fbaef3c3de041a22200917ae98b8";
+
+
+        private static readonly IDictionary<Anim, ExpressionPreset> AnimPresetPairs
+            = new Dictionary<Anim, ExpressionPreset>()
+            {
+                { Anim.VICTORY    , ExpressionPreset.Happy     },
+                { Anim.HANDGUN    , ExpressionPreset.Angry     },
+                { Anim.THUMBSUP   , ExpressionPreset.Sad       },
+                { Anim.ROCKNROLL  , ExpressionPreset.Relaxed   },
+                { Anim.FINGERPOINT, ExpressionPreset.Surprised },
+            };
+
+        private static readonly Regex MybeBlinkShapeKeyNamePattern = new Regex(
+            "blink|まばたき|またたき|瞬き|eye|目|瞳|眼|wink|ウィンク|ｳｨﾝｸ|ウインク|ｳｲﾝｸ",
+            RegexOptions.IgnoreCase
+        );
 
         /// <summary>
         /// PCアバターでのみ使用可能なコンポーネント。
@@ -224,6 +260,231 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                 }
                 Object.DestroyImmediate(component);
             }
+        }
+
+        /// <summary>
+        /// VRChatのアバターで使用されているシェイプキー・アニメーションから、Expressionに関するものを検出します。
+        /// </summary>
+        /// <param name="instance"></param>
+        /// <param name="shapeKeyNames"></param>
+        /// <returns></returns>
+        internal static (
+            IEnumerable<AnimationClip> animations,
+            IDictionary<ExpressionPreset, VRChatExpressionBinding> expressions
+        ) DetectVRChatExpressions(GameObject instance, IEnumerable<string> shapeKeyNames)
+        {
+            var animations = new List<AnimationClip>();
+            var expressions = new Dictionary<ExpressionPreset, VRChatExpressionBinding>();
+
+#if VRC_SDK_VRCSDK2
+            var avatarDescriptor = instance.GetComponent<VRC_AvatarDescriptor>();
+#else
+            var avatarDescriptor = instance.GetComponent<VRCAvatarDescriptor>();
+#endif
+#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
+            var visemes = avatarDescriptor.VisemeBlendShapes;
+            if (visemes != null)
+            {
+                foreach (var (preset, index) in VRChatUtility.ExpressionPresetVRChatVisemeIndexPairs)
+                {
+                    var shapeKeyName = visemes.ElementAtOrDefault(index);
+                    if (shapeKeyName == null || !shapeKeyNames.Contains(shapeKeyName))
+                    {
+                        continue;
+                    }
+                    expressions[preset] = new VRChatExpressionBinding() { ShapeKeyNames = new[] { shapeKeyName } };
+                }
+            }
+#endif
+#if VRC_SDK_VRCSDK2
+            var customStandingAnims = avatarDescriptor.CustomStandingAnims;
+            if (customStandingAnims != null)
+            {
+                foreach (Anim anim in Enum.GetValues(typeof(Anim)))
+                {
+                    var animationClip = customStandingAnims[anim.ToString()];
+                    if (animationClip == null || animationClip.name == anim.ToString())
+                    {
+                        continue;
+                    }
+                    animations.Add(animationClip);
+
+                    if (!VRChatUtility.AnimPresetPairs.ContainsKey(anim))
+                    {
+                        continue;
+                    }
+                    expressions.Add(
+                        VRChatUtility.AnimPresetPairs[anim],
+                        new VRChatExpressionBinding() { AnimationClip = animationClip }
+                    );
+                }
+            }
+#else
+            var controller = avatarDescriptor.baseAnimationLayers
+                .FirstOrDefault(layer => layer.type == VRCAvatarDescriptor.AnimLayerType.FX)
+                .animatorController;
+            if (controller != null)
+            {
+                animations = controller.animationClips.ToList();
+            }
+#endif
+
+            VRChatUtility.DetectBlinkExpressions(expressions, instance, shapeKeyNames);
+
+            return (animations, expressions);
+        }
+
+        /// <summary>
+        /// まばたきに関係している可能性があるシェイプキーを返します。
+        /// </summary>
+        /// <returns></returns>
+        internal static IEnumerable<string> DetectBlinkShapeKeyNames(IEnumerable<string> shapeKeyNames)
+        {
+            return shapeKeyNames
+                .Where(shapeKeyName => VRChatUtility.MybeBlinkShapeKeyNamePattern.IsMatch(shapeKeyName));
+        }
+
+        /// <summary>
+        /// まばたきのシェイプキーを検出します。
+        /// </summary>
+        /// <param name="expressions"></param>
+        /// <param name="instance"></param>
+        /// <param name="shapeKeyNames"></param>
+        /// <returns></returns>
+        private static void DetectBlinkExpressions(
+            IDictionary<ExpressionPreset, VRChatExpressionBinding> expressions,
+            GameObject instance,
+            IEnumerable<string> shapeKeyNames
+        )
+        {
+            // ダミーの可能性があるシェイプキー
+            var maybeDummyBlinkShapeKeyNames = new List<string>();
+            var body = instance.transform.Find("Body");
+            if (body != null)
+            {
+                var renderer = body.GetComponent<SkinnedMeshRenderer>();
+                if (renderer != null && renderer.sharedMesh != null && renderer.sharedMesh.blendShapeCount >= 4)
+                {
+                    maybeDummyBlinkShapeKeyNames.Add(renderer.sharedMesh.GetBlendShapeName(0));
+                    maybeDummyBlinkShapeKeyNames.Add(renderer.sharedMesh.GetBlendShapeName(1));
+                }
+            }
+            maybeDummyBlinkShapeKeyNames.AddRange(shapeKeyNames.Where(
+                shapeKeyName => BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.Contains(shapeKeyName)
+            ));
+
+#if VRC_SDK_VRCSDK3
+            var settings = instance.GetComponent<VRCAvatarDescriptor>().customEyeLookSettings;
+            if (settings.eyelidsSkinnedMesh != null && settings.eyelidsSkinnedMesh.sharedMesh != null
+                && settings.eyelidsBlendshapes != null && settings.eyelidsBlendshapes.Count() == 3
+                && settings.eyelidsSkinnedMesh.sharedMesh.blendShapeCount > settings.eyelidsBlendshapes[0])
+            {
+                expressions[ExpressionPreset.Blink] = new VRChatExpressionBinding() {
+                    ShapeKeyNames = new[] {
+                        settings.eyelidsSkinnedMesh.sharedMesh.GetBlendShapeName(settings.eyelidsBlendshapes[0]),
+                    },
+                };
+            }
+#endif
+
+            var blinkShapeKeys = shapeKeyNames.Where(shapeKeyName => shapeKeyName.ToLower().Contains("blink")).ToList();
+            if (blinkShapeKeys.Count() > 0)
+            {
+                if (expressions.ContainsKey(ExpressionPreset.Blink)
+                    && blinkShapeKeys.Contains(expressions[ExpressionPreset.Blink].ShapeKeyNames.First()))
+                {
+                    // SDK3の両目まばたきが設定済みなら、それを取り除く
+                    blinkShapeKeys.Remove(expressions[ExpressionPreset.Blink].ShapeKeyNames.First());
+                }
+
+                // 片目まばたき
+                foreach (var (preset, name) in new Dictionary<ExpressionPreset, string>()
+                {
+                    { ExpressionPreset.BlinkLeft, "left" },
+                    { ExpressionPreset.BlinkRight, "right" },
+                })
+                {
+                    var blinkOneEyeShapeKeyNames = blinkShapeKeys.Where(shapeKeyName => Regex.IsMatch(
+                        shapeKeyName,
+                        $"(^|[^a-z])${Regex.Escape(name[0].ToString())}?([^a-z]|$)|{Regex.Escape(name)}",
+                        RegexOptions.IgnoreCase
+                    ));
+                    if (blinkOneEyeShapeKeyNames.Count() > 0)
+                    {
+                        if (blinkOneEyeShapeKeyNames.Count() > 1)
+                        {
+                            var mayblinkOneEyeShapeKeyNames = blinkOneEyeShapeKeyNames.Except(maybeDummyBlinkShapeKeyNames);
+                            if (mayblinkOneEyeShapeKeyNames.Count() > 1)
+                            {
+                                blinkOneEyeShapeKeyNames = mayblinkOneEyeShapeKeyNames;
+                            }
+                        }
+                        expressions[preset] = new VRChatExpressionBinding()
+                        {
+                            ShapeKeyNames = new[] { blinkOneEyeShapeKeyNames.First() },
+                        };
+                    }
+                }
+
+                if (!expressions.ContainsKey(ExpressionPreset.Blink))
+                {
+                    // SDK3の両目まばたきが未設定なら
+                    var blinkBothEyesShapeKeyName = blinkShapeKeys.FirstOrDefault(shapeKeyName =>
+                        !Regex.IsMatch(shapeKeyName, "(^|[^a-z])[lr]([^a-z]|$)|left|right", RegexOptions.IgnoreCase));
+                    if (blinkBothEyesShapeKeyName != null)
+                    {
+                        // 両目シェイプキーでないもの
+                        expressions[ExpressionPreset.Blink]
+                            = new VRChatExpressionBinding() { ShapeKeyNames = new[] { blinkBothEyesShapeKeyName } };
+                    }
+                    else
+                    {
+                        // 片目シェイプキーを組み合わせる
+                        var blinkOneEyeShapeKeyNames = new[] { ExpressionPreset.BlinkLeft, ExpressionPreset.BlinkRight }
+                            .Where(preset => expressions.ContainsKey(preset))
+                            .Select(preset => expressions[preset].ShapeKeyNames.First());
+                        if (blinkOneEyeShapeKeyNames.Count() > 1)
+                        {
+                            expressions[ExpressionPreset.Blink]
+                                = new VRChatExpressionBinding() { ShapeKeyNames = blinkOneEyeShapeKeyNames };
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// VRChat SDK2でオートアイムーブメントの条件を満たしていれば <code>true</code> を返します。
+        /// </summary>
+        /// <returns></returns>
+        internal static bool IsEnabledAutoEyeMovementInSDK2(GameObject instance)
+        {
+            if (VRChatUtility.RequiredPathForAutoEyeMovement.Concat(new string[] { VRChatUtility.AutoBlinkMeshPath })
+                .All(path => instance.transform.Find(path) != null))
+            {
+                return false;
+            }
+
+            var meshTransform = instance.transform.Find(VRChatUtility.AutoBlinkMeshPath);
+            if (meshTransform == null)
+            {
+                return false;
+            }
+
+            var renderer = meshTransform.GetComponent<SkinnedMeshRenderer>();
+            if (renderer == null)
+            {
+                return false;
+            }
+
+            var mesh = renderer.sharedMesh;
+            if (mesh == null
+                || mesh.blendShapeCount < BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.Count())
+            {
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>

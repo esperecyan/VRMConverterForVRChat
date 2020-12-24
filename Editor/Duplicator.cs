@@ -65,14 +65,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <summary>
         /// アセットの種類に応じて、保存先を決定します。
         /// </summary>
-        /// <param name="prefabInstance"></param>
+        /// <param name="destinationFolderUnityPath"></param>
         /// <param name="type">アセットの種類。</param>
         /// <param name="fileName">ファイル名。</param>
         /// <returns>「Assets/」から始まるパス。</returns>
-        internal static string DetermineAssetPath(GameObject prefabInstance, Type type, string fileName = "")
+        internal static string DetermineAssetPath(string destinationFolderPath, Type type, string fileName = "")
         {
-            var destinationFolderUnityPath
-                = UnityPath.FromUnityPath(PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(prefabInstance));
+            var destinationFolderUnityPath = UnityPath.FromUnityPath(destinationFolderPath);
             foreach (var (assetType, suffix) in Duplicator.FolderNameSuffixes)
             {
                 if (assetType.IsAssignableFrom(type))
@@ -85,6 +84,22 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             destinationFolderUnityPath.EnsureFolder();
 
             return destinationFolderUnityPath.Child(fileName).Value;
+        }
+
+        /// <summary>
+        /// アセットの種類に応じて、保存先を決定します。
+        /// </summary>
+        /// <param name="prefabInstance"></param>
+        /// <param name="type">アセットの種類。</param>
+        /// <param name="fileName">ファイル名。</param>
+        /// <returns>「Assets/」から始まるパス。</returns>
+        internal static string DetermineAssetPath(GameObject prefabInstance, Type type, string fileName = "")
+        {
+            return Duplicator.DetermineAssetPath(
+                PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(prefabInstance),
+                type,
+                fileName
+            );
         }
 
         /// <summary>
@@ -137,7 +152,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <returns></returns>
         internal static T CreateObjectToFolder<T>(
             T source,
-            GameObject prefabInstance,
+            string prefabPath,
             string destinationFileName = null
         ) where T : UnityEngine.Object
         {
@@ -153,7 +168,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
 
             var destinationPath = Duplicator.DetermineAssetPath(
-                prefabInstance,
+                prefabPath,
                 typeof(T),
                 destinationFileName ?? source.name.EscapeFilePath() + ".asset"
             );
@@ -169,6 +184,31 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
 
             return AssetDatabase.LoadAssetAtPath<T>(destinationPath);
+        }
+
+        /// <summary>
+        /// オブジェクトをプレハブが置かれているディレクトリの直下のフォルダへ保存します。
+        /// </summary>
+        /// <remarks>
+        /// 保存先にすでにアセットが存在していれば上書きし、metaファイルは新規生成しません。
+        /// </remarks>
+        /// <typeparam name="T"></typeparam>
+        /// <exception cref="ArgumentException">source がすでにアセットとして存在するか、<see cref="AnimatorController"> の場合。</exception>
+        /// <param name="source">オブジェクト。</param>
+        /// <param name="prefabInstance">プレハブインスタンス。</param>
+        /// <param name="destinationFileName">ファイル名がオブジェクト名と異なる場合に指定。</param>
+        /// <returns></returns>
+        internal static T CreateObjectToFolder<T>(
+            T source,
+            GameObject prefabInstance,
+            string destinationFileName = null
+        ) where T : UnityEngine.Object
+        {
+            return Duplicator.CreateObjectToFolder<T>(
+                source,
+                AssetDatabase.GetAssetPath(prefabInstance),
+                destinationFileName
+            );
         }
 
         /// <summary>

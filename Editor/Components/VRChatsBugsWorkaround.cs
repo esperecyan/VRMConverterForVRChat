@@ -229,23 +229,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// <param name="avatar"></param>
         private static void DisableAutoEyeMovement(GameObject avatar)
         {
-            var paths = VRChatUtility.RequiredPathForAutoEyeMovement.Concat(new string[] { VRChatUtility.AutoBlinkMeshPath });
-            var transforms = paths.Concat(new string[] { VRChatUtility.AutoBlinkMeshPath }).Select(path => avatar.transform.Find(path));
-            if (transforms.Contains(value: null))
-            {
-                return;
-            }
-
-            var renderer = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath).gameObject.GetOrAddComponent<SkinnedMeshRenderer>();
-            Mesh mesh = renderer.sharedMesh;
-            if (!mesh || mesh.blendShapeCount < BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.Count())
+            if (!VRChatUtility.IsEnabledAutoEyeMovementInSDK2(avatar))
             {
                 return;
             }
 
             var eyeBones = new[] { HumanBodyBones.RightEye, HumanBodyBones.LeftEye }
                 .Select(id => avatar.GetComponent<Animator>().GetBoneTransform(id))
-                .Where(bone => bone && transforms.Contains(value: bone));
+                .Where(bone => bone);
             if (eyeBones.Count() == 0)
             {
                 return;

@@ -7,6 +7,7 @@ using UnityEditor.Animations;
 using VRM;
 using UniGLTF;
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
+using SkinnedMeshUtility = Esperecyan.Unity.VRMConverterForVRChat.Utilities.SkinnedMeshUtility;
 #if VRC_SDK_VRCSDK2
 using VRCSDK2;
 #elif VRC_SDK_VRCSDK3
@@ -22,6 +23,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
     /// </summary>
     internal class BlendShapeReplacer
     {
+        /// <summary>
+        /// Unityにおけるブレンドシェイプフレームのウェイトの最高値。
+        /// </summary>
+        internal static readonly float MaxBlendShapeFrameWeight = 100;
+
         /// <summary>
         /// Cats Blender PluginでVRChat用に生成されるまばたきのシェイプキー名。
         /// </summary>
@@ -188,11 +194,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 new Dictionary<BlendShapePreset, float>(){ { BlendShapePreset.O, 0.9994f } }
             ),
         };
-
-        /// <summary>
-        /// Unityにおけるブレンドシェイプフレームのウェイトの最高値。
-        /// </summary>
-        private static readonly float MaxBlendShapeFrameWeight = 100;
 
         /// <summary>
         /// まばたきの間隔。キーに秒、値にブレンドシェイプのウェイト (1が閉眼)。
@@ -373,7 +374,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 }
             }
 
-            IEnumerable<BlendShape> shapeKeys = BlendShapeReplacer.GetAllShapeKeys(mesh, useShapeKeyNormalsAndTangents);
+            IEnumerable<BlendShape> shapeKeys = SkinnedMeshUtility.GetAllShapeKeys(mesh, useShapeKeyNormalsAndTangents);
 
             foreach (var (newName, values) in BlendShapeReplacer.VisemeShapeKeyNamesAndValues)
             {
@@ -521,7 +522,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 
             // VRChat側の自動まばたきを回避
             Mesh mesh = transform.GetSharedMesh();
-            IEnumerable<BlendShape> shapeKeys = BlendShapeReplacer.GetAllShapeKeys(mesh, useShapeKeyNormalsAndTangents);
+            IEnumerable<BlendShape> shapeKeys = SkinnedMeshUtility.GetAllShapeKeys(mesh, useShapeKeyNormalsAndTangents);
             mesh.ClearBlendShapes();
             foreach (var name in BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin)
             {
@@ -549,7 +550,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// 指定されたシェイプキーを合成し、新しいシェイプキーを作成します。
         /// </summary>
         /// <param name="namesAndWeights">シェイプキー名と0〜100のウェイトの連想配列。</param>
-        /// <param name="shapeKeys"><see cref="BlendShapeReplacer.GetAllShapeKeys"/>の戻り値。</param>
+        /// <param name="shapeKeys"><see cref="SkinnedMeshUtility.GetAllShapeKeys"/>の戻り値。</param>
         /// <returns></returns>
         private static Vector3[] GenerateShapeKey(
             IDictionary<string, float> namesAndWeights,
@@ -601,7 +602,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 return;
             }
 
-            IEnumerable<BlendShape> shapeKeys = BlendShapeReplacer.GetAllShapeKeys(mesh, useShapeKeyNormalsAndTangents);
+            IEnumerable<BlendShape> shapeKeys = SkinnedMeshUtility.GetAllShapeKeys(mesh, useShapeKeyNormalsAndTangents);
             mesh.ClearBlendShapes();
 
             var dummyShapeKeyNames = new List<string>();
@@ -717,7 +718,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                     BlendShapeReplacer.MaxBlendShapeFrameWeight,
                     BlendShapeReplacer.GenerateShapeKey(
                         clip.ShapeKeyValues,
-                        BlendShapeReplacer.GetAllShapeKeys(mesh, useShapeKeyNormalsAndTangents)
+                        SkinnedMeshUtility.GetAllShapeKeys(mesh, useShapeKeyNormalsAndTangents)
                     ),
                     null,
                     null
@@ -780,42 +781,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 
             descriptor.customEyeLookSettings = settings;
 #endif
-        }
-
-        /// <summary>
-        /// 指定したメッシュのすべてのシェイプキーを取得します。
-        /// </summary>
-        /// <param name="mesh"></param>
-        /// <param name="useShapeKeyNormalsAndTangents"></param>
-        /// <returns></returns>
-        private static IEnumerable<BlendShape> GetAllShapeKeys(Mesh mesh, bool useShapeKeyNormalsAndTangents)
-        {
-            var shapeKeys = new List<BlendShape>();
-
-            var meshVertexCount = mesh.vertexCount;
-            for (var i = 0; i < mesh.blendShapeCount; i++)
-            {
-                var deltaVertices = new Vector3[meshVertexCount];
-                var deltaNormals = new Vector3[meshVertexCount];
-                var deltaTangents = new Vector3[meshVertexCount];
-
-                mesh.GetBlendShapeFrameVertices(
-                    i,
-                    0,
-                    deltaVertices,
-                    useShapeKeyNormalsAndTangents ? deltaNormals : null,
-                    useShapeKeyNormalsAndTangents ? deltaTangents : null
-                );
-
-                shapeKeys.Add(new BlendShape(name: mesh.GetBlendShapeName(i))
-                {
-                    Positions = deltaVertices.ToList(),
-                    Normals = deltaNormals.ToList(),
-                    Tangents = deltaTangents.ToList(),
-                });
-            }
-
-            return shapeKeys;
         }
 
         /// <summary>
