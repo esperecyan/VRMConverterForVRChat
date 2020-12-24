@@ -11,7 +11,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// <summary>
         /// 追加するメニューアイテムの、「VRM」メニュー内の位置。
         /// </summary>
-        private const int Priority = 1100;
+        private const int Priority = 1200;
 
         /// <summary>
         /// 追加するメニューアイテム名。

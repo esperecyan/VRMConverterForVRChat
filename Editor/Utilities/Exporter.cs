@@ -13,7 +13,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
     internal class Exporter
     {
         private static readonly Regex FilePathPattern = new Regex(
-            @"^Assets/VRMConverterForVRChat/(?!Editor/Utilities/Exporter\.cs$)|^Assets/(?:VRM|VRMShaders|MeshUtility)/"
+            @"^Assets/VRMConverterForVRChat/(?!Editor/Utilities/Exporter\.cs$)|^Assets/(?:VRM|VRMShaders|MeshUtility|Esperecyan(/UniVRMExtensions)?)/"
         );
 
         private static readonly string PackageName = $"{Converter.Name}-{Converter.Version} + {VRMVersion.VRM_VERSION}";

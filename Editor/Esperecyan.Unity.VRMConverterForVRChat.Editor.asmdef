@@ -3,6 +3,9 @@
     "references": [
         "VRM",
         "UniHumanoid",
+        "MeshUtility",
+        "UniVRM.Editor",
+        "Esperecyan.UniVRMExtensions",
         "Esperecyan.Unity.VRMConverterForVRChat",
         "Esperecyan.Unity.VRMConverterForVRChat.CombineMeshesAndSubMeshes"
     ],
