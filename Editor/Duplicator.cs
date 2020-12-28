@@ -206,7 +206,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         {
             return Duplicator.CreateObjectToFolder<T>(
                 source,
-                AssetDatabase.GetAssetPath(prefabInstance),
+                PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(prefabInstance),
                 destinationFileName
             );
         }
