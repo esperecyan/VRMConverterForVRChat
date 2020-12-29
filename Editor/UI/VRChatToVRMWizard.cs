@@ -236,7 +236,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
             }
             if (this.meta.Author == null)
             {
-                this.meta.Author = "";
+                this.meta.Author = " ";
             }
             if (this.meta.ContactInformation == null)
             {
