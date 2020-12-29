@@ -76,85 +76,97 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
             DynamicBoneReplacer.ParametersConverter swayingParametersConverter
         )
         {
-            var rootObjectName = instance.name;
-            instance = Object.Instantiate(instance);
-
-            // 非表示のオブジェクト・コンポーネントを削除
-            // TODO: アクティブ・非アクティブの切り替えをシェイプキーに変換する
-            VRChatToVRMConverter.RemoveInactiveObjectsAndDisabledComponents(instance);
-
-
-            // 表情とシェイプキー名の組み合わせを取得
-            var presetShapeKeyNameWeightPairsPairs = presetVRChatBindingPairs.ToDictionary(
-                presetVRChatBindingPair => presetVRChatBindingPair.Key,
-                presetVRChatBindingPair => VRChatExpressionsReplacer.ExtractShapeKeyNames(presetVRChatBindingPair.Value)
-            );
-
-            // VRM設定1
-            var temporaryFolder = UnityPath.FromUnityPath(VRChatToVRMConverter.TemporaryFolderPath);
-            temporaryFolder.EnsureFolder();
-            var temporaryPrefabPath = temporaryFolder.Child(VRChatToVRMConverter.TemporaryPrefabFileName).Value;
-            VRMInitializer.Initialize(temporaryPrefabPath, instance);
-            VRChatToVRMConverter.SetFirstPersonOffset(instance);
-            VRChatToVRMConverter.SetLookAtBoneApplyer(instance);
-            DynamicBoneReplacer.SetSpringBonesAndColliders(instance, swayingParametersConverter);
-
-            // 正規化
-            var normalized = VRMBoneNormalizer.Execute(instance, forceTPose: true);
-            Object.DestroyImmediate(instance);
-            instance = normalized;
-
-            // 全メッシュ結合
-            var combinedRenderer = CombineMeshesAndSubMeshes.Combine(
-                instance,
-                notCombineRendererObjectNames: new List<string>(),
-                destinationObjectName: "vrm-mesh",
-                savingAsAsset: false
-            );
-
-            // 使用していないシェイプキーの削除
-            SkinnedMeshUtility.CleanUpShapeKeys(combinedRenderer.sharedMesh, presetShapeKeyNameWeightPairsPairs
-                .SelectMany(presetShapeKeyNameWeightPairsPair => presetShapeKeyNameWeightPairsPair.Value.Keys)
-                .Distinct());
-
-            // シェイプキーの分離
-            Utilities.MeshUtility.SeparationProcessing(instance);
-
-            // マテリアルの設定・アセットとして保存
-            VRChatToVRMConverter.ReplaceShaders(instance, temporaryPrefabPath);
-
-            // GameObject・メッシュなどをアセットとして保存 (アセットとして存在しないと正常にエクスポートできない)
-            instance.name = rootObjectName;
-            var animator = instance.GetComponent<Animator>();
-            animator.avatar = Duplicator.CreateObjectToFolder(animator.avatar, temporaryPrefabPath);
-            meta.name = "Meta";
-            instance.GetComponent<VRMMeta>().Meta = Duplicator.CreateObjectToFolder(meta, temporaryPrefabPath);
-            foreach (var renderer in instance.GetComponentsInChildren<SkinnedMeshRenderer>())
+            GameObject clone = null, normalized = null;
+            try
             {
-                renderer.sharedMesh.name = renderer.name;
-                renderer.sharedMesh = Duplicator.CreateObjectToFolder(renderer.sharedMesh, temporaryPrefabPath);
+                var rootObjectName = instance.name;
+                clone = Object.Instantiate(instance);
+
+                // 非表示のオブジェクト・コンポーネントを削除
+                // TODO: アクティブ・非アクティブの切り替えをシェイプキーに変換する
+                VRChatToVRMConverter.RemoveInactiveObjectsAndDisabledComponents(clone);
+
+
+                // 表情とシェイプキー名の組み合わせを取得
+                var presetShapeKeyNameWeightPairsPairs = presetVRChatBindingPairs.ToDictionary(
+                    presetVRChatBindingPair => presetVRChatBindingPair.Key,
+                    presetVRChatBindingPair => VRChatExpressionsReplacer.ExtractShapeKeyNames(presetVRChatBindingPair.Value)
+                );
+
+                // VRM設定1
+                var temporaryFolder = UnityPath.FromUnityPath(VRChatToVRMConverter.TemporaryFolderPath);
+                temporaryFolder.EnsureFolder();
+                var temporaryPrefabPath = temporaryFolder.Child(VRChatToVRMConverter.TemporaryPrefabFileName).Value;
+                VRMInitializer.Initialize(temporaryPrefabPath, clone);
+                VRChatToVRMConverter.SetFirstPersonOffset(clone);
+                VRChatToVRMConverter.SetLookAtBoneApplyer(clone);
+                DynamicBoneReplacer.SetSpringBonesAndColliders(clone, swayingParametersConverter);
+
+                // 正規化
+                normalized = VRMBoneNormalizer.Execute(clone, forceTPose: true);
+
+                // 全メッシュ結合
+                var combinedRenderer = CombineMeshesAndSubMeshes.Combine(
+                    normalized,
+                    notCombineRendererObjectNames: new List<string>(),
+                    destinationObjectName: "vrm-mesh",
+                    savingAsAsset: false
+                );
+
+                // 使用していないシェイプキーの削除
+                SkinnedMeshUtility.CleanUpShapeKeys(combinedRenderer.sharedMesh, presetShapeKeyNameWeightPairsPairs
+                    .SelectMany(presetShapeKeyNameWeightPairsPair => presetShapeKeyNameWeightPairsPair.Value.Keys)
+                    .Distinct());
+
+                // シェイプキーの分離
+                Utilities.MeshUtility.SeparationProcessing(normalized);
+
+                // マテリアルの設定・アセットとして保存
+                VRChatToVRMConverter.ReplaceShaders(normalized, temporaryPrefabPath);
+
+                // GameObject・メッシュなどをアセットとして保存 (アセットとして存在しないと正常にエクスポートできない)
+                normalized.name = rootObjectName;
+                var animator = normalized.GetComponent<Animator>();
+                animator.avatar = Duplicator.CreateObjectToFolder(animator.avatar, temporaryPrefabPath);
+                meta.name = "Meta";
+                normalized.GetComponent<VRMMeta>().Meta = Duplicator.CreateObjectToFolder(meta, temporaryPrefabPath);
+                foreach (var renderer in normalized.GetComponentsInChildren<SkinnedMeshRenderer>())
+                {
+                    renderer.sharedMesh.name = renderer.name;
+                    renderer.sharedMesh = Duplicator.CreateObjectToFolder(renderer.sharedMesh, temporaryPrefabPath);
+                }
+
+                // VRM設定2
+                VRChatToVRMConverter.SetFirstPersonRenderers(normalized);
+
+                // 表情の設定
+                VRChatExpressionsReplacer.SetExpressions(normalized, presetShapeKeyNameWeightPairsPairs);
+
+                var prefab = PrefabUtility
+                    .SaveAsPrefabAssetAndConnect(normalized, temporaryPrefabPath, InteractionMode.AutomatedAction);
+
+                // エクスポート
+                AssetDatabase.SaveAssets();
+                VRMEditorExporter.Export(
+                    outputPath,
+                    prefab,
+                    meta: null,
+                    ScriptableObject.CreateInstance<VRMExportSettings>(),
+                    info: null
+                );
             }
-
-            // VRM設定2
-            VRChatToVRMConverter.SetFirstPersonRenderers(instance);
-
-            // 表情の設定
-            VRChatExpressionsReplacer.SetExpressions(instance, presetShapeKeyNameWeightPairsPairs);
-
-            var prefab = PrefabUtility
-                .SaveAsPrefabAssetAndConnect(instance, temporaryPrefabPath, InteractionMode.AutomatedAction);
-
-            // エクスポート
-            AssetDatabase.SaveAssets();
-            VRMEditorExporter.Export(
-                outputPath,
-                prefab,
-                meta: null,
-                ScriptableObject.CreateInstance<VRMExportSettings>(),
-                info: null
-            );
-            AssetDatabase.DeleteAsset("Assets/VRMConverterTemporary");
-            Object.DestroyImmediate(instance);
+            finally
+            {
+                if (clone != null)
+                {
+                    Object.DestroyImmediate(clone);
+                }
+                if (normalized != null)
+                {
+                    Object.DestroyImmediate(normalized);
+                }
+                AssetDatabase.DeleteAsset("Assets/VRMConverterTemporary");
+            }
         }
 
         private static void ReplaceShaders(GameObject instance, string temporaryPrefabPath)
