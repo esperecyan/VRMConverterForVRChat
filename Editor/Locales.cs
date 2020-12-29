@@ -64,6 +64,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                         "以下のテクスチャで Texture Mipmap Streaming を有効化しました。" },
                     { "Converting is completed.", "変換が完了しました。" },
                     { "OK", "OK" },
+
+                    { "Some error has occurred.", "エラーが発生しました。" },
+                    { "Copy the content to clipboard", "内容をクリップボードへコピー" },
+                    { "Report the problem", "不具合報告" },
+                    { "Close", "閉じる" },
                 }}
             });
 

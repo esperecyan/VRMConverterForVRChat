@@ -10,6 +10,7 @@ using Esperecyan.UniVRMExtensions;
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 using SkinnedMeshUtility = Esperecyan.Unity.VRMConverterForVRChat.Utilities.SkinnedMeshUtility;
 using Esperecyan.Unity.VRMConverterForVRChat.Components;
+using Esperecyan.Unity.VRMConverterForVRChat.UI;
 #if VRC_SDK_VRCSDK2
 using VRCSDK2;
 #elif VRC_SDK_VRCSDK3
@@ -154,6 +155,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
                     ScriptableObject.CreateInstance<VRMExportSettings>(),
                     info: null
                 );
+            }
+            catch (Exception exception)
+            {
+                ErrorDialog.Open(exception);
+                throw;
             }
             finally
             {
