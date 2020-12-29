@@ -10,9 +10,6 @@ using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
 using SkinnedMeshUtility = Esperecyan.Unity.VRMConverterForVRChat.Utilities.SkinnedMeshUtility;
 using Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM;
-#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
-using VRC.Core;
-#endif
 
 namespace Esperecyan.Unity.VRMConverterForVRChat.UI
 {

@@ -13,9 +13,7 @@ using Esperecyan.Unity.VRMConverterForVRChat.Components;
 #if VRC_SDK_VRCSDK2
 using VRCSDK2;
 #elif VRC_SDK_VRCSDK3
-using VRC.SDKBase;
 using VRC.SDK3.Avatars.Components;
-using VRC.SDK3.Avatars.ScriptableObjects;
 #endif
 
 namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
