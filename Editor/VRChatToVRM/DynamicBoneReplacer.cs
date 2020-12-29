@@ -30,9 +30,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
             ParametersConverter swayingParametersConverter
         )
         {
-            Debug.LogWarning("揺れモノの変換は未対応です。");
-            return;
-
             if (DynamicBoneType != null)
             {
                 DynamicBoneReplacer.SetSpringBoneColliderGroups(instance);
@@ -129,15 +126,27 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
                         InertDistrib = dynamicBone.m_InertDistrib,
                     }, boneInfo);
 
-                    var colliderGroups = dynamicBone.m_Colliders != null
-                        ? ((IEnumerable<MonoBehaviour>)dynamicBone.m_Colliders.Select(new Func<dynamic, MonoBehaviour>(collider => collider)))
-                            .Where(collider => collider != null
-                                && DynamicBoneColliderType.IsAssignableFrom(collider.GetType()) // プレーンコライダーを除外
-                                && collider.transform.IsChildOf(instance.transform)) // ルート外の参照を除外
-                            .Select(collider => collider.GetComponent<VRMSpringBoneColliderGroup>())
-                            .Where(colliderGroup => colliderGroup != null)
-                            .Distinct()
-                        : new List<VRMSpringBoneColliderGroup>();
+                    var colliderGroups = new List<VRMSpringBoneColliderGroup>();
+                    if (dynamicBone.m_Colliders != null)
+                    {
+                        foreach (var collider in dynamicBone.m_Colliders)
+                        {
+                            if (!collider.transform.IsChildOf(instance.transform))
+                            {
+                                // ルート外の参照を除外
+                                continue;
+                            }
+
+                            VRMSpringBoneColliderGroup colliderGroup
+                                = collider.GetComponent<VRMSpringBoneColliderGroup>();
+                            if (colliderGroup == null || colliderGroups.Contains(colliderGroup))
+                            {
+                                continue;
+                            }
+
+                            colliderGroups.Add(colliderGroup);
+                        }
+                    }
 
                     Vector3 gravity = dynamicBone.m_Gravity;
                     return (dynamicBone, parameters, colliderGroups, compare: string.Join("\n", new[]
