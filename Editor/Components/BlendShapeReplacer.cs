@@ -416,13 +416,16 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             }
             EditorUtility.SetDirty(mesh);
 
+            var avatarDescriptor
 #if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
-            var avatarDescriptor = avatar.GetComponent<VRC_AvatarDescriptor>();
+                = avatar.GetComponent<VRC_AvatarDescriptor>();
             avatarDescriptor.lipSync = VRC_AvatarDescriptor.LipSyncStyle.VisemeBlendShape;
+#else
+                = (dynamic)null;
+#endif
             avatarDescriptor.VisemeSkinnedMesh = renderer;
             avatarDescriptor.VisemeBlendShapes
                 = BlendShapeReplacer.VisemeShapeKeyNamesAndValues.Select(nameAndValues => nameAndValues.Key).ToArray();
-#endif
         }
 
         /// <summary>

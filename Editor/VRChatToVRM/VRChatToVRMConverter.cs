@@ -14,6 +14,7 @@ using Esperecyan.Unity.VRMConverterForVRChat.UI;
 #if VRC_SDK_VRCSDK2
 using VRCSDK2;
 #elif VRC_SDK_VRCSDK3
+using VRC.SDKBase;
 using VRC.SDK3.Avatars.Components;
 #endif
 
@@ -240,15 +241,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
 
         private static void SetFirstPersonOffset(GameObject instance)
         {
-            var firstPerson = instance.GetComponent<VRMFirstPerson>();
-#if VRC_SDK_VRCSDK2
-            var avatarDescriptor = instance.GetComponent<VRC_AvatarDescriptor>();
-#elif VRC_SDK_VRCSDK3
-            var avatarDescriptor = instance.GetComponent<VRCAvatarDescriptor>();
-#endif
+            var avatarDescriptor
 #if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
-            firstPerson.FirstPersonOffset = avatarDescriptor.ViewPosition - firstPerson.FirstPersonBone.position;
+                = instance.GetComponent<VRC_AvatarDescriptor>();
+#else
+                = (dynamic)null;
 #endif
+            var firstPerson = instance.GetComponent<VRMFirstPerson>();
+            firstPerson.FirstPersonOffset = avatarDescriptor.ViewPosition - firstPerson.FirstPersonBone.position;
         }
 
         private static void SetFirstPersonRenderers(GameObject instance)

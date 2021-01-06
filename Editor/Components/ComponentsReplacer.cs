@@ -8,6 +8,7 @@ using UniGLTF;
 #if VRC_SDK_VRCSDK2
 using VRCSDK2;
 #elif VRC_SDK_VRCSDK3
+using VRC.SDKBase;
 using VRC.SDK3.Avatars.Components;
 #endif
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
@@ -78,15 +79,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// <param name="avatar"></param>
         private static void ConvertVRMFirstPerson(GameObject avatar)
         {
-#if VRC_SDK_VRCSDK2
-            var avatarDescriptor = avatar.GetComponent<VRC_AvatarDescriptor>();
-#elif VRC_SDK_VRCSDK3
-            var avatarDescriptor = avatar.GetComponent<VRCAvatarDescriptor>();
-#endif
+            var avatarDescriptor
 #if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
+                = avatar.GetComponent<VRC_AvatarDescriptor>();
+#else
+                = (dynamic)null;
+#endif
             var firstPerson = avatar.GetComponent<VRMFirstPerson>();
             avatarDescriptor.ViewPosition = firstPerson.FirstPersonBone.position + firstPerson.FirstPersonOffset - avatar.transform.localPosition;
-#endif
         }
 
         /// <summary>

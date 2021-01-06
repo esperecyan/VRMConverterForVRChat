@@ -276,12 +276,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             var animations = new List<AnimationClip>();
             var expressions = new Dictionary<ExpressionPreset, VRChatExpressionBinding>();
 
+            var avatarDescriptor
 #if VRC_SDK_VRCSDK2
-            var avatarDescriptor = instance.GetComponent<VRC_AvatarDescriptor>();
+                = instance.GetComponent<VRC_AvatarDescriptor>();
 #elif VRC_SDK_VRCSDK3
-            var avatarDescriptor = instance.GetComponent<VRCAvatarDescriptor>();
+                = instance.GetComponent<VRCAvatarDescriptor>();
+#else
+                = (dynamic)null;
 #endif
-#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
             var visemes = avatarDescriptor.VisemeBlendShapes;
             if (visemes != null)
             {
@@ -295,7 +297,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                     expressions[preset] = new VRChatExpressionBinding() { ShapeKeyNames = new[] { shapeKeyName } };
                 }
             }
-#endif
 #if VRC_SDK_VRCSDK2
             var customStandingAnims = avatarDescriptor.CustomStandingAnims;
             if (customStandingAnims != null)
@@ -617,8 +618,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             var template = AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>(
                 AssetDatabase.GUIDToAssetPath(VRChatUtility.CustomAnimsTemplateGUID)
             );
+            var avatarDescriptor
 #if VRC_SDK_VRCSDK2
-            var avatarDescriptor = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
+                = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
+#else
+                = (dynamic)null;
+#endif
             if (!avatarDescriptor.CustomStandingAnims)
             {
                 avatarDescriptor.CustomStandingAnims = Duplicator.DuplicateAssetToFolder<AnimatorOverrideController>(
@@ -636,7 +641,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                     fileName: "CustomSittingAnims.overrideController"
                 );
             }
-#endif
         }
 
         /// <summary>
