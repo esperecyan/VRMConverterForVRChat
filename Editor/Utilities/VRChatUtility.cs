@@ -7,7 +7,7 @@ using Object = UnityEngine.Object;
 using UnityEditor;
 #if VRC_SDK_VRCSDK2
 using VRCSDK2;
-#else
+#elif VRC_SDK_VRCSDK3
 using VRC.SDK3.Avatars.Components;
 #endif
 #if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
@@ -278,7 +278,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
 
 #if VRC_SDK_VRCSDK2
             var avatarDescriptor = instance.GetComponent<VRC_AvatarDescriptor>();
-#else
+#elif VRC_SDK_VRCSDK3
             var avatarDescriptor = instance.GetComponent<VRCAvatarDescriptor>();
 #endif
 #if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
@@ -319,7 +319,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                     );
                 }
             }
-#else
+#elif VRC_SDK_VRCSDK3
             var controller = avatarDescriptor.baseAnimationLayers
                 .FirstOrDefault(layer => layer.type == VRCAvatarDescriptor.AnimLayerType.FX)
                 .animatorController;
