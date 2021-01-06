@@ -2,6 +2,7 @@
     "name": "Esperecyan.Unity.VRMConverterForVRChat.Editor",
     "references": [
         "VRM",
+        "UniGLTF",
         "UniHumanoid",
         "MeshUtility",
         "UniVRM.Editor",
