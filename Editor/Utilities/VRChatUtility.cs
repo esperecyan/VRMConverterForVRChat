@@ -289,7 +289,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             {
                 foreach (var (preset, index) in VRChatUtility.ExpressionPresetVRChatVisemeIndexPairs)
                 {
-                    var shapeKeyName = visemes.ElementAtOrDefault(index);
+#pragma warning disable IDE0007 // 暗黙的な型の使用 (VRChat SDKがインポートされていない場合のコンパイルエラー回避)
+                    string shapeKeyName = visemes.ElementAtOrDefault(index);
+#pragma warning restore IDE0007
                     if (shapeKeyName == null || !shapeKeyNames.Contains(shapeKeyName))
                     {
                         continue;

@@ -582,7 +582,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                         };
                     }).ToDictionary(
                         keySelector: indexAndBlueprintId => indexAndBlueprintId.index,
-                        elementSelector: indexAndBlueprintId => indexAndBlueprintId.blueprintId
+                        elementSelector: indexAndBlueprintId => (string)/* VRChat SDKがインポートされていない場合のコンパイルエラー回避 */indexAndBlueprintId.blueprintId
                     );
             }
 
