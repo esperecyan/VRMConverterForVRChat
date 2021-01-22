@@ -714,7 +714,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 
             var renderer = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath).GetComponent<SkinnedMeshRenderer>();
             var mesh = renderer.sharedMesh;
-            if (clip)
+            if (clip && mesh.GetBlendShapeIndex(BlendShapeReplacer.BlinkShapeKeyName) == -1)
             {
                 mesh.AddBlendShapeFrame(
                     BlendShapeReplacer.BlinkShapeKeyName,
