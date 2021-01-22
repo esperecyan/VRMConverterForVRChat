@@ -16,12 +16,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// <summary>
         /// 追加するメニューアイテム名。
         /// </summary>
-        private const string ItemName = "VRM/Duplicate and Convert for VRChat";
+        private const string ItemName = "VRM0/Duplicate and Convert for VRChat";
 
         /// <summary>
         /// 追加するメニューアイテム名。
         /// </summary>
-        private const string VRChatToVRMItemName = "VRM/Export VRM file from VRChat avatar";
+        private const string VRChatToVRMItemName = "VRM0/Export VRM file from VRChat avatar";
 
         /// <summary>
         /// 選択されているアバターの変換ダイアログを開きます。
