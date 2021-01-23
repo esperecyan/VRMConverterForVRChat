@@ -70,7 +70,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                         continue;
                     }
 
-                    if (binding.Index > mesh.blendShapeCount)
+                    if (binding.Index >= mesh.blendShapeCount)
                     {
                         continue;
                     }
