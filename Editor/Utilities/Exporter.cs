@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEditor;
 using UniGLTF;
 using VRM;
+using UniVRMExtensionsMenuItems = Esperecyan.UniVRMExtensions.MenuItems;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
 {
@@ -16,7 +17,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             @"^Assets/VRMConverterForVRChat/(?!Editor/Utilities/Exporter\.cs$)|^Assets/(?:VRM|UniGLTF|VRMShaders|Esperecyan(/UniVRMExtensions)?)/"
         );
 
-        private static readonly string PackageName = $"{Converter.Name}-{Converter.Version} + {VRMVersion.VRM_VERSION}";
+        private static readonly string PackageName = $"{Converter.Name}-{Converter.Version} + UniVRMExtensions-{UniVRMExtensionsMenuItems.Version} + {VRMVersion.VRM_VERSION}";
 
         [MenuItem("Assets/Export " + Converter.Name, false, 30)]
         private static void Export()
@@ -31,7 +32,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                 -Path @('{packagePath}') `
                 -DestinationPath '{Path.Combine(
                     Environment.GetFolderPath(folder: Environment.SpecialFolder.DesktopDirectory),
-                    Exporter.PackageName.Replace(" + ", " +") + ".zip" // BOOTHのファイル名字数制限 (50文字) 対策
+                    Exporter.PackageName + ".zip"
                 )}'""")
                 .WaitForExit();
 
