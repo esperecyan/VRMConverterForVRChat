@@ -87,7 +87,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         public static IEnumerable<(string message, MessageType type)> Convert(
             GameObject prefabInstance,
             IEnumerable<VRMBlendShapeClip> clips,
-            SwayingObjectsConverterSetting swayingObjectsConverterSetting = default,
+            SwayingObjectsConverterSetting swayingObjectsConverterSetting
+                = SwayingObjectsConverterSetting.ConvertVrmSpringBonesAndVrmSpringBoneColliderGroups,
             bool takingOverSwayingParameters = true,
             SwayingParametersConverter swayingParametersConverter = null,
             bool enableAutoEyeMovement = true,

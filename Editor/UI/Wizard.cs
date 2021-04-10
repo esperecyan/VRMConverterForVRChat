@@ -111,7 +111,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// 揺れ物を変換するか否かの設定。
         /// </summary>
         [SerializeField, Localizable]
-        private Converter.SwayingObjectsConverterSetting swayingObjects = default;
+        private Converter.SwayingObjectsConverterSetting swayingObjects
+            = Converter.SwayingObjectsConverterSetting.ConvertVrmSpringBonesAndVrmSpringBoneColliderGroups;
 
         /// <summary>
         /// 揺れ物のパラメータを引き継ぐなら<c>true</c>。
