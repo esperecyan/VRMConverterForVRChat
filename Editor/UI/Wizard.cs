@@ -180,6 +180,19 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
             wizard.avatar = avatar.GetComponent<Animator>();
 
             wizard.LoadSettings();
+
+            if (string.IsNullOrEmpty(wizard.blendShapeForFingerpoint))
+            {
+                var surprise = VRMUtility.GetBlendShapeClips(wizard.avatar)
+                    .FirstOrDefault(clip => clip.Preset == BlendShapePreset.Unknown
+                        && clip.BlendShapeName.StartsWith("Surprise", ignoreCase: true, culture: null))
+                    ?.BlendShapeName;
+                if (surprise != null)
+                {
+                    wizard.blendShapeForFingerpoint = surprise;
+                }
+            }
+
         }
 
         /// <summary>

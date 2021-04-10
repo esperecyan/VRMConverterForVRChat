@@ -123,6 +123,16 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         }
 
         /// <summary>
+        /// VRMBlendShapeの一覧を返します。
+        /// </summary>
+        /// <param name="avatar"></param>
+        /// <returns>取得できない場合には空のリストを返します。</returns>
+        internal static IEnumerable<BlendShapeClip> GetBlendShapeClips(Animator avatar)
+        {
+            return avatar.GetComponent<VRMBlendShapeProxy>()?.BlendShapeAvatar?.Clips ?? new List<BlendShapeClip>();
+        }
+
+        /// <summary>
         /// 指定された名前のユーザー定義VRMBlendShapeを取得します。
         /// </summary>
         /// <param name="avatar"></param>
@@ -130,8 +140,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <returns></returns>
         internal static BlendShapeClip GetUserDefinedBlendShapeClip(Animator avatar, string name)
         {
-            var clips = avatar.GetComponent<VRMBlendShapeProxy>()?.BlendShapeAvatar?.Clips;
-            return clips != null ? VRMUtility.GetUserDefinedBlendShapeClip(clips, name) : null;
+            return VRMUtility.GetUserDefinedBlendShapeClip(VRMUtility.GetBlendShapeClips(avatar), name);
         }
 
         /// <summary>
