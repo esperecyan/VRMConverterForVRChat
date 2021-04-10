@@ -131,11 +131,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 destinationFileName = fileName;
             }
 
-            var destinationPath = Duplicator
-                .DetermineAssetPath(prefabInstance: prefabInstance, type: typeof(T), fileName: destinationFileName);
-            Duplicator.DuplicateAsset(source: source, destinationPath: destinationPath);
-
-            return AssetDatabase.LoadAssetAtPath<T>(destinationPath);
+            return Duplicator.DuplicateAsset(source: source, destinationPath: Duplicator
+                .DetermineAssetPath(prefabInstance: prefabInstance, type: typeof(T), fileName: destinationFileName));
         }
 
         /// <summary>
@@ -234,10 +231,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </remarks>
         /// <param name="source"></param>
         /// <param name="duplicatedPath">「Assets/」から始まりファイル名で終わる複製先のパス。</param>
-        private static void DuplicateAsset(UnityEngine.Object source, string destinationPath)
+        private static T DuplicateAsset<T>(T source, string destinationPath) where T : UnityEngine.Object
         {
             var sourceUnityPath = UnityPath.FromAsset(source);
             UnityEngine.Object destination = AssetDatabase.LoadMainAssetAtPath(destinationPath);
+            var copied = false;
             if (destination)
             {
                 if (AssetDatabase.IsNativeAsset(source) && !(source is AnimatorController)
@@ -257,6 +255,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                             overwrite: true
                         );
                         AssetDatabase.ImportAsset(destinationPath);
+                        copied = true;
                     }
                 }
             }
@@ -271,6 +270,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(source), destinationPath);
                 }
             }
+
+            var destinationAsset = AssetDatabase.LoadAssetAtPath<T>(destinationPath);
+            if (copied)
+            {
+                EditorUtility.SetDirty(destinationAsset);
+                AssetDatabase.SaveAssets();
+            }
+            return destinationAsset;
         }
 
         /// <summary>
