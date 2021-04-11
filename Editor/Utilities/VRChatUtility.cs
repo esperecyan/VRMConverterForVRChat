@@ -104,7 +104,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             dynamicBoneAffectedTransformCount: 32,
             dynamicBoneCollisionCheckCount: 8,
             // Quest
-            triangleCount: 7500,
+            triangleCount: 15000,
             skinnedMeshCount: 2,
             meshCount: 2,
             subMeshCount: 2,
