@@ -942,6 +942,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             VRMBlendShapeClip vrmBlendShapeForFINGERPOINT
         )
         {
+            var usedPresets = new List<BlendShapePreset>();
+            var animationClips = new List<AnimationClip>();
+
 #if VRC_SDK_VRCSDK2
             VRChatUtility.AddCustomAnims(avatar: avatar);
 
@@ -1001,7 +1004,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 },
             };
 
-            var states = fxController.layers[1].stateMachine.states.Select(childState => childState.state).ToList();
+            var childStates = fxController.layers.First(layer => layer.name == "Feelings").stateMachine.states;
 
             avatarDescriptor.customExpressions = true;
             avatarDescriptor.expressionsMenu = Duplicator.DuplicateAssetToFolder(
@@ -1024,8 +1027,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 prefabInstance: avatar
             );
 
-            var blendTree = (BlendTree)fxController.layers.First(layer => layer.name == "FaceMood").stateMachine.states
-                .First(childState => childState.state.name == "FaceBlend").state.motion;
+            var blendTree
+                = (BlendTree)childStates.First(childState => childState.state.name == "FaceBlend").state.motion;
             var motions = blendTree.children;
 
             var neutral = Duplicator.CreateObjectToFolder(
@@ -1033,6 +1036,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 prefabInstance: avatar,
                 destinationFileName: "Neutral.anim"
             );
+            animationClips.Add(neutral);
 #endif
 
             foreach (var preset in BlendShapeReplacer.MappingBlendShapeToVRChatAnim.Keys)
@@ -1044,6 +1048,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 {
                     continue;
                 }
+                usedPresets.Add(preset);
 
                 AnimationClip animationClip = CreateFeeling(avatar, blendShapeClip, ref clips);
                 var anim = BlendShapeReplacer.MappingBlendShapeToVRChatAnim[preset].ToString();
@@ -1051,26 +1056,99 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 avatarDescriptor.CustomStandingAnims[anim] = animationClip;
                 avatarDescriptor.CustomSittingAnims[anim] = animationClip;
 #elif VRC_SDK_VRCSDK3
-                states.First(s => s.name.ToLower() == anim.ToLower()).motion = animationClip;
+                childStates.First(childState => childState.state.name.ToLower() == anim.ToLower()).state.motion
+                    = animationClip;
                 if (preset != BlendShapePreset.Unknown)
                 {
+                    // Expressionメニューによる表情変更
                     var index = BlendShapeReplacer.FacialExpressionsOrder.IndexOf(preset) + 1;
                     var motion = motions[index];
                     motion.motion = animationClip;
                     motions[index] = motion;
-
-                    BlendShapeReplacer.SetBlendShapeCurves(
-                        avatar,
-                        neutral,
-                        clips.First(clip => clip.Preset == preset),
-                        new Dictionary<float, float>() { { 0, 0 } }
-                    );
                 }
+                animationClips.Add(animationClip);
 #endif
             }
 #if VRC_SDK_VRCSDK3
             motions[0].motion = neutral;
             blendTree.children = motions;
+
+            // Write Defaultsが無効でも動作するように、各アニメーションクリップへ初期値を追加
+            var materials = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath)
+                .GetComponent<SkinnedMeshRenderer>().sharedMaterials;
+
+            foreach (var clip in usedPresets.Select(preset => clips.First(clip => preset == BlendShapePreset.Unknown
+                ? clip.BlendShapeName == vrmBlendShapeForFINGERPOINT.BlendShapeName
+                : clip.Preset == preset)))
+            {
+                foreach (var animationClip in animationClips)
+                {
+                    var alreadyExistingPropertyNames
+                        = AnimationUtility.GetCurveBindings(animationClip).Select(binding => binding.propertyName);
+
+                    foreach (var (name, weight) in clip.ShapeKeyValues)
+                    {
+                        if (alreadyExistingPropertyNames.Contains("blendShape." + name))
+                        {
+                            continue;
+                        }
+                        BlendShapeReplacer.SetBlendShapeCurve(
+                            animationClip,
+                            name,
+                            weight,
+                            keys: new Dictionary<float, float>() { { 0, 0 }, { animationClip.length, 0 } },
+                            setRelativePath: true
+                        );
+                    }
+
+                    foreach (var bindings in clip.MaterialValues.GroupBy(binding => binding.MaterialName))
+                    {
+                        var materialIndex = materials.ToList().FindIndex(m => m.name == bindings.First().MaterialName);
+                        var propertyName = $"m_Materials.Array.data[{materialIndex}]";
+                        if (alreadyExistingPropertyNames.Contains(propertyName))
+                        {
+                            continue;
+                        }
+                        AnimationUtility.SetObjectReferenceCurve(
+                            animationClip,
+                            new EditorCurveBinding()
+                            {
+                                path = VRChatUtility.AutoBlinkMeshPath,
+                                type = typeof(SkinnedMeshRenderer),
+                                propertyName = $"m_Materials.Array.data[{materialIndex}]",
+                            },
+                            new[] { new ObjectReferenceKeyframe() { time = 0, value = materials[materialIndex] } }
+                        );
+                    }
+                }
+            }
+
+            foreach (var childState in childStates)
+            {
+                if (childState.state.motion != null)
+                {
+                    continue;
+                }
+                childState.state.motion = neutral;
+            }
+
+            // アニメーションクリップが設定されていないステートへ、空のアニメーションクリップを割り当て (Write Defaultsなしで正常に動作するように)
+            var empty = Duplicator.CreateObjectToFolder(
+                source: new AnimationClip(),
+                prefabInstance: avatar,
+                destinationFileName: "empty.anim"
+            );
+            foreach (var layer in fxController.layers)
+            {
+                foreach (var state in layer.stateMachine.states)
+                {
+                    if (state.state.motion != null)
+                    {
+                        continue;
+                    }
+                    state.state.motion = empty;
+                }
+            }
 #endif
         }
 
