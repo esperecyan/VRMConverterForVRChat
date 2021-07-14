@@ -131,6 +131,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
                     {
                         foreach (var collider in dynamicBone.m_Colliders)
                         {
+                            // コライダーが削除された、などで消失状態の場合がある
+                            if (collider == null)
+                            {
+                                continue;
+                            }
                             if (!collider.transform.IsChildOf(instance.transform))
                             {
                                 // ルート外の参照を除外
