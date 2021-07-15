@@ -35,7 +35,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 #endif
 
         /// <summary>
-        /// オートアイムーブメントにおける目のボーンの回転角度の最大値。
+        /// 【SDK2】オートアイムーブメントにおける目のボーンの回転角度の最大値。
         /// </summary>
         /// <remarks>
         /// 参照:
@@ -182,7 +182,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         }
 
         /// <summary>
-        /// オートアイムーブメントが有効化される条件を揃えます。
+        /// 【SDK2】オートアイムーブメントが有効化される条件を揃えます。
         /// </summary>
         /// <remarks>
         /// 参照:
@@ -224,7 +224,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         }
 
         /// <summary>
-        /// オートアイムーブメントが有効化される条件が揃っていれば、目ボーンの関連付けを外します。
+        /// 【SDK2】オートアイムーブメントが有効化される条件が揃っていれば、目ボーンの関連付けを外します。
         /// </summary>
         /// <param name="avatar"></param>
         private static void DisableAutoEyeMovement(GameObject avatar)
@@ -259,7 +259,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         }
 
         /// <summary>
-        /// オートアイムーブメントの目ボーンの角度を、<see cref="VRMLookAtBoneApplyer"/>で指定された角度のうち最小値になるようにウェイトペイントを行います。
+        /// 【SDK2】オートアイムーブメントの目ボーンの角度を、<see cref="VRMLookAtBoneApplyer"/>で指定された角度のうち最小値になるようにウェイトペイントを行います。
         /// </summary>
         /// <param name="avatar"></param>
         /// <remarks>

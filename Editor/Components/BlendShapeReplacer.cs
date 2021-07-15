@@ -29,7 +29,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         internal static readonly float MaxBlendShapeFrameWeight = 100;
 
         /// <summary>
-        /// Cats Blender PluginでVRChat用に生成されるまばたきのシェイプキー名。
+        /// 【SDK2】Cats Blender PluginでVRChat用に生成されるまばたきのシェイプキー名。
         /// </summary>
         /// <remarks>
         /// 参照:
@@ -40,7 +40,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             = new string[] { "vrc.blink_left", "vrc.blink_right", "vrc.lowerlid_left", "vrc.lowerlid_right" };
 
         /// <summary>
-        /// まばたき用に生成するシェイプキー名。
+        /// 【SDK3】まばたき用に生成するシェイプキー名。
         /// </summary>
         private static readonly string BlinkShapeKeyName = "eyes_closed";
 
@@ -63,7 +63,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         };
 
         /// <summary>
-        /// 各表情の上から時計回りの位置。
+        /// 【SDK3】各表情の上から時計回りの位置。
         /// </summary>
         private static readonly IList<BlendShapePreset> FacialExpressionsOrder = new[]
         {
@@ -74,22 +74,22 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         }.ToList();
 
         /// <summary>
-        /// 表情用のテンプレートAnimatorControllerのGUID。
+        /// 【SDK3】表情用のテンプレートAnimatorControllerのGUID。
         /// </summary>
         private static readonly string FXTemplateGUID = "4dab2bc02bfaabc4faea4c6b4d8a142b";
 
         /// <summary>
-        /// 表情用の<see cref="VRCExpressionsMenu"/>のGUID。
+        /// 【SDK3】表情用の<see cref="VRCExpressionsMenu"/>のGUID。
         /// </summary>
         private static readonly string VRCExpressionsMenuGUID = "91a5a0002bd103f448d572330b087f57";
 
         /// <summary>
-        /// デフォルトの<see cref="VRCExpressionsMenu"/>を再現したアセットのGUID。
+        /// 【SDK3】デフォルトの<see cref="VRCExpressionsMenu"/>を再現したアセットのGUID。
         /// </summary>
         private static readonly string VRCEmoteGUID = "b824836cefba43040b1cfce3a0859812";
 
         /// <summary>
-        /// 表情用の<see cref="VRCExpressionParameters"/>のGUID。
+        /// 【SDK3】表情用の<see cref="VRCExpressionParameters"/>のGUID。
         /// </summary>
         private static readonly string VRCExpressionParametersGUID = "d492b41c65685944a96df77628e204bc";
 
@@ -196,7 +196,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         };
 
         /// <summary>
-        /// まばたきの間隔。キーに秒、値にブレンドシェイプのウェイト (1が閉眼)。
+        /// 【SDK2】まばたきの間隔。キーに秒、値にブレンドシェイプのウェイト (1が閉眼)。
         /// </summary>
         /// <remarks>
         /// 参照:
@@ -224,7 +224,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         };
 
         /// <summary>
-        /// <see cref="BlendShapeReplacer.BlinkWeights">を基にした<see cref="BlendShapePreset.Neutral"/>の適用間隔。
+        /// 【SDK2】<see cref="BlendShapeReplacer.BlinkWeights">を基にした<see cref="BlendShapePreset.Neutral"/>の適用間隔。
         /// キーに秒、値にブレンドシェイプのウェイト (1が適用状態)。
         /// </summary>
         private static readonly Dictionary<float, float> NeutralWeights = new Dictionary<float, float> {
@@ -250,7 +250,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         };
 
         /// <summary>
-        /// <see cref="BlendShapePreset.Neutral"/>と<see cref="BlendShapePreset.Blink"/>が同じキーを参照しているときの適用間隔。
+        /// 【SDK2】<see cref="BlendShapePreset.Neutral"/>と<see cref="BlendShapePreset.Blink"/>が同じキーを参照しているときの適用間隔。
         /// キーに秒、値に適用対象のブレンドシェイプ。0の場合はいずれも適用しない。
         /// </summary>
         private static readonly Dictionary<float, BlendShapePreset> NeutralAndBlinkWeights
@@ -330,7 +330,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         }
 
         /// <summary>
-        /// ダミーのシェイプキーを作成します。
+        /// 【SDK2】ダミーのシェイプキーを作成します。
         /// </summary>
         /// <param name="mesh"></param>
         /// <param name="name"></param>
@@ -429,7 +429,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         }
 
         /// <summary>
-        /// <see cref="BlendShapePreset.Neutral"/>、および<see cref="BlendShapePreset.Blink"/>を変換します。
+        /// 【SDK2】<see cref="BlendShapePreset.Neutral"/>、および<see cref="BlendShapePreset.Blink"/>を変換します。
         /// </summary>
         /// <remarks>
         /// 参照:
@@ -579,7 +579,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         }
 
         /// <summary>
-        /// Animatorコンポーネントを使用せずに、<see cref="BlendShapePreset.Neutral"/>、および<see cref="BlendShapePreset.Blink"/>を変換します。
+        /// 【SDK2】Animatorコンポーネントを使用せずに、<see cref="BlendShapePreset.Neutral"/>、および<see cref="BlendShapePreset.Blink"/>を変換します。
         /// </summary>
         /// <remarks>
         /// <see cref="BlendShapePreset.Blink"/>が関連付けられたメッシュが見つからない、またはそのメッシュに
@@ -787,7 +787,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         }
 
         /// <summary>
-        /// 単一アニメーションループ用に、空のコントローラーとアニメーションクリップを作成します。
+        /// 【SDK2】単一アニメーションループ用に、空のコントローラーとアニメーションクリップを作成します。
         /// </summary>
         /// <remarks>
         /// 保存先にすでにアニメーションクリップが存在する場合、空にして返します。
@@ -1220,7 +1220,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         }
 
         /// <summary>
-        /// ブレンドシェイプ名の一覧を取得します。
+        /// 【SDK2】ブレンドシェイプ名の一覧を取得します。
         /// </summary>
         /// <param name="mesh"></param>
         /// <returns></returns>
