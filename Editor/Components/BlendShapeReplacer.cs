@@ -385,13 +385,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 
                 Vector3[] deltaVertices = null;
                 foreach (Vector3[] vertices in values.SelectMany(presetAndWeight =>
-                    clips.First(clip => clip.Preset == presetAndWeight.Key).ShapeKeyValues.Select(
-                        shapeKeyNameAndWeight => shapeKeys
+                    BlendShapeReplacer.SubtractNeutralShapeKeyValues(clips.First(clip => clip.Preset == presetAndWeight.Key).ShapeKeyValues, clips)
+                        .Select(shapeKeyNameAndWeight => shapeKeys
                             .First(shapeKey => shapeKey.Name == shapeKeyNameAndWeight.Key)
                             .Positions
                             .Select(vertix => vertix * (shapeKeyNameAndWeight.Value / VRMUtility.MaxBlendShapeBindingWeight * presetAndWeight.Value))
                             .ToArray()
-                    )
+                        )
                 ))
                 {
                     if (deltaVertices == null)
@@ -694,6 +694,33 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         }
 
         /// <summary>
+        /// 指定した <see cref="VRMBlendShapeClip.ShapeKeyValues"> の値から、Neutralのキーを減算します。
+        /// </summary>
+        /// <param name="shapeKeyValues"></param>
+        /// <param name="clips"></param>
+        /// <returns></returns>
+        private static IDictionary<string, float> SubtractNeutralShapeKeyValues(
+            IDictionary<string, float> shapeKeyValues,
+            IEnumerable<VRMBlendShapeClip> clips
+        )
+        {
+            shapeKeyValues = new Dictionary<string, float>(shapeKeyValues);
+            var neutralClip = clips.FirstOrDefault(c => c.Preset == BlendShapePreset.Neutral);
+            if (neutralClip != null)
+            {
+                foreach (var (name, weight) in neutralClip.ShapeKeyValues)
+                {
+                    if (!shapeKeyValues.ContainsKey(name))
+                    {
+                        shapeKeyValues[name] = 0;
+                    }
+                    shapeKeyValues[name] -= weight;
+                }
+            }
+            return shapeKeyValues;
+        }
+
+        /// <summary>
         /// 【SDK3】<see cref="BlendShapePreset.Blink"/>を変換し、視線追従を有効化します。
         /// </summary>
         /// <param name="avatar"></param>
@@ -720,7 +747,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                     BlendShapeReplacer.BlinkShapeKeyName,
                     BlendShapeReplacer.MaxBlendShapeFrameWeight,
                     BlendShapeReplacer.GenerateShapeKey(
-                        clip.ShapeKeyValues,
+                        BlendShapeReplacer.SubtractNeutralShapeKeyValues(clip.ShapeKeyValues, clips),
                         SkinnedMeshUtility.GetAllShapeKeys(mesh, useShapeKeyNormalsAndTangents)
                     ),
                     null,
