@@ -286,7 +286,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         };
 
         /// <summary>
-        /// ハンドサイン用にシェイプキーを複製したときに前置する文字列。
+        /// 【SDK2】ハンドサイン用にシェイプキーを複製したときに前置する文字列。
         /// </summary>
         private static readonly string FeelingsShapeKeyPrefix = "vrc.feelings.";
 
@@ -322,7 +322,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             }
             else
             {
-                SetNeutralWithoutAnimator(avatar, clips);
                 EnableEyeLook(avatar, clips, useShapeKeyNormalsAndTangents);
             }
 
@@ -673,7 +672,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         }
 
         /// <summary>
-        /// Animatorコンポーネントを使用せずに<see cref="BlendShapePreset.Neutral"/>を変換します。
+        /// 【SDK2】Animatorコンポーネントを使用せずに<see cref="BlendShapePreset.Neutral"/>を変換します。
         /// </summary>
         /// <param name="avatar"></param>
         /// <param name="clips"></param>
@@ -1058,40 +1057,56 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 = (BlendTree)childStates.First(childState => childState.state.name == "FaceBlend").state.motion;
             var motions = blendTree.children;
 
-            var neutral = Duplicator.CreateObjectToFolder(
-                source: new AnimationClip(),
-                prefabInstance: avatar,
-                destinationFileName: "Neutral.anim"
-            );
-            animationClips.Add(neutral);
+            AnimationClip neutral = null;
 #endif
 
-            foreach (var preset in BlendShapeReplacer.MappingBlendShapeToVRChatAnim.Keys)
+            foreach (var preset in BlendShapeReplacer.MappingBlendShapeToVRChatAnim.Keys.Concat(new[] { BlendShapePreset.Neutral }))
             {
+                if (VRChatUtility.SDKVersion == 2 && preset == BlendShapePreset.Neutral)
+                {
+                    continue;
+                }
+
                 VRMBlendShapeClip blendShapeClip = preset == BlendShapePreset.Unknown
                     ? vrmBlendShapeForFINGERPOINT
                     : clips.FirstOrDefault(c => c.Preset == preset);
                 if (!blendShapeClip)
                 {
+                    if (preset == BlendShapePreset.Neutral)
+                    {
+                        neutral = Duplicator.CreateObjectToFolder(
+                            source: new AnimationClip(),
+                            prefabInstance: avatar,
+                            destinationFileName: "Neutral.anim"
+                        );
+                        animationClips.Add(neutral);
+                    }
                     continue;
                 }
                 usedPresets.Add(preset);
 
                 AnimationClip animationClip = CreateFeeling(avatar, blendShapeClip, ref clips);
-                var anim = BlendShapeReplacer.MappingBlendShapeToVRChatAnim[preset].ToString();
+                var anim = preset == BlendShapePreset.Neutral ? "Neutral" : BlendShapeReplacer.MappingBlendShapeToVRChatAnim[preset].ToString();
 #if VRC_SDK_VRCSDK2
                 avatarDescriptor.CustomStandingAnims[anim] = animationClip;
                 avatarDescriptor.CustomSittingAnims[anim] = animationClip;
 #elif VRC_SDK_VRCSDK3
-                childStates.First(childState => childState.state.name.ToLower() == anim.ToLower()).state.motion
-                    = animationClip;
-                if (preset != BlendShapePreset.Unknown)
+                if (preset == BlendShapePreset.Neutral)
                 {
-                    // Expressionメニューによる表情変更
-                    var index = BlendShapeReplacer.FacialExpressionsOrder.IndexOf(preset) + 1;
-                    var motion = motions[index];
-                    motion.motion = animationClip;
-                    motions[index] = motion;
+                    neutral = animationClip;
+                }
+                else
+                {
+                    childStates.First(childState => childState.state.name.ToLower() == anim.ToLower()).state.motion
+                        = animationClip;
+                    if (preset != BlendShapePreset.Unknown)
+                    {
+                        // Expressionメニューによる表情変更
+                        var index = BlendShapeReplacer.FacialExpressionsOrder.IndexOf(preset) + 1;
+                        var motion = motions[index];
+                        motion.motion = animationClip;
+                        motions[index] = motion;
+                    }
                 }
                 animationClips.Add(animationClip);
 #endif
@@ -1230,7 +1245,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                     prefabInstance: avatar,
                     destinationFileName: fileName
                 );
-                clips = BlendShapeReplacer.DuplicateShapeKeyToUnique(avatar, clip, clips);
             }
 
             SetBlendShapeCurves(
@@ -1262,7 +1276,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         }
 
         /// <summary>
-        /// 指定されたブレンドシェイプに、<see cref="BlendShapePreset.Neutral"/>、および<see cref="BlendShapePreset.Blink"/>に含まれるシェイプキーと
+        /// 【SDK2】指定されたブレンドシェイプに、<see cref="BlendShapePreset.Neutral"/>、および<see cref="BlendShapePreset.Blink"/>に含まれるシェイプキーと
         /// 同一のシェイプキーが含まれていれば、そのシェイプキーを複製します。
         /// </summary>
         /// <param name="avatar"></param>
