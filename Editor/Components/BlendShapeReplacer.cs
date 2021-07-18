@@ -1057,8 +1057,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 = (BlendTree)childStates.First(childState => childState.state.name == "FaceBlend").state.motion;
             var motions = blendTree.children;
 
-            AnimationClip neutral = null;
 #endif
+            AnimationClip neutral = null;
 
             foreach (var preset in BlendShapeReplacer.MappingBlendShapeToVRChatAnim.Keys.Concat(new[] { BlendShapePreset.Neutral }))
             {
