@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using UnityEditor;
@@ -149,12 +150,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
 
                 // エクスポート
                 AssetDatabase.SaveAssets();
-                VRMEditorExporter.Export(
+                File.WriteAllBytes(
                     outputPath,
-                    prefab,
-                    meta: null,
-                    ScriptableObject.CreateInstance<VRMExportSettings>(),
-                    info: null
+                    VRMEditorExporter.Export(prefab, meta: null, ScriptableObject.CreateInstance<VRMExportSettings>())
                 );
             }
             catch (Exception exception)

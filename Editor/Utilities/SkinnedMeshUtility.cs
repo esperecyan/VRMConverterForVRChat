@@ -9,7 +9,7 @@ using Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM;
 using Esperecyan.Unity.VRMConverterForVRChat.Components;
 using VRM;
 using UniGLTF;
-using MeshUtility;
+using UniGLTF.MeshUtility;
 using BlendShape = UniGLTF.BlendShape;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
