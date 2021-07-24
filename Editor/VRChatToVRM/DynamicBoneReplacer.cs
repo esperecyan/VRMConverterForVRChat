@@ -177,7 +177,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
                 springBone.m_gravityDir = gravity.normalized;
                 springBone.m_dragForce = dynamicBone.parameters.DragForce;
                 springBone.RootBones = dynamicBones.Select(db => (Transform)db.dynamicBone.m_Root)
-                    .Where(transform => transform != null)
+                    .Where(transform => transform != null && transform.IsChildOf(instance.transform))
                     .Distinct()
                     .ToList();
                 springBone.m_hitRadius = dynamicBone.dynamicBone.m_Radius;
