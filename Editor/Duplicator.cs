@@ -313,8 +313,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             // AvatarDescription (最終的に削除するので、アセットは複製しない)
             var humanoidDescription = destinationPrefab.GetComponent<VRMHumanoidDescription>();
             humanoidDescription.Avatar = animator.avatar;
-            humanoidDescription.Description
-                = (AvatarDescription)Duplicator.DuplicateAssetInstance(humanoidDescription.Description);
+            var description = humanoidDescription.Description;
+            if (description == null)
+            {
+                // VRMInitializerで生成されたモデル
+                description = PrefabUtility.GetOutermostPrefabInstanceRoot(sourceAvatar) // GetDescriptionはFBX等以外では機能しない
+                    .GetComponent<VRMHumanoidDescription>().GetDescription(out var _);
+            }
+            humanoidDescription.Description = description;
 
             return destinationPrefab;
         }
