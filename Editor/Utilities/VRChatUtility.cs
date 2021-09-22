@@ -46,7 +46,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
         /// <summary>
         /// VRChat SDKが対応しているUnityのバージョン。
         /// </summary>
-        internal static readonly string SDKSupportedUnityVersion = "2018.4.20f1";
+        internal static readonly string SDKSupportedUnityVersion = "2019.4.30f1";
 
         /// <summary>
         /// アバターの最小の肩の位置。
