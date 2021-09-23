@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -1212,10 +1213,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             if (VRChatUtility.SDKVersion == 2)
             {
                 anim = Duplicator.DuplicateAssetToFolder<AnimationClip>(
-                    source: UnityPath
-                        .FromUnityPath(AssetDatabase.GUIDToAssetPath(BlendShapeReplacer.HandSignAnimationsFolderGUID))
-                        .Child(BlendShapeReplacer.MappingBlendShapeToVRChatAnim[clip.Preset] + ".anim")
-                        .LoadAsset<AnimationClip>(),
+                    source: AssetDatabase.LoadAssetAtPath<AnimationClip>(Path.Combine(
+                        AssetDatabase.GUIDToAssetPath(BlendShapeReplacer.HandSignAnimationsFolderGUID),
+                        BlendShapeReplacer.MappingBlendShapeToVRChatAnim[clip.Preset] + ".anim")
+                    ),
                     prefabInstance: avatar,
                     fileName
                 );

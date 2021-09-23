@@ -1,0 +1,23 @@
+{
+	"name": "jp.pokemori.vrm-converter-for-vrchat",
+	"version": "27.1.1",
+	"displayName": "VRM Converter for VRChat",
+	"description": "Unityのエディタ拡張です。次の3つのツールが含まれています。\n\n• VRMプレハブをVRChat用アバターへ変換\n• VRChat用アバターをVRMへ変換\n• メッシュ・サブメッシュの結合\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nThis is the Unity Editor extension. This includes the following three tools\n\n• Convert VRM prefab to VRChat avatar\n• Convert VRChat avatar to VRM\n• Merge meshes and submeshes",
+	"unity": "2019.4",
+	"documentationUrl": "https://pokemori.booth.pm/items/1025226",
+	"changelogUrl": "https://github.com/esperecyan/VRMConverterForVRChat/releases",
+	"license": "MPL-2.0",
+	"licensesUrl": "https://pokemori.booth.pm/items/1025226",
+	"dependencies": {
+		"com.vrmc.univrm": "0.84.0",
+		"jp.pokemori.univrm-extensions": "2.1.1"
+	},
+	"optionalDependencies": {
+		"VRCSDK3-Avatars": "2021.09.03.09.25",
+		"VRCSDK2": "2021.09.03.09.25"
+	},
+	"author": {
+		"name": "100の人",
+		"url": "https://github.com/esperecyan"
+	}
+}
