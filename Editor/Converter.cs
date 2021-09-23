@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.PackageManager;
 using VRM;
 #if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
 using VRC.Core;
@@ -21,6 +23,15 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
     /// </summary>
     public class Converter
     {
+        [Serializable]
+        private class Package
+        {
+            [SerializeField]
+#pragma warning disable IDE1006 // 命名スタイル
+            internal string version;
+#pragma warning restore IDE1006 // 命名スタイル
+        }
+
         /// <summary>
         /// 揺れ物を変換するか否かの設定。
         /// </summary>
@@ -64,7 +75,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <summary>
         /// 当エディタ拡張のバージョン。
         /// </summary>
-        public static readonly string Version = "27.1.1";
+        public static string Version { get; private set; }
+
+        private static readonly string PackageJSONGUID = "e9c5b7e14151b2a40924c59da5b8aed3";
 
         /// <summary>
         /// プレハブをVRChatへアップロード可能な状態にします。
@@ -146,5 +159,18 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// 当エディタ拡張の名称。
         /// </summary>
         internal const string Name = "VRM Converter for VRChat";
+
+        [InitializeOnLoadMethod]
+        private static void LoadVersion()
+        {
+            var package = AssetDatabase.LoadAssetAtPath<TextAsset>(
+                AssetDatabase.GUIDToAssetPath(Converter.PackageJSONGUID)
+            );
+            if (package == null)
+            {
+                return;
+            }
+            Converter.Version = JsonUtility.FromJson<Package>(package.text).version;
+        }
     }
 }
