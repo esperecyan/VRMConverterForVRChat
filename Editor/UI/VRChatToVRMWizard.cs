@@ -6,6 +6,9 @@ using UnityEngine;
 using UnityEditor;
 using UniGLTF;
 using VRM;
+#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
+using VRC.SDKBase;
+#endif
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
 using SkinnedMeshUtility = Esperecyan.Unity.VRMConverterForVRChat.Utilities.SkinnedMeshUtility;
@@ -132,6 +135,18 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 this.isValid = false;
                 return true;
             }
+
+#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
+            if (this.prefabOrInstance.GetComponent<VRC_AvatarDescriptor>() == null)
+            {
+                EditorGUILayout.HelpBox(string.Format(
+                    _("Not set “{0}” component."),
+                    VRChatUtility.SDKVersion == 3 ? "VRCAvatarDescriptor" : "VRC_AvatarDescriptor"
+                ), MessageType.Error);
+                this.isValid = false;
+                return true;
+            }
+#endif
 
             if (Application.unityVersion != VRChatUtility.SDKSupportedUnityVersion)
             {
