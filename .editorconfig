@@ -20,6 +20,9 @@ indent_size = 2
 #### .NET コーディング規則 ####
 # https://docs.microsoft.com/visualstudio/ide/editorconfig-code-style-settings-reference
 
+# UnityEngine.Objectに対してnullを判定する演算子を使わない
+dotnet_diagnostic.UNT0008.severity = error
+
 ### 言語規則 ###
 
 ## .NET コード スタイルの設定

@@ -129,7 +129,16 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <returns>取得できない場合には空のリストを返します。</returns>
         internal static IEnumerable<BlendShapeClip> GetBlendShapeClips(Animator avatar)
         {
-            return avatar.GetComponent<VRMBlendShapeProxy>()?.BlendShapeAvatar?.Clips ?? new List<BlendShapeClip>();
+            var blendShapeProxy = avatar.GetComponent<VRMBlendShapeProxy>();
+            if (blendShapeProxy != null)
+            {
+                var blendShapeAvatar = blendShapeProxy.BlendShapeAvatar;
+                if (blendShapeAvatar != null && blendShapeAvatar.Clips != null)
+                {
+                    return blendShapeAvatar.Clips;
+                }
+            }
+            return new List<BlendShapeClip>();
         }
 
         /// <summary>
