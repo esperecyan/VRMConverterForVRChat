@@ -12,10 +12,10 @@
 		"com.vrmc.univrm": "0.84.0",
 		"jp.pokemori.univrm-extensions": "2.1.1"
 	},
-	"optionalDependencies": {
-		"VRCSDK3-Avatars": "2021.09.03.09.25",
-		"VRCSDK2": "2021.09.03.09.25",
-		"DynamicBone": "1.2.2"
+	"Other Dependencies": {
+		"VRChat SDK3-Avatars": "2021.09.03.09.25",
+		"VRChat SDK2": "2021.09.03.09.25",
+		"Dynamic Bone": "1.2.2"
 	},
 	"author": {
 		"name": "100の人",
