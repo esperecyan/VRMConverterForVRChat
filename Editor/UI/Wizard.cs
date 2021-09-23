@@ -258,7 +258,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// </summary>
         private void LoadSettings()
         {
-            var title = this.avatar.GetComponent<VRMMeta>().Meta.Title;
+            var vrmMeta = this.avatar.GetComponent<VRMMeta>();
+            if (vrmMeta == null)
+            {
+                return;
+            }
+            var title = vrmMeta.Meta.Title;
             if (string.IsNullOrEmpty(title))
             {
                 return;
