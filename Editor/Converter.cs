@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEditor;
-using UnityEditor.PackageManager;
 using VRM;
 #if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
 using VRC.Core;
