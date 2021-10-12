@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using UnityEditor;
+using UniGLTF;
 #if VRC_SDK_VRCSDK2
 using VRCSDK2;
 #elif VRC_SDK_VRCSDK3
