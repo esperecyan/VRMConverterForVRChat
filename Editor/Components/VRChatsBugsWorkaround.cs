@@ -73,6 +73,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             GameObject avatar,
             bool enableAutoEyeMovement,
             float addedShouldersPositionY,
+            float addedChestPositionY,
             float addedArmaturePositionY,
             float moveEyeBoneToFrontForEyeMovement,
             bool forQuest
@@ -104,6 +105,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 avatar: avatar,
                 addedValueToArmature: addedArmaturePositionY,
                 addedValueToShoulders: addedShouldersPositionY,
+                addedValueToChest: addedChestPositionY,
                 addedValueToEyes: moveEyeBoneToFrontForEyeMovement
             );
             if (VRChatUtility.SDKVersion == 2)
@@ -392,6 +394,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// • 足が沈む
         /// • なで肩・いかり肩になる
         /// • オートアイムーブメント有効化に伴うウェイト塗り直しで黒目が白目に沈む
+        /// • フルトラ時に腰が横に曲がる
         /// </summary>
         /// <remarks>
         /// 参照:
@@ -404,14 +407,16 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// <param name="addedValueToArmature"></param>
         /// <param name="addedValueToShoulders"></param>
         /// <param name="addedValueToEyes"></param>
+        /// <param name="addedValueToChest"></param>
         private static void AddShouldersPositionYAndEyesPositionZ(
             GameObject avatar,
             float addedValueToArmature,
             float addedValueToShoulders,
+            float addedValueToChest,
             float addedValueToEyes
         )
         {
-            if (addedValueToArmature == 0.0f && addedValueToShoulders == 0.0f && addedValueToEyes == 0.0f)
+            if (addedValueToArmature == 0.0f && addedValueToShoulders == 0.0f && addedValueToEyes == 0.0f && addedValueToChest == 0.0f)
             {
                 return;
             }
@@ -441,6 +446,32 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                         var name = humanBones.Find(match: humanBone => humanBone.humanName == humanName).boneName;
                         humanDescription.skeleton[skeltonBones.FindIndex(match: skeltonBone => skeltonBone.name == name)].position
                             += new Vector3(0, addedValueToShoulders, 0);
+                    }
+                }
+                if (addedValueToChest != 0.0f)
+                {
+                    if (humanBones.Any(humanBone => humanBone.humanName == "Chest"))
+                    {
+                        {
+                            var name = humanBones.Find(humanBone => humanBone.humanName == "Chest").boneName;
+                            humanDescription.skeleton[skeltonBones.FindIndex(match: skeltonBone => skeltonBone.name == name)].position
+                                += new Vector3(0, addedValueToChest, 0);
+                        }
+
+                        {
+                            List<string> childOfChest;
+                            if (humanBones.Any(humanBone => humanBone.humanName == "UpperChest")) {
+                                childOfChest = new List<string>() { "UpperChest" };
+                            } else {
+                                childOfChest = new List<string>() { "Neck", "LeftShoulder", "RightShoulder" };
+                            }
+
+                            foreach (var boneName in childOfChest) {
+                                var name = humanBones.Find(match: humanBone => humanBone.humanName == boneName).boneName;
+                                humanDescription.skeleton[skeltonBones.FindIndex(match: skeltonBone => skeltonBone.name == name)].position
+                                    += new Vector3(0, -addedValueToChest, 0);
+                            }
+                        }
                     }
                 }
                 if (addedValueToEyes != 0.0f)
