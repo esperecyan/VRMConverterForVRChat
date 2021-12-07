@@ -82,6 +82,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         private float armatureHeight = default;
 
         /// <summary>
+        /// VRChat上で腰が曲がる問題について、ChestボーンのPositionのYに加算する値。
+        /// </summary>
+        [SerializeField, Localizable(-0.1f, 0.1f)]
+        private float chestHeight = default;
+
+        /// <summary>
         /// メッシュ・サブメッシュの結合を行うなら <c>true</c>。
         /// </summary>
         [SerializeField, Localizable]
@@ -635,6 +641,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 swayingParametersConverter: this.swayingParametersConverter,
                 enableAutoEyeMovement: this.enableEyeMovement,
                 addedShouldersPositionY: this.shoulderHeights,
+                addedChestPositionY: this.chestHeight,
                 moveEyeBoneToFrontForEyeMovement: this.moveEyeBoneToFrontForEyeMovement,
                 forQuest: this.forQuest,
                 addedArmaturePositionY: this.armatureHeight,
