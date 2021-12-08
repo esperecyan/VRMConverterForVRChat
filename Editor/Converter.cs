@@ -101,6 +101,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             VRMBlendShapeClip vrmBlendShapeForFINGERPOINT = null
         )
         {
+            AssetDatabase.SaveAssets();
+
 #if VRC_SDK_VRCSDK3
             prefabInstance.AddComponent<VRCAvatarDescriptor>();
             prefabInstance.GetOrAddComponent<PipelineManager>();
@@ -132,6 +134,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             ));
             VRChatUtility.RemoveBlockedComponents(prefabInstance, forQuest);
             Undo.RegisterCreatedObjectUndo(prefabInstance, "Convert VRM for VRChat");
+
+            AssetDatabase.SaveAssets();
             return messages;
         }
 
