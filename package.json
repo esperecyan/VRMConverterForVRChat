@@ -13,8 +13,8 @@
 		"jp.pokemori.univrm-extensions": "2.6.0"
 	},
 	"Other Dependencies": {
-		"VRChat SDK3-Avatars": "2021.09.03.09.25",
-		"VRChat SDK2": "2021.09.03.09.25",
+		"VRChat SDK3-Avatars": "2021.11.24.16.20",
+		"VRChat SDK2": "2021.11.08.14.28",
 		"Dynamic Bone": "1.2.2"
 	},
 	"author": {
