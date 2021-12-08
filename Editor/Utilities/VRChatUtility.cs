@@ -15,7 +15,6 @@ using VRC.SDK3.Avatars.Components;
 using VRC.Core;
 #endif
 using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
-using Esperecyan.Unity.VRMConverterForVRChat.Components;
 using Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
@@ -137,15 +136,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                 { ExpressionPreset.Oh, 13 },
             };
 
-        /// <summary>
-        /// VRChat SDKに含まれるカスタムアニメーション設定用のテンプレートファイルのGUID。
-        /// </summary>
-        /// <remarks>
-        /// Assets/VRCSDK/Examples2/Animation/SDK2/CustomOverrideEmpty.overrideController
-        /// </remarks>
-        private static readonly string CustomAnimsTemplateGUID = "4bd8fbaef3c3de041a22200917ae98b8";
-
-
         private static readonly IDictionary<Anim, ExpressionPreset> AnimPresetPairs
             = new Dictionary<Anim, ExpressionPreset>()
             {
@@ -160,6 +150,17 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             "blink|まばたき|またたき|瞬き|eye|目|瞳|眼|wink|ウィンク|ｳｨﾝｸ|ウインク|ｳｲﾝｸ",
             RegexOptions.IgnoreCase
         );
+
+        /// <summary>
+        /// 【SDK2】Cats Blender PluginでVRChat用に生成されるまばたきのシェイプキー名。
+        /// </summary>
+        /// <remarks>
+        /// 参照:
+        /// cats-blender-plugin/eyetracking.py at 0.13.3 · michaeldegroot/cats-blender-plugin
+        /// <https://github.com/michaeldegroot/cats-blender-plugin/blob/0.13.3/tools/eyetracking.py>
+        /// </remarks>
+        private static readonly IEnumerable<string> OrderedBlinkGeneratedByCatsBlenderPlugin
+            = new string[] { "vrc.blink_left", "vrc.blink_right", "vrc.lowerlid_left", "vrc.lowerlid_right" };
 
         /// <summary>
         /// PCアバターでのみ使用可能なコンポーネント。
@@ -184,7 +185,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             "UnityEngine.Camera",
             "UnityEngine.AudioSource",
             "ONSPAudioSource",
-            "VRCSDK2.VRC_SpatialAudioSource",
             "VRC.SDK3.Avatars.Components.VRCSpatialAudioSource",
         };
 
@@ -230,10 +230,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             "UnityEngine.LineRenderer",
             "RealisticEyeMovements.EyeAndHeadAnimator",
             "RealisticEyeMovements.LookTargetController",
-            "VRCSDK2.VRC_AvatarDescriptor",
-            "VRCSDK2.VRC_AvatarVariations",
-            "VRCSDK2.VRC_IKFollower",
-            "VRCSDK2.VRC_Station",
             "VRC.SDK3.VRCTestMarker",
             "VRC.SDK3.Avatars.Components.VRCAvatarDescriptor",
             "VRC.SDK3.Avatars.Components.VRCStation",
@@ -374,7 +370,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                 }
             }
             maybeDummyBlinkShapeKeyNames.AddRange(shapeKeyNames.Where(
-                shapeKeyName => BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.Contains(shapeKeyName)
+                shapeKeyName => VRChatUtility.OrderedBlinkGeneratedByCatsBlenderPlugin.Contains(shapeKeyName)
             ));
 
 #if VRC_SDK_VRCSDK3
@@ -483,7 +479,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
 
             var mesh = renderer.sharedMesh;
             if (mesh == null
-                || mesh.blendShapeCount < BlendShapeReplacer.OrderedBlinkGeneratedByCatsBlenderPlugin.Count())
+                || mesh.blendShapeCount < VRChatUtility.OrderedBlinkGeneratedByCatsBlenderPlugin.Count())
             {
                 return false;
             }
@@ -609,41 +605,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
         internal static int CountTriangle(GameObject prefabInstance)
         {
             return VRChatUtility.GetMeshes(prefabInstance).Sum(mesh => mesh.triangles.Count() / 3);
-        }
-
-        /// <summary>
-        /// <see cref="VRC_AvatarDescriptor.CustomStandingAnims"/>、および<see cref="VRC_AvatarDescriptor.CustomSittingAnims"/>を作成します。
-        /// </summary>
-        /// <param name="avatar"></param>
-        /// <returns></returns>
-        internal static void AddCustomAnims(GameObject avatar)
-        {
-            var template = AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>(
-                AssetDatabase.GUIDToAssetPath(VRChatUtility.CustomAnimsTemplateGUID)
-            );
-            var avatarDescriptor
-#if VRC_SDK_VRCSDK2
-                = avatar.GetOrAddComponent<VRC_AvatarDescriptor>();
-#else
-                = (dynamic)null;
-#endif
-            if (!avatarDescriptor.CustomStandingAnims)
-            {
-                avatarDescriptor.CustomStandingAnims = Duplicator.DuplicateAssetToFolder<AnimatorOverrideController>(
-                    source: template,
-                    prefabInstance: avatar,
-                    fileName: "CustomStandingAnims.overrideController"
-                );
-            }
-
-            if (!avatarDescriptor.CustomSittingAnims)
-            {
-                avatarDescriptor.CustomSittingAnims = Duplicator.DuplicateAssetToFolder<AnimatorOverrideController>(
-                    source: template,
-                    prefabInstance: avatar,
-                    fileName: "CustomSittingAnims.overrideController"
-                );
-            }
         }
 
         /// <summary>

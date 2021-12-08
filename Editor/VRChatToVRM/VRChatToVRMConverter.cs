@@ -48,6 +48,17 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
         };
 
         /// <summary>
+        /// <summary>
+        /// 【SDK2】オートアイムーブメントにおける目のボーンの回転角度の最大値。
+        /// </summary>
+        /// <remarks>
+        /// 参照:
+        /// Eye trackingの実装【VRChat技術情報】 — VRChatパブリックログ
+        /// <https://jellyfish-qrage.hatenablog.com/entry/2018/07/25/034610>
+        /// </remarks>
+        private static readonly int MaxAutoEyeMovementDegree = 30;
+
+        /// <summary>
         /// <see cref="ComponentsReplacer.SwayingParametersConverter">の既定値。
         /// </summary>
         /// <param name="springBoneParameters"></param>
@@ -272,7 +283,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
                     lookAtBoneApplyer.VerticalUp,
                 })
                 {
-                    mapper.CurveYRangeDegree = VRChatsBugsWorkaround.MaxAutoEyeMovementDegree;
+                    mapper.CurveYRangeDegree = VRChatToVRMConverter.MaxAutoEyeMovementDegree;
                 }
             }
             else

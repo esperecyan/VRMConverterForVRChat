@@ -9,7 +9,7 @@ using UnityEngine.SceneManagement;
 using UnityEditor;
 using UniGLTF;
 using VRM;
-#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
+#if VRC_SDK_VRCSDK3
 using VRC.Core;
 #endif
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
@@ -52,22 +52,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// </summary>
         [SerializeField]
         private Animator avatar = default;
-
-        /// <summary>
-        /// オートアイムーブメントを有効化するなら<c>true</c>、無効化するなら<c>false</c>。
-        /// </summary>
-#if VRC_SDK_VRCSDK2
-        [SerializeField, Localizable]
-#endif
-        private bool enableEyeMovement = true;
-
-        /// <summary> 
-        /// オートアイムーブメント有効化時、目ボーンのPositionのZに加算する値。 
-        /// </summary>
-#if VRC_SDK_VRCSDK2
-        [SerializeField, Localizable(0, 0.1f)]
-#endif
-        private float moveEyeBoneToFrontForEyeMovement = default;
 
         /// <summary>
         /// VRChat上でモデルがなで肩・いかり肩になる問題について、ボーンのPositionのYに加算する値。
@@ -133,14 +117,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// </summary>
         [SerializeField, Localizable]
         private bool forQuest = false;
-
-        /// <summary>
-        /// まばたきにAnimatorコンポーネントを利用するなら <c>true</c>。
-        /// </summary>
-#if VRC_SDK_VRCSDK2
-        [SerializeField, Localizable]
-#endif
-        private bool useAnimatorForBlinks = true;
 
         [Header("Callback")]
 
@@ -433,9 +409,15 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 indentStyle
             );
 
-            if (VRChatUtility.SDKVersion == null)
+            if (VRChatUtility.SDKVersion == 2)
             {
-                EditorGUILayout.HelpBox(_("VRChat SDK2 or SDK3 has not been imported."), MessageType.Error);
+                EditorGUILayout.HelpBox(_("The conversion from VRM to VRChat avatar is not supported by VRChat SDK2."), MessageType.Error);
+                this.isValid = false;
+                return true;
+            }
+            else if (VRChatUtility.SDKVersion == null)
+            {
+                EditorGUILayout.HelpBox(_("VRChat SDK3-Avatars has not been imported."), MessageType.Error);
                 this.isValid = false;
                 return true;
             }
@@ -574,7 +556,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
             {
 
                 var pipelineManager
-#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
+#if VRC_SDK_VRCSDK3
                     = previousPrefab.GetComponent<PipelineManager>();
 #else
                     = (dynamic)null;
@@ -587,7 +569,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                     .Select(root =>
                     {
                         var manager
-#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
+#if VRC_SDK_VRCSDK3
                             = root.GetComponent<PipelineManager>();
 #else
                             = (dynamic)null;
@@ -633,12 +615,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 swayingObjectsConverterSetting: this.swayingObjects,
                 takingOverSwayingParameters: this.takeOverSwayingParameters,
                 swayingParametersConverter: this.swayingParametersConverter,
-                enableAutoEyeMovement: this.enableEyeMovement,
                 addedShouldersPositionY: this.shoulderHeights,
-                moveEyeBoneToFrontForEyeMovement: this.moveEyeBoneToFrontForEyeMovement,
                 forQuest: this.forQuest,
                 addedArmaturePositionY: this.armatureHeight,
-                useAnimatorForBlinks: this.useAnimatorForBlinks,
                 useShapeKeyNormalsAndTangents: this.useShapeKeyNormalsAndTangents,
                 vrmBlendShapeForFINGERPOINT: !string.IsNullOrEmpty(this.blendShapeForFingerpoint)
                     ? VRMUtility.GetUserDefinedBlendShapeClip(clips, this.blendShapeForFingerpoint) as VRMBlendShapeClip
@@ -648,7 +627,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
             // 変換前のプレハブのPipeline ManagerのBlueprint IDを反映
             if (!string.IsNullOrEmpty(prefabBlueprintId))
             {
-#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
+#if VRC_SDK_VRCSDK3
                 prefabInstance.GetComponent<PipelineManager>().blueprintId = prefabBlueprintId;
 #endif
             }
@@ -668,7 +647,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 {
                     continue;
                 }
-#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
+#if VRC_SDK_VRCSDK3
                 rootGameObjects[avatarIndex].GetComponent<PipelineManager>().blueprintId = blueprintId;
 #endif
             }

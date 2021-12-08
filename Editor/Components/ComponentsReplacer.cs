@@ -5,9 +5,7 @@ using UnityEngine;
 using UnityEditor;
 using VRM;
 using UniGLTF;
-#if VRC_SDK_VRCSDK2
-using VRCSDK2;
-#elif VRC_SDK_VRCSDK3
+#if VRC_SDK_VRCSDK3
 using VRC.SDKBase;
 using VRC.SDK3.Avatars.Components;
 #endif
@@ -35,7 +33,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         {
             var messages = new List<(string, MessageType)>();
 
-            ConvertMeta(avatar: avatar);
             ConvertVRMFirstPerson(avatar: avatar);
 
             if (DynamicBoneType == null
@@ -62,25 +59,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         }
 
         /// <summary>
-        /// キャラクターに関する情報を設定します。
-        /// </summary>
-        /// <param name="avatar"></param>
-        private static void ConvertMeta(GameObject avatar)
-        {
-#if VRC_SDK_VRCSDK2
-            var avatarDescriptor = avatar.GetComponent<VRC_AvatarDescriptor>();
-            avatarDescriptor.Animations = VRChatsBugsWorkaround.DefaultAnimationSetValue;
-#endif
-        }
-
-        /// <summary>
         /// <see cref="VRMFirstPerson"/>を基に<see cref="VRC_AvatarDescriptor"/>を設定します。
         /// </summary>
         /// <param name="avatar"></param>
         private static void ConvertVRMFirstPerson(GameObject avatar)
         {
             var avatarDescriptor
-#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
+#if VRC_SDK_VRCSDK3
                 = avatar.GetComponent<VRC_AvatarDescriptor>();
 #else
                 = (dynamic)null;
