@@ -78,27 +78,25 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// </summary>
         /// <param name="prefabInstance">現在のシーンに存在するプレハブのインスタンス。</param>
         /// <param name="clips"><see cref="VRMUtility.GetAllVRMBlendShapeClips"/>の戻り値。</param>
+        /// <param name="forQuest">Quest版用アバター向けに変換するなら <c>true</c>。</param>
         /// <param name="swayingObjectsConverterSetting">揺れ物を変換するか否かの設定。<c>forQuest</c> が <c>true</c> の場合は無視されます。</param>
         /// <param name="takingOverSwayingParameters">揺れ物のパラメータを変換せずDynamic Boneのデフォルト値を利用するなら<c>false</c>。</param>
         /// <param name="swayingParametersConverter"></param>
         /// <param name="addedShouldersPositionY">VRChat上でモデルがなで肩・いかり肩になる問題について、Shoulder/UpperArmボーンのPositionのYに加算する値。</param>
-        /// <param name="forQuest">Quest版用アバター向けに変換するなら <c>true</c>。</param>
         /// <param name="addedArmaturePositionY">VRChat上で足が沈む問題について、Hipsボーンの一つ上のオブジェクトのPositionのYに加算する値。</param>
         /// <param name="useShapeKeyNormalsAndTangents"><c>false</c> の場合、シェイプキーの法線・接線を削除します。</param>
-        /// <param name="vrmBlendShapeForFINGERPOINT">FINGERPOINTへ割り当てる表情。</param>
         /// <returns>変換中に発生したメッセージ。</returns>
         public static IEnumerable<(string message, MessageType type)> Convert(
             GameObject prefabInstance,
             IEnumerable<VRMBlendShapeClip> clips,
-            SwayingObjectsConverterSetting swayingObjectsConverterSetting
-                = SwayingObjectsConverterSetting.ConvertVrmSpringBonesAndVrmSpringBoneColliderGroups,
+            bool forQuest,
+            SwayingObjectsConverterSetting swayingObjectsConverterSetting,
             bool takingOverSwayingParameters = true,
             SwayingParametersConverter swayingParametersConverter = null,
+            VRMBlendShapeClip vrmBlendShapeForFINGERPOINT = null,
             float addedShouldersPositionY = 0.0f,
-            bool forQuest = false,
             float addedArmaturePositionY = 0.0f,
-            bool useShapeKeyNormalsAndTangents = false,
-            VRMBlendShapeClip vrmBlendShapeForFINGERPOINT = null
+            bool useShapeKeyNormalsAndTangents = false
         )
         {
             AssetDatabase.SaveAssets();

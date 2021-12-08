@@ -610,18 +610,18 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
 
             var clips = VRMUtility.GetAllVRMBlendShapeClips(avatar: this.avatar.gameObject);
             messages.AddRange(Converter.Convert(
-                prefabInstance: prefabInstance,
-                clips: clips,
-                swayingObjectsConverterSetting: this.swayingObjects,
-                takingOverSwayingParameters: this.takeOverSwayingParameters,
-                swayingParametersConverter: this.swayingParametersConverter,
-                addedShouldersPositionY: this.shoulderHeights,
-                forQuest: this.forQuest,
-                addedArmaturePositionY: this.armatureHeight,
-                useShapeKeyNormalsAndTangents: this.useShapeKeyNormalsAndTangents,
-                vrmBlendShapeForFINGERPOINT: !string.IsNullOrEmpty(this.blendShapeForFingerpoint)
-                    ? VRMUtility.GetUserDefinedBlendShapeClip(clips, this.blendShapeForFingerpoint) as VRMBlendShapeClip
-                    : null
+                prefabInstance,
+                clips,
+                this.forQuest,
+                this.swayingObjects,
+                this.takeOverSwayingParameters,
+                this.swayingParametersConverter,
+                !string.IsNullOrEmpty(this.blendShapeForFingerpoint)
+                    ? (VRMBlendShapeClip)VRMUtility.GetUserDefinedBlendShapeClip(clips, this.blendShapeForFingerpoint)
+                    : null,
+                this.shoulderHeights,
+                this.armatureHeight,
+                this.useShapeKeyNormalsAndTangents
             ));
 
             // 変換前のプレハブのPipeline ManagerのBlueprint IDを反映
