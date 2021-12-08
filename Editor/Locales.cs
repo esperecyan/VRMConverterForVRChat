@@ -33,6 +33,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                             + "そのメッシュがアバタールートの直下にない場合、正常に変換できません。"},
                     { "Use Shape Key Normals And Tangents", "シェイプキーの法線・接線を利用" },
                     { "Blend Shape For Fingerpoint", "FINGERPOINTへ割り当てる表情" },
+                    { "Keeping Upper Chest", "UpperChestを残す" },
                     { "There is no user-defined VRMBlensShape with the name “{0}”.", "「{0}」という名前のユーザー定義VRMBlensShapeは存在しません。" },
                     { "Use Animator For Blinks", "まばたきにAnimatorを使用" },
                     { "Callback Functions", "コールバック関数" },

@@ -89,6 +89,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         [SerializeField, Localizable]
         private string blendShapeForFingerpoint = "";
 
+        /// <summary>
+        /// UpperChestの紐づけを残すなら <c>true</c>。
+        /// </summary>
+        [SerializeField, Localizable]
+        private bool keepingUpperChest = false;
+
         [Header("For PC")]
 
         /// <summary>
@@ -619,6 +625,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 !string.IsNullOrEmpty(this.blendShapeForFingerpoint)
                     ? (VRMBlendShapeClip)VRMUtility.GetUserDefinedBlendShapeClip(clips, this.blendShapeForFingerpoint)
                     : null,
+                this.keepingUpperChest,
                 this.shoulderHeights,
                 this.armatureHeight,
                 this.useShapeKeyNormalsAndTangents

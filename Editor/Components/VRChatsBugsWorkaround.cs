@@ -38,11 +38,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// クラスに含まれる処理を適用します。
         /// </summary>
         /// <param name="avatar"></param>
+        /// <param name="keepingUpperChest"></param>
         /// <param name="addedShouldersPositionY">VRChat上でモデルがなで肩・いかり肩になる問題について、Shoulder/UpperArmボーンのPositionのYに加算する値。</param>
         /// <param name="addedArmaturePositionY"></param>
         /// <returns>変換中に発生したメッセージ。</returns>
         internal static IEnumerable<(string, MessageType)> Apply(
             GameObject avatar,
+            bool keepingUpperChest,
             float addedShouldersPositionY,
             float addedArmaturePositionY
         )
@@ -50,6 +52,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             var messages = new List<(string, MessageType)>();
 
             VRChatsBugsWorkaround.EnableAnimationOvrride(avatar: avatar);
+            if (!keepingUpperChest)
+            {
+                VRChatsBugsWorkaround.RemoveUpperChest(avatar);
+            }
             VRChatsBugsWorkaround.AddShouldersPositionYAndEyesPositionZ(
                 avatar: avatar,
                 addedValueToArmature: addedArmaturePositionY,
@@ -119,6 +125,30 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             EditorUtility.CopySerialized(humanoidRig, humanoidDescription.Avatar);
             PrefabUtility.RecordPrefabInstancePropertyModifications(avatar);
             EditorUtility.SetDirty(humanoidDescription.Avatar);
+        }
+
+        /// <summary> 
+        /// <see cref="HumanBodyBones.UpperChest"/>が存在する場合、それを<see cref="HumanBodyBones.Chest"/>とし、元の<see cref="HumanBodyBones.Chest"/>の関連付けを外します。 
+        /// </summary>
+        /// <param name="avatar"></param> 
+        private static void RemoveUpperChest(GameObject avatar)
+        {
+            var avatarDescription = avatar.GetComponent<VRMHumanoidDescription>().Description;
+
+            var boneLimits = avatarDescription.human.ToList();
+            var upperChest = boneLimits.FirstOrDefault(boneLimit => boneLimit.humanBone == HumanBodyBones.UpperChest);
+            if (string.IsNullOrEmpty(upperChest.boneName))
+            {
+                return;
+            }
+
+            boneLimits.Remove(boneLimits.First(boneLimit => boneLimit.humanBone == HumanBodyBones.Chest));
+
+            upperChest.humanBone = HumanBodyBones.Chest;
+            boneLimits[boneLimits.FindIndex(boneLimit => boneLimit.humanBone == HumanBodyBones.UpperChest)] = upperChest;
+
+            avatarDescription.human = boneLimits.ToArray();
+            VRChatsBugsWorkaround.ApplyAvatarDescription(avatar);
         }
 
         /// <summary>
