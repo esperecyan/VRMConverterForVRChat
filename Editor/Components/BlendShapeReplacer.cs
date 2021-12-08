@@ -778,6 +778,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 destinationFileName: clip.Preset + ".anim"
             );
 
+            AssetDatabase.SaveAssets(); // 新規作成された.animのプロパティが保存されない不具合を回避
+
             SetBlendShapeCurves(
                 avatar,
                 animationClip: anim,
