@@ -12,6 +12,7 @@ using VRM;
 #if VRC_SDK_VRCSDK3
 using VRC.Core;
 #endif
+using Esperecyan.UniVRMExtensions.SwayingObjects;
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
 
@@ -135,7 +136,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// <summary>
         /// <see cref="Converter.SwayingParametersConverter"/>のユーザー設定値。
         /// </summary>
-        private Converter.SwayingParametersConverter swayingParametersConverter = default;
+        private VRMSpringBonesToDynamicBonesConverter.ParametersConverter swayingParametersConverter = default;
 
         /// <summary>
         /// <see cref="Wizard.PostConverting"/>のユーザー設定値。
@@ -386,12 +387,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 Type callBackFunctions = this.callbackFunctions.GetClass();
 
                 this.swayingParametersConverter = Delegate.CreateDelegate(
-                    type: typeof(Converter.SwayingParametersConverter),
+                    type: typeof(VRMSpringBonesToDynamicBonesConverter.ParametersConverter),
                     target: callBackFunctions,
                     method: "SwayingParametersConverter",
                     ignoreCase: false,
                     throwOnBindFailure: false
-                ) as Converter.SwayingParametersConverter;
+                ) as VRMSpringBonesToDynamicBonesConverter.ParametersConverter;
 
                 this.postConverting = Delegate.CreateDelegate(
                     type: typeof(Wizard.PostConverting),

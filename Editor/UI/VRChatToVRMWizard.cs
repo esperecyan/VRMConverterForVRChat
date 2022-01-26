@@ -263,8 +263,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 path,
                 this.prefabOrInstance,
                 this.meta,
-                this.expressions,
-                VRChatToVRMConverter.DefaultSwayingParametersConverter
+                this.expressions
             );
 
             EditorUtility.DisplayDialog(Converter.Name + " " + Converter.Version, $"「{path}」へ出力が完了しました。", "OK");

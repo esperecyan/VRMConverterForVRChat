@@ -8,6 +8,7 @@ using UnityEditor;
 using UniGLTF;
 using VRM;
 using Esperecyan.UniVRMExtensions;
+using Esperecyan.UniVRMExtensions.SwayingObjects;
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 using SkinnedMeshUtility = Esperecyan.Unity.VRMConverterForVRChat.Utilities.SkinnedMeshUtility;
 using Esperecyan.Unity.VRMConverterForVRChat.Components;
@@ -59,35 +60,15 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
         private static readonly int MaxAutoEyeMovementDegree = 30;
 
         /// <summary>
-        /// <see cref="ComponentsReplacer.SwayingParametersConverter">の既定値。
-        /// </summary>
-        /// <param name="springBoneParameters"></param>
-        /// <param name="boneInfo"></param>
-        /// <returns></returns>
-        internal static SpringBoneParameters DefaultSwayingParametersConverter(
-            DynamicBoneParameters dynamicBoneParameters,
-            BoneInfo boneInfo
-        )
-        {
-            return new SpringBoneParameters()
-            {
-                StiffnessForce = dynamicBoneParameters.Elasticity / 0.05f,
-                DragForce = dynamicBoneParameters.Damping / 0.6f,
-            };
-        }
-
-        /// <summary>
         /// VRChatアバターインスタンスからVRMインスタンスへ変換します。
         /// </summary>
         /// <param name="instance">ヒエラルキー上のGameObject。</param>
         /// <param name="presetVRChatBindingPairs">各表情への割り当て。</param>
-        /// <param name="swayingParametersConverter"></param>
         internal static void Convert(
             string outputPath,
             GameObject instance,
             VRMMetaObject meta,
-            IDictionary<ExpressionPreset, VRChatExpressionBinding> presetVRChatBindingPairs,
-            DynamicBoneReplacer.ParametersConverter swayingParametersConverter
+            IDictionary<ExpressionPreset, VRChatExpressionBinding> presetVRChatBindingPairs
         )
         {
             GameObject clone = null, normalized = null;
@@ -114,7 +95,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
                 VRMInitializer.Initialize(temporaryPrefabPath, clone);
                 VRChatToVRMConverter.SetFirstPersonOffset(clone);
                 VRChatToVRMConverter.SetLookAtBoneApplyer(clone);
-                DynamicBoneReplacer.SetSpringBonesAndColliders(clone, swayingParametersConverter);
+                var sourceAndDestination = clone.GetComponent<Animator>();
+                DynamicBonesToVRMSpringBonesConverter.Convert(
+                    source: sourceAndDestination,
+                    destination: sourceAndDestination
+                );
+                VRChatToVRMConverter.RemoveUnusedColliderGroups(clone);
 
                 // 正規化
                 normalized = VRMBoneNormalizer.Execute(clone, forceTPose: true);
@@ -303,6 +289,32 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
                         = Math.Min(-settings.eyesLookingLeft.right.y, settings.eyesLookingRight.left.y);
                 }
 #endif
+            }
+        }
+
+        /// <summary>
+        /// <see cref="VRMSpringBone.ColliderGroups"/>から参照されていない<see cref="VRMSpringBoneColliderGroup"/>を、
+        /// <see cref="HumanBodyBones.LeftHand"/>、<see cref="HumanBodyBones.RightHand"/>を除いて削除します。
+        /// </summary>
+        /// <param name="instance"></param>
+        private static void RemoveUnusedColliderGroups(GameObject instance)
+        {
+            var animator = instance.GetComponent<Animator>();
+            var hands = new[] { HumanBodyBones.LeftHand, HumanBodyBones.RightHand }
+                .Select(bone => animator.GetBoneTransform(bone).gameObject);
+
+            var objectsHavingUsedColliderGroup = instance.GetComponentsInChildren<VRMSpringBone>()
+                .SelectMany(springBone => springBone.ColliderGroups)
+                .Select(colliderGroup => colliderGroup.gameObject)
+                .ToArray();
+
+            foreach (var colliderGroup in instance.GetComponentsInChildren<VRMSpringBoneColliderGroup>())
+            {
+                if (!objectsHavingUsedColliderGroup.Contains(colliderGroup.gameObject)
+                    && !hands.Contains(colliderGroup.gameObject))
+                {
+                    Object.DestroyImmediate(colliderGroup);
+                }
             }
         }
 

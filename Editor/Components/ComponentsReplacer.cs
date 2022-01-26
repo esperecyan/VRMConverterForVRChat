@@ -9,6 +9,7 @@ using UniGLTF;
 using VRC.SDKBase;
 using VRC.SDK3.Avatars.Components;
 #endif
+using Esperecyan.UniVRMExtensions.SwayingObjects;
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.VRChatUtility;
 
@@ -28,7 +29,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         internal static IEnumerable<(string, MessageType)> Apply(
             GameObject avatar,
             Converter.SwayingObjectsConverterSetting swayingObjectsConverterSetting,
-            Converter.SwayingParametersConverter swayingParametersConverter
+            VRMSpringBonesToDynamicBonesConverter.ParametersConverter swayingParametersConverter
         )
         {
             var messages = new List<(string, MessageType)>();
@@ -41,16 +42,19 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 return messages;
             }
 
-            IDictionary<VRMSpringBoneColliderGroup, IEnumerable<dynamic>> dynamicBoneColliderGroups = null;
-            if (swayingObjectsConverterSetting == Converter.SwayingObjectsConverterSetting.ConvertVrmSpringBonesAndVrmSpringBoneColliderGroups)
+            var ignoreColliders
+                = swayingObjectsConverterSetting == Converter.SwayingObjectsConverterSetting.ConvertVrmSpringBonesOnly;
+            if (!ignoreColliders)
             {
-                RemoveUnusedColliderGroups(avatar: avatar);
-                dynamicBoneColliderGroups = ConvertVRMSpringBoneColliderGroups(avatar);
+                ComponentsReplacer.RemoveUnusedColliderGroups(avatar);
             }
-            ConvertVRMSpringBones(
-                avatar: avatar,
-                dynamicBoneColliderGroups: dynamicBoneColliderGroups,
-                swayingParametersConverter: swayingParametersConverter
+
+            var animator = avatar.GetComponent<Animator>();
+            VRMSpringBonesToDynamicBonesConverter.Convert(
+                source: animator,
+                destination: animator,
+                ignoreColliders: ignoreColliders,
+                parametersConverter: swayingParametersConverter
             );
 
             messages.AddRange(VRChatUtility.CalculateDynamicBoneLimitations(prefabInstance: avatar));
@@ -90,119 +94,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 if (!objectsHavingUsedColliderGroup.Contains(colliderGroup.gameObject))
                 {
                     UnityEngine.Object.DestroyImmediate(colliderGroup);
-                }
-            }
-        }
-
-        /// <summary>
-        /// 子孫の<see cref="VRMSpringBoneColliderGroup"/>を基に<see cref="DynamicBoneCollider"/>を設定します。
-        /// </summary>
-        /// <param name="avatar"></param>
-        /// <returns>キーに<see cref="VRMSpringBoneColliderGroup"/>、値に対応する<see cref="DynamicBoneCollider"/>のリストを持つジャグ配列。</returns>
-        private static IDictionary<VRMSpringBoneColliderGroup, IEnumerable<dynamic>> ConvertVRMSpringBoneColliderGroups(GameObject avatar)
-        {
-            return avatar.GetComponentsInChildren<VRMSpringBoneColliderGroup>().ToDictionary(
-                keySelector: colliderGroup => colliderGroup,
-                elementSelector: colliderGroup => ConvertVRMSpringBoneColliderGroup(colliderGroup: colliderGroup)
-            );
-        }
-
-        /// <summary>
-        /// 指定された<see cref="VRMSpringBoneColliderGroup"/>を基に<see cref="DynamicBoneCollider"/>を設定します。
-        /// </summary>
-        /// <param name="colliderGroup"></param>
-        /// <param name="bonesForCollisionWithOtherAvatar"></param>
-        /// <returns>生成した<see cref="DynamicBoneCollider"/>のリスト。</returns>
-        private static IEnumerable<dynamic> ConvertVRMSpringBoneColliderGroup(
-            VRMSpringBoneColliderGroup colliderGroup
-        )
-        {
-            var bone = colliderGroup.gameObject;
-
-            return colliderGroup.Colliders.Select(collider =>
-            {
-                dynamic dynamicBoneCollider = bone.AddComponent(DynamicBoneColliderType);
-                dynamicBoneCollider.m_Center = collider.Offset;
-                dynamicBoneCollider.m_Radius = collider.Radius;
-                return dynamicBoneCollider;
-            }).ToList();
-        }
-
-        /// <summary>
-        /// 子孫の<see cref="VRMSpringBone"/>を基に<see cref="DynamicBone"/>を設定します。
-        /// </summary>
-        /// <param name="avatar"></param>
-        /// <param name="dynamicBoneColliderGroups">キーに<see cref="VRMSpringBoneColliderGroup"/>、値に対応する<see cref="DynamicBoneCollider"/>のリストを持つジャグ配列。</param>
-        /// <param name="swayingParametersConverter"></param>
-        private static void ConvertVRMSpringBones(
-            GameObject avatar,
-            IDictionary<VRMSpringBoneColliderGroup, IEnumerable<dynamic>> dynamicBoneColliderGroups,
-            Converter.SwayingParametersConverter swayingParametersConverter
-        )
-        {
-            foreach (var springBone in avatar.GetComponentsInChildren<VRMSpringBone>())
-            {
-                ConvertVRMSpringBone(springBone: springBone, dynamicBoneColliderGroups: dynamicBoneColliderGroups, swayingParametersConverter: swayingParametersConverter);
-            }
-        }
-
-        /// <summary>
-        /// 指定された<see cref="VRMSpringBone"/>を基に<see cref="DynamicBone"/>を設定します。
-        /// </summary>
-        /// <param name="springBone"></param>
-        /// <param name="dynamicBoneColliderGroups">キーに<see cref="VRMSpringBoneColliderGroup"/>、値に対応する<see cref="DynamicBoneCollider"/>のリストを持つジャグ配列。</param>
-        /// <param name="swayingParametersConverter"></param>
-        private static void ConvertVRMSpringBone(
-            VRMSpringBone springBone,
-            IDictionary<VRMSpringBoneColliderGroup, IEnumerable<dynamic>> dynamicBoneColliderGroups,
-            Converter.SwayingParametersConverter swayingParametersConverter
-        )
-        {
-            var springBoneParameters = new SpringBoneParameters()
-            {
-                StiffnessForce = springBone.m_stiffnessForce,
-                DragForce = springBone.m_dragForce,
-            };
-            var boneInfo = new BoneInfo(vrmMeta: springBone.gameObject.GetComponentsInParent<VRMMeta>()[0]);
-
-            foreach (var transform in springBone.RootBones)
-            {
-                dynamic dynamicBone = springBone.gameObject.AddComponent(DynamicBoneType);
-                dynamicBone.m_Root = transform;
-                dynamicBone.m_Exclusions = new List<Transform>();
-
-                DynamicBoneParameters dynamicBoneParameters = null;
-                if (swayingParametersConverter != null)
-                {
-                    dynamicBoneParameters = swayingParametersConverter(
-                        springBoneParameters: springBoneParameters,
-                        boneInfo: boneInfo
-                    );
-                }
-                if (dynamicBoneParameters != null)
-                {
-                    dynamicBone.m_Damping = dynamicBoneParameters.Damping;
-                    dynamicBone.m_DampingDistrib = dynamicBoneParameters.DampingDistrib;
-                    dynamicBone.m_Elasticity = dynamicBoneParameters.Elasticity;
-                    dynamicBone.m_ElasticityDistrib = dynamicBoneParameters.ElasticityDistrib;
-                    dynamicBone.m_Stiffness = dynamicBoneParameters.Stiffness;
-                    dynamicBone.m_StiffnessDistrib = dynamicBoneParameters.StiffnessDistrib;
-                    dynamicBone.m_Inert = dynamicBoneParameters.Inert;
-                    dynamicBone.m_InertDistrib = dynamicBoneParameters.InertDistrib;
-                }
-
-                dynamicBone.m_Gravity = springBone.m_gravityDir * springBone.m_gravityPower;
-                dynamicBone.m_Radius = springBone.m_hitRadius;
-                if (dynamicBoneColliderGroups != null)
-                {
-                    dynamic colliders = Activator.CreateInstance(type: DynamicBoneColliderBaseListType);
-                    foreach (var collider in springBone.ColliderGroups.SelectMany(
-                            colliderGroup => dynamicBoneColliderGroups[colliderGroup]
-                    ))
-                    {
-                        colliders.Add(collider);
-                    }
-                    dynamicBone.m_Colliders = colliders;
                 }
             }
         }
