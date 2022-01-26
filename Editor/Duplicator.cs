@@ -212,6 +212,39 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         }
 
         /// <summary>
+        /// AnimatorControllerを複製します。
+        /// </summary>
+        /// <param name="sourceController"></param>
+        /// <param name="destinationPath"></param>
+        /// <returns></returns>
+        private static AnimatorController DuplicateAnimatorControllerAsset(
+            AnimatorController sourceController,
+            string destinationPath
+        )
+        {
+            var temporaryPath = AssetDatabase.GenerateUniqueAssetPath("Assets/temporary.animatorController");
+            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(sourceController), temporaryPath);
+            Debug.Log(AssetDatabase.GetAssetPath(sourceController).AssetPathToFullPath());
+
+            if (AssetDatabase.LoadMainAssetAtPath(destinationPath) == null)
+            {
+                AssetDatabase.CreateAsset(new AnimatorController(), destinationPath);
+            }
+
+            File.Copy(temporaryPath.AssetPathToFullPath(), destinationPath.AssetPathToFullPath(), overwrite: true);
+            AssetDatabase.ImportAsset(destinationPath);
+
+            var destinationController = AssetDatabase.LoadAssetAtPath<AnimatorController>(destinationPath);
+
+            EditorUtility.SetDirty(destinationController);
+            AssetDatabase.SaveAssets();
+
+            AssetDatabase.DeleteAsset(temporaryPath);
+
+            return destinationController;
+        }
+
+        /// <summary>
         /// アセットインスタンスを複製します。
         /// </summary>
         /// <remarks>
@@ -236,13 +269,17 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="duplicatedPath">「Assets/」から始まりファイル名で終わる複製先のパス。</param>
         private static T DuplicateAsset<T>(T source, string destinationPath) where T : Object
         {
+            if (source is AnimatorController controller)
+            {
+                return Duplicator.DuplicateAnimatorControllerAsset(controller, destinationPath) as T;
+            }
+
             var sourceUnityPath = UnityPath.FromAsset(source);
             var destination = AssetDatabase.LoadMainAssetAtPath(destinationPath);
             var copied = false;
             if (destination)
             {
-                if (AssetDatabase.IsNativeAsset(source) && !(source is AnimatorController)
-                    || !sourceUnityPath.IsUnderAssetsFolder)
+                if (AssetDatabase.IsNativeAsset(source) || !sourceUnityPath.IsUnderAssetsFolder)
                 {
                     EditorUtility.CopySerialized(source, destination);
                 }
