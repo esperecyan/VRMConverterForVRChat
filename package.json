@@ -9,8 +9,8 @@
 	"license": "MPL-2.0",
 	"licensesUrl": "https://pokemori.booth.pm/items/1025226",
 	"dependencies": {
-		"com.vrmc.univrm": "0.90.1",
-		"jp.pokemori.univrm-extensions": "2.6.0"
+		"com.vrmc.univrm": "0.94.0",
+		"jp.pokemori.univrm-extensions": "2.8.0"
 	},
 	"Other Dependencies": {
 		"VRChat SDK3-Avatars": "2021.11.24.16.20",
