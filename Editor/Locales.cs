@@ -67,6 +67,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     { "Converting is completed.", "変換が完了しました。" },
                     { "OK", "OK" },
 
+                    { "Keep unused shape keys", "未使用シェイプキーを保持" },
+
                     { "Some error has occurred.", "エラーが発生しました。" },
                     { "Copy the content to clipboard", "内容をクリップボードへコピー" },
                     { "Report the problem", "不具合報告" },

@@ -49,6 +49,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         private string[] animationNames = null;
         private IDictionary<ExpressionPreset, VRChatExpressionBinding> expressions = null;
         private IDictionary<ExpressionPreset, int> expressionPresetFlagPairs = null;
+        private bool keepUnusedShapeKeys = false;
         private Editor metaEditor = null;
 
         /// <summary>
@@ -210,6 +211,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                         );
             }
 
+            EditorGUILayout.LabelField("Other Settings", EditorStyles.boldLabel);
+            this.keepUnusedShapeKeys = EditorGUILayout.Toggle(_("Keep unused shape keys"), this.keepUnusedShapeKeys);
+
             this.metaEditor.OnInspectorGUI();
 
             return true;
@@ -263,7 +267,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 path,
                 this.prefabOrInstance,
                 this.meta,
-                this.expressions
+                this.expressions,
+                this.keepUnusedShapeKeys
             );
 
             EditorUtility.DisplayDialog(Converter.Name + " " + Converter.Version, $"「{path}」へ出力が完了しました。", "OK");

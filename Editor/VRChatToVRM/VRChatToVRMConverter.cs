@@ -62,13 +62,18 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
         /// <summary>
         /// VRChatアバターインスタンスからVRMインスタンスへ変換します。
         /// </summary>
+        /// <param name="outputPath"></param>
         /// <param name="instance">ヒエラルキー上のGameObject。</param>
         /// <param name="presetVRChatBindingPairs">各表情への割り当て。</param>
+        /// <param name="meta"></param>
+        /// <param name="presetVRChatBindingPairs"></param>
+        /// <param name="keepUnusedShapeKeys"></param>
         internal static void Convert(
             string outputPath,
             GameObject instance,
             VRMMetaObject meta,
-            IDictionary<ExpressionPreset, VRChatExpressionBinding> presetVRChatBindingPairs
+            IDictionary<ExpressionPreset, VRChatExpressionBinding> presetVRChatBindingPairs,
+            bool keepUnusedShapeKeys
         )
         {
             GameObject clone = null, normalized = null;
@@ -116,10 +121,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
                     savingAsAsset: false
                 );
 
-                // 使用していないシェイプキーの削除
-                SkinnedMeshUtility.CleanUpShapeKeys(combinedRenderer.sharedMesh, presetShapeKeyNameWeightPairsPairs
-                    .SelectMany(presetShapeKeyNameWeightPairsPair => presetShapeKeyNameWeightPairsPair.Value.Keys)
-                    .Distinct());
+                if (!keepUnusedShapeKeys)
+                {
+                    // 使用していないシェイプキーの削除
+                    SkinnedMeshUtility.CleanUpShapeKeys(combinedRenderer.sharedMesh, presetShapeKeyNameWeightPairsPairs
+                        .SelectMany(presetShapeKeyNameWeightPairsPair => presetShapeKeyNameWeightPairsPair.Value.Keys)
+                        .Distinct());
+                }
 
                 // シェイプキーの分離
                 Utilities.MeshUtility.SeparationProcessing(normalized);
