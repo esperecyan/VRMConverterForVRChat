@@ -96,11 +96,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
                 VRChatToVRMConverter.SetFirstPersonOffset(clone);
                 VRChatToVRMConverter.SetLookAtBoneApplyer(clone);
                 var sourceAndDestination = clone.GetComponent<Animator>();
-                DynamicBonesToVRMSpringBonesConverter.Convert(
-                    source: sourceAndDestination,
-                    destination: sourceAndDestination
-                );
-                VRChatToVRMConverter.RemoveUnusedColliderGroups(clone);
+                if (DynamicBones.IsImported())
+                {
+                    DynamicBonesToVRMSpringBonesConverter.Convert(
+                        source: sourceAndDestination,
+                        destination: sourceAndDestination
+                    );
+                    VRChatToVRMConverter.RemoveUnusedColliderGroups(clone);
+                }
 
                 // 正規化
                 normalized = VRMBoneNormalizer.Execute(clone, forceTPose: true);
@@ -226,7 +229,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
 
             foreach (var component in instance.transform.GetComponentsInChildren<MonoBehaviour>())
             {
-                if (component.enabled)
+                if (component == null || component.enabled)
                 {
                     continue;
                 }
