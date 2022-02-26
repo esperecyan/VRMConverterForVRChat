@@ -72,12 +72,17 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                     useShapeKeyNormalsAndTangents ? deltaTangents : null
                 );
 
-                shapeKeys.Add(new BlendShape(name: mesh.GetBlendShapeName(i))
-                {
-                    Positions = deltaVertices.ToList(),
-                    Normals = deltaNormals.ToList(),
-                    Tangents = deltaTangents.ToList(),
-                });
+                var blendShape = new BlendShape(
+                    name: mesh.GetBlendShapeName(i),
+                    vertexCount: 0,
+                    hasPositions: true,
+                    hasNormals: true,
+                    hasTangents: true
+                );
+                blendShape.Positions.AddRange(deltaVertices);
+                blendShape.Normals.AddRange(deltaNormals);
+                blendShape.Tangents.AddRange(deltaTangents);
+                shapeKeys.Add(blendShape);
             }
 
             return shapeKeys;
