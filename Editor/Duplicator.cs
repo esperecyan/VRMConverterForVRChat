@@ -224,7 +224,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         {
             var temporaryPath = AssetDatabase.GenerateUniqueAssetPath("Assets/temporary.animatorController");
             AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(sourceController), temporaryPath);
-            Debug.Log(AssetDatabase.GetAssetPath(sourceController).AssetPathToFullPath());
 
             if (AssetDatabase.LoadMainAssetAtPath(destinationPath) == null)
             {
