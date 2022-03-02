@@ -81,6 +81,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// </summary>
         private static readonly string VRCExpressionParametersGUID = "d492b41c65685944a96df77628e204bc";
 
+        /// <summary>
+        /// ExpressionメニューのOSCのアイコン。
+        /// </summary>
+        private static readonly string ExpressionMenuItemSwitchingBlinkIcon = "48e41265a34c05d45b49ca189dc1a992";
+
         ///
         /// <summary>
         /// <see cref="VRC_AvatarDescriptor.VisemeBlendShapes"/>に対応する、生成するシェイプキー名と生成するための値。
@@ -194,18 +199,20 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// <param name="clips"></param>
         /// <param name="useShapeKeyNormalsAndTangents"></param>
         /// <param name="vrmBlendShapeForFINGERPOINT"></param>
+        /// <param name="oscComponents"></param>
         internal static void Apply(
             GameObject avatar,
             IEnumerable<VRMBlendShapeClip> clips,
             bool useShapeKeyNormalsAndTangents,
-            VRMBlendShapeClip vrmBlendShapeForFINGERPOINT
+            VRMBlendShapeClip vrmBlendShapeForFINGERPOINT,
+            Converter.OSCComponents oscComponents
         )
         {
             SetLipSync(avatar, clips, useShapeKeyNormalsAndTangents);
 
-            EnableEyeLook(avatar, clips, useShapeKeyNormalsAndTangents);
+            EnableEyeLook(avatar, clips, useShapeKeyNormalsAndTangents, oscComponents);
 
-            SetFeelings(avatar, clips, vrmBlendShapeForFINGERPOINT);
+            SetFeelings(avatar, clips, vrmBlendShapeForFINGERPOINT, oscComponents);
         }
 
         /// <summary>
@@ -353,13 +360,17 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// <param name="avatar"></param>
         /// <param name="clips"></param>
         /// <param name="useShapeKeyNormalsAndTangents"/>
+        /// <param name="oscComponents"/>
         private static void EnableEyeLook(
             GameObject avatar,
             IEnumerable<VRMBlendShapeClip> clips,
-            bool useShapeKeyNormalsAndTangents
+            bool useShapeKeyNormalsAndTangents,
+            Converter.OSCComponents oscComponents
         )
         {
-            VRMBlendShapeClip clip = clips.FirstOrDefault(c => c.Preset == BlendShapePreset.Blink);
+            VRMBlendShapeClip clip = oscComponents.HasFlag(Converter.OSCComponents.Blink)
+                ? null
+                : clips.FirstOrDefault(c => c.Preset == BlendShapePreset.Blink);
             var lookAtBoneApplyer = avatar.GetComponent<VRMLookAtBoneApplyer>();
             if (!clip && !lookAtBoneApplyer)
             {
@@ -538,15 +549,17 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         }
 
         /// <summary>
-        /// 手の形に喜怒哀楽を割り当てます。
+        /// 手の形に喜怒哀楽を割り当てます。また、OSCの設定を行います。
         /// </summary>
         /// <param name="avatar"></param>
         /// <param name="clips"></param>
         /// <param name="vrmBlendShapeForFINGERPOINT"></param>
+        /// <param name="oscComponents"></param>
         private static void SetFeelings(
             GameObject avatar,
             IEnumerable<VRMBlendShapeClip> clips,
-            VRMBlendShapeClip vrmBlendShapeForFINGERPOINT
+            VRMBlendShapeClip vrmBlendShapeForFINGERPOINT,
+            Converter.OSCComponents oscComponents
         )
         {
             var usedPresets = new List<BlendShapePreset>();
@@ -743,6 +756,27 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 childState.state.motion = neutral;
             }
 
+            // OSC設定
+            if (oscComponents.HasFlag(Converter.OSCComponents.Blink))
+            {
+                foreach (var preset in new[] { BlendShapePreset.Blink_L, BlendShapePreset.Blink_R })
+                {
+                    fxController.layers.First(layer =>
+                        layer.name == (preset == BlendShapePreset.Blink_L ? "OSC Blink Left" : "OSC Blink Right"))
+                            .stateMachine.states.First(childState => childState.state.name == "Blink").state.motion
+                                = BlendShapeReplacer.CreateFeeling(
+                                    avatar,
+                                    clips.FirstOrDefault(clip => clip.Preset == preset),
+                                    forMotionTime: true
+                                );
+                }
+                fxController.layers = fxController.layers.Where(layer => layer.name != "Stop Blink").ToArray();
+            }
+            else
+            {
+                fxController.layers = fxController.layers.Where(layer => !layer.name.StartsWith("OSC Blink")).ToArray();
+            }
+
             // アニメーションクリップが設定されていないステートへ、空のアニメーションクリップを割り当て (Write Defaultsなしで正常に動作するように)
             var empty = Duplicator.CreateObjectToFolder(
                 source: new AnimationClip(),
@@ -769,8 +803,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// <param name="avatar"></param>
         /// <param name="vrmBlendShape"></param>
         /// <param name="clips"></param>
+        /// <param name="forMotionTime"></param>
         /// <returns></returns>
-        private static AnimationClip CreateFeeling(GameObject avatar, VRMBlendShapeClip clip)
+        private static AnimationClip CreateFeeling(
+            GameObject avatar,
+            VRMBlendShapeClip clip,
+            bool forMotionTime = false
+        )
         {
             var anim = Duplicator.CreateObjectToFolder(
                 source: new AnimationClip(),
@@ -785,7 +824,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 animationClip: anim,
                 clip: clip,
                 keys: new Dictionary<float, float> {
-                    { 0, 1 },
+                    { 0, forMotionTime ? 0 : 1 },
                     { anim.length, 1 },
                 }
             );

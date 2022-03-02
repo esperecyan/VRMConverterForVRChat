@@ -25,13 +25,13 @@ MonoBehaviour:
     valueType: 1
     saved: 0
     defaultValue: 0
-  - name: 
-    valueType: 0
-    saved: 1
+  - name: BlinkLeft
+    valueType: 1
+    saved: 0
     defaultValue: 0
-  - name: 
-    valueType: 0
-    saved: 1
+  - name: BlinkRight
+    valueType: 1
+    saved: 0
     defaultValue: 0
   - name: 
     valueType: 0

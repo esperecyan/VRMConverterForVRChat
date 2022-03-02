@@ -38,6 +38,16 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         }
 
         /// <summary>
+        /// OSCの受信対象。
+        /// </summary>
+        [Flags]
+        public enum OSCComponents
+        {
+            None = 0,
+            Blink = 1 << 0,
+        }
+
+        /// <summary>
         /// 変換元のアバターのルートに設定されている必要があるコンポーネント。
         /// </summary>
         public static readonly Type[] RequiredComponents = { typeof(Animator), typeof(VRMMeta), typeof(VRMHumanoidDescription), typeof(VRMFirstPerson) };
@@ -62,6 +72,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="addedShouldersPositionY">VRChat上でモデルがなで肩・いかり肩になる問題について、Shoulder/UpperArmボーンのPositionのYに加算する値。</param>
         /// <param name="addedArmaturePositionY">VRChat上で足が沈む問題について、Hipsボーンの一つ上のオブジェクトのPositionのYに加算する値。</param>
         /// <param name="useShapeKeyNormalsAndTangents"><c>false</c> の場合、シェイプキーの法線・接線を削除します。</param>
+        /// <param name="oscComponents"></param>
         /// <returns>変換中に発生したメッセージ。</returns>
         public static IEnumerable<(string message, MessageType type)> Convert(
             GameObject prefabInstance,
@@ -74,7 +85,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             bool keepingUpperChest = false,
             float addedShouldersPositionY = 0.0f,
             float addedArmaturePositionY = 0.0f,
-            bool useShapeKeyNormalsAndTangents = false
+            bool useShapeKeyNormalsAndTangents = false,
+            OSCComponents oscComponents = OSCComponents.Blink
         )
         {
             AssetDatabase.SaveAssets();
@@ -92,7 +104,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 avatar: prefabInstance,
                 clips: clips,
                 useShapeKeyNormalsAndTangents,
-                vrmBlendShapeForFINGERPOINT
+                vrmBlendShapeForFINGERPOINT,
+                oscComponents
             );
             messages.AddRange(ComponentsReplacer.Apply(
                 avatar: prefabInstance,

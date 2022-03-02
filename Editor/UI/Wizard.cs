@@ -96,6 +96,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         [SerializeField, Localizable]
         private bool keepingUpperChest = false;
 
+        /// <summary>
+        /// OSCの受信対象。
+        /// </summary>
+        [SerializeField, Localizable]
+        private Converter.OSCComponents oscComponents;
+
         [Header("For PC")]
 
         /// <summary>
@@ -487,6 +493,23 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 ), MessageType.Warning);
             }
 
+            if (this.oscComponents.HasFlag(Converter.OSCComponents.Blink))
+            {
+                var clips = VRMUtility.GetBlendShapeClips(this.avatar);
+                foreach (var preset in new[] { BlendShapePreset.Blink_L, BlendShapePreset.Blink_R })
+                {
+                    var c = clips.FirstOrDefault(clip => clip.Preset == preset);
+                    if (c == null || c.Values == null || c.Values.Length == 0)
+                    {
+                        EditorGUILayout.HelpBox(
+                            string.Format(_("There is no VRMBlensShapePreset “{0}”."), preset),
+                            MessageType.Error
+                        );
+                        this.isValid = false;
+                    }
+                }
+            }
+
             var version = VRChatUtility.SDKSupportedUnityVersion;
             if (version != "" && Application.unityVersion != version)
             {
@@ -629,7 +652,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 this.keepingUpperChest,
                 this.shoulderHeights,
                 this.armatureHeight,
-                this.useShapeKeyNormalsAndTangents
+                this.useShapeKeyNormalsAndTangents,
+                this.oscComponents
             ));
 
             // 変換前のプレハブのPipeline ManagerのBlueprint IDを反映
