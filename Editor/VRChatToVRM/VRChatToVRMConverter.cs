@@ -6,6 +6,7 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 using UnityEditor;
 using UniGLTF;
+using MeshUtility = UniGLTF.MeshUtility.MeshUtility;
 using VRM;
 using Esperecyan.UniVRMExtensions;
 using Esperecyan.UniVRMExtensions.SwayingObjects;
@@ -130,7 +131,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
                 }
 
                 // シェイプキーの分離
-                Utilities.MeshUtility.SeparationProcessing(normalized);
+                MeshUtility.SeparationProcessing(normalized);
 
                 // マテリアルの設定・アセットとして保存
                 VRChatToVRMConverter.ReplaceShaders(normalized, temporaryPrefabPath);
