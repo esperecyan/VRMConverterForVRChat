@@ -67,7 +67,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             bool forQuest,
             SwayingObjectsConverterSetting swayingObjectsConverterSetting,
             bool takingOverSwayingParameters = true,
-            VRMSpringBonesToDynamicBonesConverter.ParametersConverter swayingParametersConverter = null,
+            VRMSpringBonesToVRCPhysBonesConverter.ParametersConverter swayingParametersConverter = null,
             VRMBlendShapeClip vrmBlendShapeForFINGERPOINT = null,
             bool keepingUpperChest = false,
             float addedShouldersPositionY = 0.0f,
@@ -96,12 +96,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             );
             messages.AddRange(ComponentsReplacer.Apply(
                 avatar: prefabInstance,
-                swayingObjectsConverterSetting: forQuest
-                    ? SwayingObjectsConverterSetting.RemoveSwayingObjects
-                    : swayingObjectsConverterSetting,
+                swayingObjectsConverterSetting: swayingObjectsConverterSetting,
                 swayingParametersConverter: takingOverSwayingParameters
                     ? swayingParametersConverter
-                    : null
+                    : null,
+                forQuest
             ));
             messages.AddRange(VRChatsBugsWorkaround.Apply(
                 avatar: prefabInstance,
