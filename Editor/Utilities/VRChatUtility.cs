@@ -9,6 +9,7 @@ using UnityEditor;
 using VRCSDK2;
 #elif VRC_SDK_VRCSDK3
 using VRC.SDK3.Avatars.Components;
+using VRC.SDK3.Dynamics.PhysBone.Components;
 #endif
 #if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
 using VRC.Core;
@@ -88,26 +89,28 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             };
 
         /// <summary>
-        /// 制限値。
+        /// Questのデフォルト (アバターパフォーマンスランクMedium) の制限値。
         /// </summary>
         internal static (
-            int dynamicBoneAffectedTransformCount,
-            int dynamicBoneCollisionCheckCount,
             int triangleCount,
             int skinnedMeshCount,
             int meshCount,
             int subMeshCount,
-            int boneCount
-        ) Limitations = (
-            // PC
-            dynamicBoneAffectedTransformCount: 32,
-            dynamicBoneCollisionCheckCount: 8,
-            // Quest
+            int boneCount,
+            int vrcPhysBoneCount,
+            int vrcPhysBoneAffectedTransformCount,
+            int vrcPhysBoneColliderCount,
+            int vrcPhysBoneCollisionCheckCount
+        ) QuestMediumLimitations = (
             triangleCount: 15000,
             skinnedMeshCount: 2,
             meshCount: 2,
             subMeshCount: 2,
-            boneCount: 150
+            boneCount: 150,
+            vrcPhysBoneCount: 6,
+            vrcPhysBoneAffectedTransformCount: 32,
+            vrcPhysBoneColliderCount: 8,
+            vrcPhysBoneCollisionCheckCount: 32
         );
 
         /// <summary>
@@ -491,65 +494,101 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
         }
 
         /// <summary>
-        /// DynamicBoneの制限の既定値を超えていた場合、警告メッセージを返します。
+        /// QuestのVRCPhysBoneの制限の既定値を超えていた場合、警告メッセージを返します。
         /// </summary>
         /// <param name="prefabInstance"></param>
         /// <returns></returns>
-        internal static IEnumerable<(string, MessageType)> CalculateDynamicBoneLimitations(GameObject prefabInstance)
+        internal static IEnumerable<(string, MessageType)> CalculateQuestVRCPhysBoneLimitations(GameObject prefabInstance)
         {
             var messages = new List<(string, MessageType)>();
 
-            var dynamicBoneAffectedTransformCountPairs
-                = prefabInstance.GetComponentsInChildren(DynamicBoneType).ToDictionary(
-                    dynamicBone => dynamicBone,
-                    (dynamic dynamicBone) =>
-                    {
-                        var root = (Transform)dynamicBone.m_Root;
-                        if (!root.IsChildOf(prefabInstance.transform))
-                        {
-                            return 0;
-                        }
-
-                        var exclusions = (List<Transform>)dynamicBone.m_Exclusions;
-                        return root.GetComponentsInChildren<Transform>().Length
-                            //- 1 // Collision checks counted incorrectly | Bug Reports | VRChat <https://vrchat.canny.io/bug-reports/p/collision-checks-counted-incorrectly>
-                            - (exclusions != null
-                                ? exclusions.Sum(exclusion => exclusion.GetComponentsInChildren<Transform>().Length)
-                                : 0);
-                    }
-                );
-            var affectedTransformCount = dynamicBoneAffectedTransformCountPairs.Values.Sum();
-
-            if (affectedTransformCount > VRChatUtility.Limitations.dynamicBoneAffectedTransformCount)
+            var vrcPhysBones = prefabInstance.GetComponentsInChildren<
+#if VRC_SDK_VRCSDK3
+                VRCPhysBone
+#else
+                dynamic
+#endif
+            >();
+            if (vrcPhysBones.Length > VRChatUtility.QuestMediumLimitations.vrcPhysBoneCount)
             {
                 messages.Add((string.Format(
-                    _("The “Dynamic Bone Simulated Bone Count” is {0}."),
-                    affectedTransformCount
+                    _("The “PhysBones Components” is {0}."),
+                    vrcPhysBones.Length
                 ) + string.Format(
-                    _("If this value exceeds {0}, the default user setting disable all Dynamic Bones."),
-                    VRChatUtility.Limitations.dynamicBoneAffectedTransformCount
+                    _("If this value exceeds {0}, the Quest default user setting disable all VRCPhysBones."),
+                    VRChatUtility.QuestMediumLimitations.vrcPhysBoneCount
                 ), MessageType.Warning));
             }
 
-            var collisionCheckCount = dynamicBoneAffectedTransformCountPairs.Sum(dynamicBoneAffectedTransformCountPair =>
+            var vrcPhysBoneAffectedTransformCountPairs = vrcPhysBones.ToDictionary(
+                vrcPhysBone => vrcPhysBone,
+                vrcPhysBone =>
+                {
+                    var root = (Transform/* SDK3なしのエラー回避 */)vrcPhysBone.rootTransform;
+                    if (!root.IsChildOf(prefabInstance.transform))
+                    {
+                        return 0;
+                    }
+
+                    var exclusions = (List<Transform>/* SDK3なしのエラー回避 */)vrcPhysBone.ignoreTransforms;
+                    return root.GetComponentsInChildren<Transform>().Length
+                        //- 1 // Collision checks counted incorrectly | Bug Reports | VRChat <https://vrchat.canny.io/bug-reports/p/collision-checks-counted-incorrectly>
+                        - (exclusions != null
+                            ? exclusions.Sum(exclusion => exclusion.GetComponentsInChildren<Transform>().Length)
+                            : 0);
+                }
+            );
+            var affectedTransformCount = vrcPhysBoneAffectedTransformCountPairs.Values.Sum();
+
+            if (affectedTransformCount > VRChatUtility.QuestMediumLimitations.vrcPhysBoneAffectedTransformCount)
             {
-                var colliders = dynamicBoneAffectedTransformCountPair.Key.m_Colliders;
+                messages.Add((string.Format(
+                    _("The “PhysBones Simulated Bone Count” is {0}."),
+                    affectedTransformCount
+                ) + string.Format(
+                    _("If this value exceeds {0}, the Quest default user setting disable all VRCPhysBones."),
+                    VRChatUtility.QuestMediumLimitations.vrcPhysBoneAffectedTransformCount
+                ), MessageType.Warning));
+            }
+
+            var vrcPhysBoneColliderCount = prefabInstance.GetComponentsInChildren<
+#if VRC_SDK_VRCSDK3
+                VRCPhysBoneCollider
+#else
+                dynamic
+#endif
+            >().Length;
+            if (vrcPhysBoneColliderCount > VRChatUtility.QuestMediumLimitations.vrcPhysBoneColliderCount)
+            {
+                messages.Add((string.Format(
+                    _("The “PhysBones Colliders” is {0}."),
+                    vrcPhysBoneColliderCount
+                ) + string.Format(
+                    _("If this value exceeds {0}, the Quest default user setting disable all VRCPhysBones."),
+                    VRChatUtility.QuestMediumLimitations.vrcPhysBoneColliderCount
+                ), MessageType.Warning));
+            }
+
+            var collisionCheckCount = vrcPhysBoneAffectedTransformCountPairs.Sum(vrcPhysBoneAffectedTransformCountPair =>
+            {
+                var colliders = vrcPhysBoneAffectedTransformCountPair.Key.colliders;
                 if (colliders == null)
                 {
                     return 0;
                 }
 
-                return dynamicBoneAffectedTransformCountPair.Value
-                    * ((IEnumerable<Component>)colliders).Where(collider => collider.transform.IsChildOf(prefabInstance.transform)).Count();
+                return vrcPhysBoneAffectedTransformCountPair.Value
+                    * ((IEnumerable<Behaviour>/* SDK3なしのエラー回避 */)colliders)
+                        .Where(collider => collider.transform.IsChildOf(prefabInstance.transform)).Count();
             });
-            if (collisionCheckCount > VRChatUtility.Limitations.dynamicBoneCollisionCheckCount)
+            if (collisionCheckCount > VRChatUtility.QuestMediumLimitations.vrcPhysBoneCollisionCheckCount)
             {
                 messages.Add((string.Format(
-                    _("The “Dynamic Bone Collision Check Count” is {0}."),
+                    _("The “PhysBones Collision Check Count” is {0}."),
                     collisionCheckCount
                 ) + string.Format(
-                    _("If this value exceeds {0}, the default user setting disable all Dynamic Bones."),
-                    VRChatUtility.Limitations.dynamicBoneCollisionCheckCount
+                    _("If this value exceeds {0}, the default user setting disable all VRCPhysBones."),
+                    VRChatUtility.QuestMediumLimitations.vrcPhysBoneCollisionCheckCount
                 ), MessageType.Warning));
             }
 
@@ -568,22 +607,22 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             foreach (var (current, limit, message) in new[] {
                 (
                     current: VRChatUtility.CountSkinnedMesh(prefabInstance),
-                    limit: VRChatUtility.Limitations.skinnedMeshCount,
+                    limit: VRChatUtility.QuestMediumLimitations.skinnedMeshCount,
                     message: _("The number of Skinned Mesh Renderer components is {0}.")
                 ),
                 (
                     current: VRChatUtility.CountStaticMesh(prefabInstance),
-                    limit: VRChatUtility.Limitations.meshCount,
+                    limit: VRChatUtility.QuestMediumLimitations.meshCount,
                     message: _("The number of (non-Skinned) Mesh Renderer components is {0}.")
                 ),
                 (
                     current: VRChatUtility.CountSubMesh(prefabInstance),
-                    limit: VRChatUtility.Limitations.subMeshCount,
+                    limit: VRChatUtility.QuestMediumLimitations.subMeshCount,
                     message: _("The number of material slots (sub-meshes) is {0}.")
                 ),
                 (
                     current: VRChatUtility.CountBone(prefabInstance),
-                    limit: VRChatUtility.Limitations.boneCount,
+                    limit: VRChatUtility.QuestMediumLimitations.boneCount,
                     message: _("The number of Bones is {0}.")
                 ),
             })

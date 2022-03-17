@@ -11,7 +11,6 @@ using VRC.SDK3.Avatars.Components;
 #endif
 using Esperecyan.UniVRMExtensions.SwayingObjects;
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
-using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.VRChatUtility;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 {
@@ -29,15 +28,15 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         internal static IEnumerable<(string, MessageType)> Apply(
             GameObject avatar,
             Converter.SwayingObjectsConverterSetting swayingObjectsConverterSetting,
-            VRMSpringBonesToDynamicBonesConverter.ParametersConverter swayingParametersConverter
+            VRMSpringBonesToVRCPhysBonesConverter.ParametersConverter swayingParametersConverter,
+            bool forQuest
         )
         {
             var messages = new List<(string, MessageType)>();
 
             ConvertVRMFirstPerson(avatar: avatar);
 
-            if (DynamicBoneType == null
-                || swayingObjectsConverterSetting == Converter.SwayingObjectsConverterSetting.RemoveSwayingObjects)
+            if (swayingObjectsConverterSetting == Converter.SwayingObjectsConverterSetting.RemoveSwayingObjects)
             {
                 return messages;
             }
@@ -50,14 +49,17 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             }
 
             var animator = avatar.GetComponent<Animator>();
-            VRMSpringBonesToDynamicBonesConverter.Convert(
+            VRMSpringBonesToVRCPhysBonesConverter.Convert(
                 source: animator,
                 destination: animator,
                 ignoreColliders: ignoreColliders,
                 parametersConverter: swayingParametersConverter
             );
 
-            messages.AddRange(VRChatUtility.CalculateDynamicBoneLimitations(prefabInstance: avatar));
+            if (forQuest)
+            {
+                messages.AddRange(VRChatUtility.CalculateQuestVRCPhysBoneLimitations(prefabInstance: avatar));
+            }
 
             return messages;
         }

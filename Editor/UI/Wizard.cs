@@ -142,7 +142,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// <summary>
         /// <see cref="Converter.SwayingParametersConverter"/>のユーザー設定値。
         /// </summary>
-        private VRMSpringBonesToDynamicBonesConverter.ParametersConverter swayingParametersConverter = default;
+        private VRMSpringBonesToVRCPhysBonesConverter.ParametersConverter swayingParametersConverter = default;
 
         /// <summary>
         /// <see cref="Wizard.PostConverting"/>のユーザー設定値。
@@ -393,12 +393,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 Type callBackFunctions = this.callbackFunctions.GetClass();
 
                 this.swayingParametersConverter = Delegate.CreateDelegate(
-                    type: typeof(VRMSpringBonesToDynamicBonesConverter.ParametersConverter),
+                    type: typeof(VRMSpringBonesToVRCPhysBonesConverter.ParametersConverter),
                     target: callBackFunctions,
                     method: "SwayingParametersConverter",
                     ignoreCase: false,
                     throwOnBindFailure: false
-                ) as VRMSpringBonesToDynamicBonesConverter.ParametersConverter;
+                ) as VRMSpringBonesToVRCPhysBonesConverter.ParametersConverter;
 
                 this.postConverting = Delegate.CreateDelegate(
                     type: typeof(Wizard.PostConverting),
@@ -412,7 +412,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
             var indentStyle = new GUIStyle() { padding = new RectOffset() { left = Wizard.Indent } };
             EditorGUILayout.LabelField(
                 (this.swayingParametersConverter != null ? "☑" : "☐")
-                    + " public static DynamicBoneParameters SwayingParametersConverter(SpringBoneParameters, BoneInfo)",
+                    + " public static VRCPhysBoneParameters SwayingParametersConverter(SpringBoneParameters, BoneInfo)",
                 indentStyle
             );
 
@@ -527,14 +527,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
             }
 
             var currentTriangleCount = VRChatUtility.CountTriangle(this.avatar.gameObject);
-            if (currentTriangleCount > VRChatUtility.Limitations.triangleCount)
+            if (currentTriangleCount > VRChatUtility.QuestMediumLimitations.triangleCount)
             {
                 EditorGUILayout.HelpBox(string.Format(
                     _("The number of polygons is {0}."),
                     currentTriangleCount
                 ) + string.Format(
                     _("If this value exceeds {0}, the avatar will not shown under the default user setting."),
-                    VRChatUtility.Limitations.triangleCount
+                    VRChatUtility.QuestMediumLimitations.triangleCount
                 ), MessageType.Error);
             }
 
