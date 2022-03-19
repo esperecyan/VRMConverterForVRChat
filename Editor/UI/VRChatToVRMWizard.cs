@@ -194,6 +194,29 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 this.metaEditor = Editor.CreateEditor(this.meta);
             }
 
+            // 空のマテリアルスロットがあれば「Export VRM file」ボタンを押せないように
+            var missingMaterialPaths = new List<string>();
+            foreach (var renderer in this.prefabOrInstance.GetComponentsInChildren<Renderer>())
+            {
+                var materials = renderer.sharedMaterials;
+                for (var i = 0; i < materials.Length; i++)
+                {
+                    if (materials[i] != null)
+                    {
+                        continue;
+                    }
+
+                    missingMaterialPaths
+                        .Add($"{renderer.transform.RelativePathFrom(this.prefabOrInstance.transform)}[{i}]");
+                }
+            }
+            if (missingMaterialPaths.Count > 0)
+            {
+                EditorGUILayout.HelpBox(_("The below material slots are none") + ":\n"
+                    + string.Join("\n", missingMaterialPaths.Select(path => "• " + path)), MessageType.Error);
+                this.isValid = false;
+            }
+
             EditorGUILayout.LabelField("Expressions", EditorStyles.boldLabel);
             foreach (var (preset, field) in VRChatToVRMWizard.PresetFieldPairs)
             {
