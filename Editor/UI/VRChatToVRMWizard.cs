@@ -36,6 +36,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
 
         private static int UnityEditorMaxMultiSelectCount = 32;
 
+        private string version;
+
         /// <summary>
         /// エクスポート対象のVRChatアバター (Humanoid)。
         /// </summary>
@@ -56,13 +58,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// 設定ダイアログを開きます。
         /// </summary>
         /// <param name="prefabOrInstance"></param>
-        internal static void Open(GameObject prefabOrInstance)
+        internal static async void Open(GameObject prefabOrInstance)
         {
+            var version = await Converter.GetVersion();
             var wizard = ScriptableWizard.DisplayWizard<VRChatToVRMWizard>(
-                title: _("VRM Settings") + $" | {Converter.Name} {Converter.Version}",
+                title: _("VRM Settings") + $" | {Converter.Name} {version}",
                 createButtonName: _("Export VRM file")
             );
-
+            wizard.version = version;
             wizard.prefabOrInstance = prefabOrInstance;
             wizard.meta = ScriptableObject.CreateInstance<VRMMetaObject>();
         }
@@ -287,6 +290,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
             }
 
             VRChatToVRMConverter.Convert(
+                this.version,
                 path,
                 this.prefabOrInstance,
                 this.meta,
@@ -294,7 +298,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 this.keepUnusedShapeKeys
             );
 
-            EditorUtility.DisplayDialog(Converter.Name + " " + Converter.Version, $"「{path}」へ出力が完了しました。", "OK");
+            EditorUtility.DisplayDialog(Converter.Name + " " + this.version, $"「{path}」へ出力が完了しました。", "OK");
         }
     }
 }

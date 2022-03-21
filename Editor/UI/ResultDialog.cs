@@ -14,10 +14,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// <summary>
         /// ダイアログを開きます。
         /// </summary>
+        /// <param name="version">当エディタ拡張のバージョン。</param>
         /// <param name="messages"></param>
-        internal static void Open(IEnumerable<(string, MessageType)> messages)
+        internal static void Open(string version, IEnumerable<(string, MessageType)> messages)
         {
-            var wizard = DisplayWizard<ResultDialog>(Converter.Name + " " + Converter.Version, _("OK"));
+            var wizard = DisplayWizard<ResultDialog>(Converter.Name + " " + version, _("OK"));
             wizard.messages = messages;
         }
 

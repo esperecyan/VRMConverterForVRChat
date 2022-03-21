@@ -139,6 +139,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         [SerializeField, Localizable]
         private MonoScript callbackFunctions = default;
 
+        private string version;
+
         /// <summary>
         /// <see cref="Converter.SwayingParametersConverter"/>のユーザー設定値。
         /// </summary>
@@ -158,9 +160,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// 変換ダイアログを開きます。
         /// </summary>
         /// <param name="avatar"></param>
-        internal static void Open(GameObject avatar)
+        internal static async void Open(GameObject avatar)
         {
-            var wizard = DisplayWizard<Wizard>(Converter.Name + " " + Converter.Version, _("Duplicate and Convert"));
+            var version = await Converter.GetVersion();
+            var wizard = DisplayWizard<Wizard>(Converter.Name + " " + version, _("Duplicate and Convert"));
+            wizard.version = version;
             Vector2 defaultMinSize = Wizard.MinSize;
             defaultMinSize.y = Wizard.MinHeightWhenOpen;
             wizard.minSize = defaultMinSize;
@@ -690,7 +694,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 UnityEngine.Object.DestroyImmediate(prefabInstance);
             }
 
-            ResultDialog.Open(messages: messages);
+            ResultDialog.Open(this.version, messages);
         }
 
         /// <summary>

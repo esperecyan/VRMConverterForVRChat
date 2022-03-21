@@ -14,19 +14,22 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         private static readonly string IssuesURL = "https://github.com/esperecyan/VRMConverterForVRChat/issues";
         private static readonly string VRChatSDKVersionFilePath = "Assets/VRCSDK/version.txt";
 
+        private string version;
         private Exception exception;
         private Vector2 errorMessageScrollPosition;
 
         /// <summary>
         /// ダイアログを開きます。
         /// </summary>
+        /// <param name="version">当エディタ拡張のバージョン。</param>
         /// <param name="messages"></param>
-        internal static void Open(Exception exception)
+        internal static void Open(string version, Exception exception)
         {
             var dialog = ScriptableWizard.DisplayWizard<ErrorDialog>(
-                title: Converter.Name + " " + Converter.Version,
+                title: Converter.Name + " " + version,
                 createButtonName: _("Close")
             );
+            dialog.version = version;
             dialog.exception = exception;
         }
 
@@ -46,7 +49,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                     {
                         text += $"VRChat SDK: {sdkVersion.text}\n";
                     }
-                    text += $"{Converter.Name}: {Converter.Version}\n"
+                    text += $"{Converter.Name}: {this.version}\n"
                         + $"UniVRM: {VRMVersion.VERSION}\n\n"
                         + errorMessage;
                     GUIUtility.systemCopyBuffer = text;

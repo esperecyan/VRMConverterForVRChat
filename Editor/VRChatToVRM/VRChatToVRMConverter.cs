@@ -63,6 +63,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
         /// <summary>
         /// VRChatアバターインスタンスからVRMインスタンスへ変換します。
         /// </summary>
+        /// <param name="version">当エディタ拡張のバージョン。</param>
         /// <param name="outputPath"></param>
         /// <param name="instance">ヒエラルキー上のGameObject。</param>
         /// <param name="presetVRChatBindingPairs">各表情への割り当て。</param>
@@ -70,6 +71,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
         /// <param name="presetVRChatBindingPairs"></param>
         /// <param name="keepUnusedShapeKeys"></param>
         internal static void Convert(
+            string version,
             string outputPath,
             GameObject instance,
             VRMMetaObject meta,
@@ -166,7 +168,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
             }
             catch (Exception exception)
             {
-                ErrorDialog.Open(exception);
+                ErrorDialog.Open(version, exception);
                 throw;
             }
             finally
