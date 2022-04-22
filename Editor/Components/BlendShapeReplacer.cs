@@ -81,11 +81,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// </summary>
         private static readonly string VRCExpressionParametersGUID = "d492b41c65685944a96df77628e204bc";
 
-        /// <summary>
-        /// ExpressionメニューのOSCのアイコン。
-        /// </summary>
-        private static readonly string ExpressionMenuItemSwitchingBlinkIcon = "48e41265a34c05d45b49ca189dc1a992";
-
         ///
         /// <summary>
         /// <see cref="VRC_AvatarDescriptor.VisemeBlendShapes"/>に対応する、生成するシェイプキー名と生成するための値。
