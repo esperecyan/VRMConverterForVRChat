@@ -10,7 +10,7 @@
 	"licensesUrl": "https://pokemori.booth.pm/items/1025226",
 	"dependencies": {
 		"com.vrmc.univrm": "0.98.1",
-		"jp.pokemori.univrm-extensions": "5.0.0"
+		"jp.pokemori.univrm-extensions": "6.0.0"
 	},
 	"Other Dependencies": {
 		"VRChat SDK3-Avatars": "2022.05.04.17.47",
