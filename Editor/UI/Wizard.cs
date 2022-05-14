@@ -27,13 +27,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         private static readonly string EditorUserSettingsXmlNamespace = "https://pokemori.booth.pm/items/1025226";
 
         /// <summary>
-        /// 変換後の処理を行うコールバック関数。
-        /// </summary>
-        /// <param name="avatar"></param>
-        /// <param name="meta"></param>
-        private delegate void PostConverting(GameObject avatar, VRMMeta meta);
-
-        /// <summary>
         /// ダイアログの最小サイズ。
         /// </summary>
         private static readonly Vector2 MinSize = new Vector2(800, 350);
@@ -147,9 +140,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         private VRMSpringBonesToVRCPhysBonesConverter.ParametersConverter swayingParametersConverter = default;
 
         /// <summary>
-        /// <see cref="Wizard.PostConverting"/>のユーザー設定値。
+        /// <see cref="Converter.PostConverting"/>のユーザー設定値。
         /// </summary>
-        private Wizard.PostConverting postConverting = default;
+        private Converter.PostConverting postConverting = default;
 
         /// <summary>
         /// 「Assets/」で始まり「.prefab」で終わる保存先のパス。
@@ -405,12 +398,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 ) as VRMSpringBonesToVRCPhysBonesConverter.ParametersConverter;
 
                 this.postConverting = Delegate.CreateDelegate(
-                    type: typeof(Wizard.PostConverting),
+                    type: typeof(Converter.PostConverting),
                     target: callBackFunctions,
                     method: "PostConverting",
                     ignoreCase: false,
                     throwOnBindFailure: false
-                ) as Wizard.PostConverting;
+                ) as Converter.PostConverting;
             }
 
             var indentStyle = new GUIStyle() { padding = new RectOffset() { left = Wizard.Indent } };
@@ -657,7 +650,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 this.shoulderHeights,
                 this.armatureHeight,
                 this.useShapeKeyNormalsAndTangents,
-                this.oscComponents
+                this.oscComponents,
+                this.postConverting
             ));
 
             // 変換前のプレハブのPipeline ManagerのBlueprint IDを反映
@@ -666,11 +660,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
 #if VRC_SDK_VRCSDK3
                 prefabInstance.GetComponent<PipelineManager>().blueprintId = prefabBlueprintId;
 #endif
-            }
-
-            if (this.postConverting != null)
-            {
-                this.postConverting(prefabInstance, this.avatar.GetComponent<VRMMeta>());
             }
 
             PrefabUtility.ApplyPrefabInstance(prefabInstance, InteractionMode.AutomatedAction);

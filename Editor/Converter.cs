@@ -47,6 +47,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         public static readonly Type[] RequiredComponents = { typeof(Animator), typeof(VRMMeta), typeof(VRMHumanoidDescription), typeof(VRMFirstPerson) };
 
         /// <summary>
+        /// 変換後の処理を行うコールバック関数。
+        /// </summary>
+        /// <param name="avatar"></param>
+        /// <param name="meta"></param>
+        public delegate void PostConverting(GameObject avatar, VRMMeta meta);
+
+        /// <summary>
         /// プレハブをVRChatへアップロード可能な状態にします。
         /// </summary>
         /// <param name="prefabInstance">現在のシーンに存在するプレハブのインスタンス。</param>
@@ -60,6 +67,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="addedArmaturePositionY">VRChat上で足が沈む問題について、Hipsボーンの一つ上のオブジェクトのPositionのYに加算する値。</param>
         /// <param name="useShapeKeyNormalsAndTangents"><c>false</c> の場合、シェイプキーの法線・接線を削除します。</param>
         /// <param name="oscComponents"></param>
+        /// <param name="postConverting"></param>
         /// <returns>変換中に発生したメッセージ。</returns>
         public static IEnumerable<(string message, MessageType type)> Convert(
             GameObject prefabInstance,
@@ -73,7 +81,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             float addedShouldersPositionY = 0.0f,
             float addedArmaturePositionY = 0.0f,
             bool useShapeKeyNormalsAndTangents = false,
-            OSCComponents oscComponents = OSCComponents.Blink
+            OSCComponents oscComponents = OSCComponents.Blink,
+            PostConverting postConverting = null
         )
         {
             AssetDatabase.SaveAssets();
@@ -108,10 +117,20 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 addedShouldersPositionY: addedShouldersPositionY,
                 addedArmaturePositionY: addedArmaturePositionY
             ));
+
+            var meta = prefabInstance.GetComponent<VRMMeta>();
             VRChatUtility.RemoveBlockedComponents(prefabInstance, forQuest);
             Undo.RegisterCreatedObjectUndo(prefabInstance, "Convert VRM for VRChat");
 
             AssetDatabase.SaveAssets();
+
+            postConverting?.Invoke(prefabInstance, meta);
+
+            if (forQuest)
+            {
+                messages.AddRange(VRChatUtility.CalculateQuestVRCPhysBoneLimitations(prefabInstance));
+            }
+
             return messages;
         }
 

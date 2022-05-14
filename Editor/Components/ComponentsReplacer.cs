@@ -56,11 +56,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 parametersConverter: swayingParametersConverter
             );
 
-            if (forQuest)
-            {
-                messages.AddRange(VRChatUtility.CalculateQuestVRCPhysBoneLimitations(prefabInstance: avatar));
-            }
-
             return messages;
         }
 
