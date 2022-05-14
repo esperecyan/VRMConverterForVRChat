@@ -631,7 +631,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                     return 0;
                 }
 
-                return vrcPhysBoneAffectedTransformCountPair.Value
+                return (vrcPhysBoneAffectedTransformCountPair.Value - 1 /* ルートボーンを除外 */)
                     * ((IEnumerable<Behaviour>/* SDK3なしのエラー回避 */)colliders)
                         .Where(collider => collider.transform.IsChildOf(prefabInstance.transform)).Count();
             });
