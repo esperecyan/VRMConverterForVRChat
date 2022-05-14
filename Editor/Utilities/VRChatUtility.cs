@@ -571,7 +571,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             if (affectedTransformCount > VRChatUtility.QuestPoorLimitations.vrcPhysBoneAffectedTransformCount)
             {
                 messages.Add((string.Format(
-                    _("The “PhysBones Simulated Bone Count” is {0}."),
+                    _("The “PhysBones Simulated Bone Count” (Number of bones including root in VRCPhysBone) is {0}."),
                     affectedTransformCount
                 ) + " " + string.Format(
                     _("If this value exceeds {0}, you cannot upload your avatar."),
@@ -584,7 +584,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             else if (affectedTransformCount > VRChatUtility.QuestMediumLimitations.vrcPhysBoneAffectedTransformCount)
             {
                 messages.Add((string.Format(
-                    _("The “PhysBones Simulated Bone Count” is {0}."),
+                    _("The “PhysBones Simulated Bone Count” (Number of bones including root in VRCPhysBone) is {0}."),
                     affectedTransformCount
                 ) + " " + string.Format(
                     _("If this value exceeds {0}, all VRCPhysBones will be disabled under the default user setting."),
@@ -638,7 +638,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             if (collisionCheckCount > VRChatUtility.QuestPoorLimitations.vrcPhysBoneCollisionCheckCount)
             {
                 messages.Add((string.Format(
-                    _("The “PhysBones Collision Check Count” is {0}."),
+                    _("The “PhysBones Collision Check Count” (Number of bones excluding root in VRCPhysBone × Number of VRCPhysBoneCollider) is {0}."),
                     collisionCheckCount
                 ) + " " + string.Format(
                     _("If this value exceeds {0}, you cannot upload your avatar."),
@@ -651,7 +651,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             else if (collisionCheckCount > VRChatUtility.QuestMediumLimitations.vrcPhysBoneCollisionCheckCount)
             {
                 messages.Add((string.Format(
-                    _("The “PhysBones Collision Check Count” is {0}."),
+                    _("The “PhysBones Collision Check Count” (Number of bones excluding root in VRCPhysBone × Number of VRCPhysBoneCollider) is {0}."),
                     collisionCheckCount
                 ) + " " + string.Format(
                     _("If this value exceeds {0}, all VRCPhysBones will be disabled under the default user setting."),
