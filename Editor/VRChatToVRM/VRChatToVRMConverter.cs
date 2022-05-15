@@ -19,6 +19,7 @@ using VRCSDK2;
 #elif VRC_SDK_VRCSDK3
 using VRC.SDKBase;
 using VRC.SDK3.Avatars.Components;
+using VRC.SDK3.Dynamics.PhysBone.Components;
 #endif
 
 namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
@@ -104,14 +105,28 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
                 VRChatToVRMConverter.SetFirstPersonOffset(clone);
                 VRChatToVRMConverter.SetLookAtBoneApplyer(clone);
                 var sourceAndDestination = clone.GetComponent<Animator>();
-                if (DynamicBones.IsImported())
+                if (sourceAndDestination.GetComponentInChildren<
+#if VRC_SDK_VRCSDK3
+                    VRCPhysBone
+#else
+                    dynamic
+#endif
+                >() != null)
+                {
+                    // VRCPhysBoneが含まれていれば
+                    VRCPhysBonesToVRMSpringBonesConverter.Convert(
+                        source: sourceAndDestination,
+                        destination: sourceAndDestination
+                    );
+                }
+                else if (DynamicBones.IsImported())
                 {
                     DynamicBonesToVRMSpringBonesConverter.Convert(
                         source: sourceAndDestination,
                         destination: sourceAndDestination
                     );
-                    VRChatToVRMConverter.RemoveUnusedColliderGroups(clone);
                 }
+                VRChatToVRMConverter.RemoveUnusedColliderGroups(clone);
 
                 // 正規化
                 normalized = VRMBoneNormalizer.Execute(clone, forceTPose: true);
