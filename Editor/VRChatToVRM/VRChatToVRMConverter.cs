@@ -333,6 +333,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
                 .Select(bone => animator.GetBoneTransform(bone).gameObject);
 
             var objectsHavingUsedColliderGroup = instance.GetComponentsInChildren<VRMSpringBone>()
+                .Where(springBone => springBone.ColliderGroups != null)
                 .SelectMany(springBone => springBone.ColliderGroups)
                 .Select(colliderGroup => colliderGroup.gameObject)
                 .ToArray();
