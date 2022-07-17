@@ -51,9 +51,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
                     ))
                     .Where(shapeKeyNameWeightPair =>
                         shapeKeyNameWeightPair.weight > VRChatExpressionsReplacer.ShapeKeyAnimationThreshold)
-                    .ToDictionary(
+                    .GroupBy(
                         shapeKeyNameWeightPair => shapeKeyNameWeightPair.shapeKeyName,
                         shapeKeyNameWeightPair => shapeKeyNameWeightPair.weight
+                    ).ToDictionary(
+                        shapeKeyNameWeightsPair => shapeKeyNameWeightsPair.Key,
+                        shapeKeyNameWeightsPair => shapeKeyNameWeightsPair.Max() // 同名のシェイプキーが指定されている場合、もっとも大きい値を選択する
                     )
                 : vrchatExpressionBinding.ShapeKeyNames.ToDictionary(
                     shapeKeyName => shapeKeyName,
