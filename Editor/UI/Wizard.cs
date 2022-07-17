@@ -693,15 +693,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// <returns></returns>
         private string GetAssetsPath(GameObject vrm)
         {
-            var path = "";
-
-            var unityPath = UnityPath.FromAsset(asset: vrm);
-            if (unityPath.IsUnderAssetsFolder)
+            var path = AssetDatabase.GetAssetPath(vrm);
+            if (path != null && !path.StartsWith("Assets/"))
             {
-                path = unityPath.Value;
+                path = null;
             }
 
-            if (string.IsNullOrEmpty(path))
+            if (path == null)
             {
                 path = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(vrm);
             }
