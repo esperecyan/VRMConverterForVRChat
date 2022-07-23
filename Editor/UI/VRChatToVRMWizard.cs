@@ -46,6 +46,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         private VRMMetaObject meta = null;
 
         private IEnumerable<string> shapeKeyNames = null;
+        private bool noShapeKeys = true;
         private string[] maybeBlinkShapeKeyNames = null;
         private IEnumerable<AnimationClip> animations = null;
         private string[] animationNames = null;
@@ -170,6 +171,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                     .SelectMany(mesh => SkinnedMeshUtility.GetAllShapeKeys(mesh, useShapeKeyNormalsAndTangents: false))
                     .Select(shapeKey => shapeKey.Name)
                     .Distinct();
+                this.noShapeKeys = this.shapeKeyNames.Count() == 0;
 
                 (this.animations, this.expressions)
                     = VRChatUtility.DetectVRChatExpressions(this.prefabOrInstance, this.shapeKeyNames);
@@ -226,21 +228,36 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 this.isValid = false;
             }
 
-            EditorGUILayout.LabelField("Expressions", EditorStyles.boldLabel);
-            foreach (var (preset, field) in VRChatToVRMWizard.PresetFieldPairs)
+            using (new EditorGUI.DisabledScope(this.noShapeKeys))
             {
-                this.expressionPresetFlagPairs[preset]
-                    = VRChatToVRMWizard.PresetFieldPairs[preset] == nameof(VRChatExpressionBinding.AnimationClip)
-                        ? EditorGUILayout.Popup(
+                EditorGUILayout.LabelField("Expressions", EditorStyles.boldLabel);
+                foreach (var (preset, field) in VRChatToVRMWizard.PresetFieldPairs)
+                {
+                    if (this.noShapeKeys)
+                    {
+                        // アバターにシェイプキーが1つも含まれていない場合
+                        EditorGUILayout.Popup(preset.ToString(), 0, new string[] { });
+                        continue;
+                    }
+
+                    if (VRChatToVRMWizard.PresetFieldPairs[preset] == nameof(VRChatExpressionBinding.AnimationClip))
+                    {
+                        this.expressionPresetFlagPairs[preset] = EditorGUILayout.Popup(
                             preset.ToString(),
                             this.expressionPresetFlagPairs[preset],
                             this.animationNames
-                        )
-                        : EditorGUILayout.MaskField(
+                        );
+                    }
+                    else
+                    {
+                        // まばたき
+                        this.expressionPresetFlagPairs[preset] = EditorGUILayout.MaskField(
                             preset.ToString(),
                             this.expressionPresetFlagPairs[preset],
                             this.maybeBlinkShapeKeyNames
                         );
+                    }
+                }
             }
 
             EditorGUILayout.LabelField("Other Settings", EditorStyles.boldLabel);
