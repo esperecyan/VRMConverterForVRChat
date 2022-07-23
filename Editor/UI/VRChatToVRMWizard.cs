@@ -175,12 +175,18 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                     = VRChatUtility.DetectVRChatExpressions(this.prefabOrInstance, this.shapeKeyNames);
                 this.animationNames = new[] { "-" }.Concat(this.animations.Select(animation => animation.name)).ToArray();
 
-                this.maybeBlinkShapeKeyNames = this.expressions
+                var maybeBlinkShapeKeyNames = this.expressions
                     .Where(expression => VRChatToVRMWizard.PresetFieldPairs.ContainsKey(expression.Key)
                         && VRChatToVRMWizard.PresetFieldPairs[expression.Key] == nameof(VRChatExpressionBinding.ShapeKeyNames))
                     .SelectMany(expression => expression.Value.ShapeKeyNames)
                     .Concat(VRChatUtility.DetectBlinkShapeKeyNames(this.shapeKeyNames))
-                    .Distinct()
+                    .Distinct();
+                if (maybeBlinkShapeKeyNames.Count() == 0)
+                {
+                    // まばたきシェイプキーが見つからなかった場合
+                    maybeBlinkShapeKeyNames = this.shapeKeyNames;
+                }
+                this.maybeBlinkShapeKeyNames = maybeBlinkShapeKeyNames
                     .Take(VRChatToVRMWizard.UnityEditorMaxMultiSelectCount)
                     .ToArray();
 
