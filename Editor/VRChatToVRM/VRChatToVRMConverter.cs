@@ -102,6 +102,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
                 temporaryFolder.EnsureFolder();
                 var temporaryPrefabPath = temporaryFolder.Child(VRChatToVRMConverter.TemporaryPrefabFileName).Value;
                 VRMInitializer.Initialize(temporaryPrefabPath, clone);
+                Object.DestroyImmediate(clone.GetComponentInChildren<VRMSpringBone>()); // VRMInitializer.Initialize() によってアタッチされた空のVRMSpringBoneを削除
                 VRChatToVRMConverter.SetFirstPersonOffset(clone);
                 VRChatToVRMConverter.SetLookAtBoneApplyer(clone);
                 var sourceAndDestination = clone.GetComponent<Animator>();
