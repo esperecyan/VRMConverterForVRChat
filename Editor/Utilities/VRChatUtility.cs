@@ -579,7 +579,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                 ) + " " + string.Format(
                     _("If this value exceeds {0}, all VRCPhysBones will be disabled under the default user setting."),
                     VRChatUtility.QuestMediumLimitations.vrcPhysBoneAffectedTransformCount
-                ), MessageType.Warning));
+                ), MessageType.Error));
             }
             else if (affectedTransformCount > VRChatUtility.QuestMediumLimitations.vrcPhysBoneAffectedTransformCount)
             {
@@ -646,7 +646,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                 ) + " " + string.Format(
                     _("If this value exceeds {0}, all VRCPhysBones will be disabled under the default user setting."),
                     VRChatUtility.QuestMediumLimitations.vrcPhysBoneCollisionCheckCount
-                ), MessageType.Warning));
+                ), MessageType.Error));
             }
             else if (collisionCheckCount > VRChatUtility.QuestMediumLimitations.vrcPhysBoneCollisionCheckCount)
             {
