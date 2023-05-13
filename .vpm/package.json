@@ -1,0 +1,6 @@
+{
+	"devDependencies": {
+		"@esperecyan/eslint-config": "^2.5.0",
+		"eslint": "^8.40.0"
+	}
+}

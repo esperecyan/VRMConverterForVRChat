@@ -1,0 +1,3 @@
+extends: '@esperecyan'
+env:
+    node: true
