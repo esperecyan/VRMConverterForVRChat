@@ -9,13 +9,9 @@
 	"license": "MPL-2.0",
 	"licensesUrl": "https://pokemori.booth.pm/items/1025226",
 	"dependencies": {
+		"com.vrchat.avatars": "3.2.0",
 		"com.vrmc.univrm": "0.99.4",
 		"jp.pokemori.univrm-extensions": "8.0.0"
-	},
-	"Other Dependencies": {
-		"VRChat SDK3-Avatars": "2022.05.04.17.47",
-		"VRChat SDK2": "2021.11.08.14.28",
-		"Dynamic Bone": "1.2.2"
 	},
 	"author": {
 		"name": "100の人",

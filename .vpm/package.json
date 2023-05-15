@@ -1,6 +1,17 @@
 {
 	"devDependencies": {
-		"@esperecyan/eslint-config": "^2.5.0",
+		"@esperecyan/eslint-config": "^2.6.0",
 		"eslint": "^8.40.0"
+	},
+	"type": "module",
+	"dependencies": {
+		"@actions/core": "^1.10.0",
+		"adm-zip": "^0.5.10",
+		"js-yaml": "^4.1.0",
+		"openupm-cli": "^1.14.3",
+		"tar": "^6.1.14"
+	},
+	"scripts": {
+		"build": "node ./build.js"
 	}
 }

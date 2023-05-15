@@ -1,1 +1,5 @@
 /.vpm/node_modules/
+
+# ローカルデバッグ
+/.vpm/registry/
+/.vpm/packages/
