@@ -98,7 +98,7 @@ for (const { name, version } of dependencies) {
 		manifest = JSON.parse(await fs.readFile(manifestPath));
 		manifest.vpmDependencies = manifest.dependencies;
 		Object.assign(manifest, namePartialManifestPairs[name]);
-		manifest.url = `https://github.com/${process.env.GITHUB_ACTION_REPOSITORY}/releases/download/${process.env.TAG_NAME}/${packageFileName}`; //eslint-disable-line max-len
+		manifest.url = `https://github.com/${process.env.GITHUB_REPOSITORY}/releases/download/${process.env.TAG_NAME}/${packageFileName}`; //eslint-disable-line max-len
 		await fs.writeFile(manifestPath, JSON.stringify(manifest, null, '\t'));
 
 		zip = new AdmZip();
