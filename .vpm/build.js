@@ -75,10 +75,10 @@ const { packages } = registry;
 const namePartialManifestPairs = yaml.load(await fs.readFile(path.join(vpmDirectoryPath, 'partial-manifests.yaml')));
 for (const { name, version } of dependencies) {
 	if (!packages[name]) {
-		packages[name] = { };
+		packages[name] = { versions: { } };
 	}
 
-	if (packages[name][version]) {
+	if (packages[name].versions[version]) {
 		continue;
 	}
 
@@ -111,7 +111,7 @@ for (const { name, version } of dependencies) {
 	manifest.zipSHA256 = crypto.createHash('sha256').update(packageFileBuffer).digest('hex');
 	await fs.writeFile(path.join(packagesDirectoryPath, packageFileName), packageFileBuffer);
 
-	packages[name][version] = manifest;
+	packages[name].versions[version] = manifest;
 }
 
 // レジストリの保存
