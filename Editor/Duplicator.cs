@@ -118,7 +118,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             if (string.IsNullOrEmpty(fileName))
             {
                 var sourceUnityPath = UnityPath.FromAsset(source);
-                if (!sourceUnityPath.IsUnderAssetsFolder || AssetDatabase.IsSubAsset(source))
+                if (!sourceUnityPath.IsUnderWritableFolder || AssetDatabase.IsSubAsset(source))
                 {
                     destinationFileName = source.name.EscapeFilePath() + ".asset";
                 }
@@ -278,7 +278,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             var copied = false;
             if (destination)
             {
-                if (AssetDatabase.IsNativeAsset(source) || !sourceUnityPath.IsUnderAssetsFolder)
+                if (AssetDatabase.IsNativeAsset(source) || !sourceUnityPath.IsUnderWritableFolder)
                 {
                     EditorUtility.CopySerialized(source, destination);
                 }
@@ -296,7 +296,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
             else
             {
-                if (AssetDatabase.IsSubAsset(source) || !sourceUnityPath.IsUnderAssetsFolder)
+                if (AssetDatabase.IsSubAsset(source) || !sourceUnityPath.IsUnderWritableFolder)
                 {
                     AssetDatabase.CreateAsset(Duplicator.DuplicateAssetInstance(source), destinationPath);
                 }
