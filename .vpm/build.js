@@ -73,7 +73,11 @@ try {
 
 const { packages } = registry;
 const namePartialManifestPairs = yaml.load(await fs.readFile(path.join(vpmDirectoryPath, 'partial-manifests.yaml')));
-for (const { name, version } of dependencies) {
+for (const { name, version, internal } of dependencies) {
+	if (internal) {
+		continue;
+	}
+
 	if (!packages[name]) {
 		packages[name] = { versions: { } };
 	}
