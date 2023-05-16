@@ -36,7 +36,7 @@ while (true) {
 	}
 
 	if (invalidDependencies.length > 0) {
-		core.notice(`次のパッケージのバージョンはOpenUPMレジストリに存在しないため、${INTERVAL_MILISECONDS} ミリ秒待機:\n`
+		core.debug(`次のパッケージのバージョンはOpenUPMレジストリに存在しないため、${INTERVAL_MILISECONDS} ミリ秒待機:\n`
 			+ invalidDependencies.map(({ name, version }) => name + '@' + version).join('\n'));
 		await timers.setTimeout(INTERVAL_MILISECONDS);
 		continue;
@@ -82,7 +82,7 @@ for (const { name, version } of dependencies) {
 		continue;
 	}
 
-	core.info(`${name}@${version} をレジストリへ追加します。`);
+	core.notice(`${name}@${version} をレジストリへ追加します。`);
 	const packageFileName = `${name}-${version}.zip`;
 	let manifest, zip;
 	const tarDirectoryPath = await fs.mkdtemp(os.tmpdir() + '/');
