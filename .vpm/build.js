@@ -12,6 +12,7 @@ import openupm from 'openupm-cli/lib/core.js';
 
 const INTERVAL_MILISECONDS = 1 * 60 * 1000;
 const IGNORE_PACKAGE_NAME_PREFIX = 'com.vrchat.';
+const IGNORE_PACKSGE_NAME_FROM_VPM_DEPENDENCIES_PREFIX = 'com.unity.';
 
 const vpmDirectoryPath = path.dirname(url.fileURLToPath(import.meta.url));
 const { name } = JSON.parse(await fs.readFile(path.join(vpmDirectoryPath, '..', 'package.json')));
@@ -100,7 +101,10 @@ for (const { name, version, internal } of dependencies) {
 
 		const manifestPath = path.join(extractedDirectoryPath, 'package.json');
 		manifest = JSON.parse(await fs.readFile(manifestPath));
-		manifest.vpmDependencies = manifest.dependencies;
+		if (manifest.dependencies) {
+			manifest.vpmDependencies = Object.fromEntries(Object.entries(manifest.dependencies)
+				.filter(([ name ]) => !name.startsWith(IGNORE_PACKSGE_NAME_FROM_VPM_DEPENDENCIES_PREFIX)));
+		}
 		Object.assign(manifest, namePartialManifestPairs[name]);
 		manifest.url = `https://github.com/${process.env.GITHUB_REPOSITORY}/releases/download/${process.env.TAG_NAME}/${packageFileName}`; //eslint-disable-line max-len
 		await fs.writeFile(manifestPath, JSON.stringify(manifest, null, '\t'));
