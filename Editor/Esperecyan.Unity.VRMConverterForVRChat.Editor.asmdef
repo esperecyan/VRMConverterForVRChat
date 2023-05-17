@@ -14,8 +14,15 @@
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "VRCCore-Editor.dll",
+        "VRC.Utility.dll",
+        "VRCSDKBase.dll",
+        "VRC.Dynamics.dll",
+        "VRCSDK3A.dll",
+        "VRC.SDK3.Dynamics.PhysBone.dll"
+    ],
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
