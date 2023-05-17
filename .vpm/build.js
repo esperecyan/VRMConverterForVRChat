@@ -16,13 +16,12 @@ const IGNORE_PACKSGE_NAME_FROM_VPM_DEPENDENCIES_PREFIX = 'com.unity.';
 
 const vpmDirectoryPath = path.dirname(url.fileURLToPath(import.meta.url));
 const { name } = JSON.parse(await fs.readFile(path.join(vpmDirectoryPath, '..', 'package.json')));
+await openupm.parseEnv({ _global: { } }, { });
 if (!process.env.GITHUB_ACTIONS) {
 	// ローカルデバッグ
-	process.env.TAG_NAME = 'v39.0.0';
+	process.env.TAG_NAME = 'v' + (await openupm.fetchPackageInfo(name))['dist-tags'].latest;
 }
 const version = process.env.TAG_NAME.replace('v', '');
-
-await openupm.parseEnv({ _global: { } }, { });
 
 let dependencies;
 while (true) {
