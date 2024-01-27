@@ -27,76 +27,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             bool savingAsAsset = true
         )
         {
-            CombineMeshesAndSubMeshes.MakeAllVerticesHaveWeights(
-                root: root,
-                notCombineRendererObjectNames: notCombineRendererObjectNames
-            );
-
             return CombineMeshesAndSubMeshes.CombineAllMeshes(
                 root: root,
                 destinationObjectName: destinationObjectName,
                 notCombineRendererObjectNames: notCombineRendererObjectNames,
                 savingAsAsset: savingAsAsset
             );
-        }
-
-        /// <summary>
-        /// すべてのメッシュの全頂点にウェイトが設定された状態にします。
-        /// </summary>
-        /// <param name="root"></param>
-        /// <param name="notCombineRendererObjectNames"></param>
-        private static void MakeAllVerticesHaveWeights(
-            GameObject root,
-            IEnumerable<string> notCombineRendererObjectNames
-        )
-        {
-            foreach (var renderer in root.GetComponentsInChildren<SkinnedMeshRenderer>())
-            {
-                if (notCombineRendererObjectNames.Contains(renderer.name)
-                    || renderer.bones.Length > 1
-                    || renderer.bones.Length > 0 && renderer.bones[0] != renderer.transform)
-                {
-                    continue;
-                }
-
-                CombineMeshesAndSubMeshes.MakeVerticesHaveWeight(renderer: renderer);
-            }
-
-            foreach (var meshRenderer in root.GetComponentsInChildren<MeshRenderer>())
-            {
-                if (notCombineRendererObjectNames.Contains(meshRenderer.name))
-                {
-                    continue;
-                }
-
-                var meshFilter = meshRenderer.GetComponent<MeshFilter>();
-                Material[] materials = meshRenderer.sharedMaterials;
-                var renderer = meshRenderer.gameObject.AddComponent<SkinnedMeshRenderer>();
-                renderer.sharedMesh = meshFilter.sharedMesh;
-                UnityEngine.Object.DestroyImmediate(meshFilter);
-                renderer.sharedMaterials = materials;
-
-                CombineMeshesAndSubMeshes.MakeVerticesHaveWeight(renderer: renderer);
-            }
-        }
-
-        /// <summary>
-        /// 指定されたレンダラーのメッシュの頂点にウェイトが設定された状態にします。
-        /// </summary>
-        /// <param name="renderer"></param>
-        private static void MakeVerticesHaveWeight(SkinnedMeshRenderer renderer)
-        {
-            Transform bone = renderer.transform.parent;
-            renderer.bones = new[] { bone };
-
-            var mesh = UnityEngine.Object.Instantiate(renderer.sharedMesh);
-            mesh.boneWeights = new BoneWeight[mesh.vertexCount].Select(boneWeight =>
-            {
-                boneWeight.weight0 = 1;
-                return boneWeight;
-            }).ToArray();
-            mesh.bindposes = new[] { bone.worldToLocalMatrix * renderer.localToWorldMatrix };
-            renderer.sharedMesh = mesh;
         }
 
         /// <summary>
@@ -114,24 +50,26 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             bool savingAsAsset
         )
         {
-            SkinnedMeshRenderer destinationRenderer = MeshIntegratorUtility.Integrate(
-                root,
-                MeshEnumerateOption.All,
-                excludes: root.GetComponentsInChildren<SkinnedMeshRenderer>()
-                    .Where(renderer => notCombineRendererObjectNames.Contains(renderer.name))
-                    .Select(renderer => renderer.sharedMesh)
-            ).IntegratedRenderer;
-            destinationRenderer.transform.SetParent(root.transform);
-
-            var animator = root.GetComponent<Animator>();
-            if (animator)
+            var meshIntegrationGroup = new MeshIntegrationGroup()
             {
-                var hips = animator.GetBoneTransform(HumanBodyBones.Hips);
-                if (hips)
+                Name = destinationObjectName,
+            };
+            foreach (var renderer in root.GetComponentsInChildren<Renderer>())
+            {
+                if (notCombineRendererObjectNames.Contains(renderer.name))
                 {
-                    destinationRenderer.rootBone = hips;
+                    continue;
                 }
+                meshIntegrationGroup.Renderers.Add(renderer);
             }
+            MeshIntegrator.TryIntegrate(
+                meshIntegrationGroup,
+                MeshIntegrator.BlendShapeOperation.Use,
+                out var meshIntegrationResult
+            );
+
+            var destinationRenderer
+                = meshIntegrationResult.AddIntegratedRendererTo(root).ElementAt(0).GetComponent<SkinnedMeshRenderer>();
 
             var rootPath = AssetDatabase.GetAssetPath(root);
             if (string.IsNullOrEmpty(rootPath))
@@ -170,9 +108,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                     UnityEngine.Object.DestroyImmediate(gameObject);
                 }
             }
-
-            destinationRenderer.name = destinationObjectName;
-            destinationRenderer.sharedMesh.name = destinationRenderer.name;
 
             if (savingAsAsset)
             {

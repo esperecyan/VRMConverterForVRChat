@@ -80,7 +80,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
             bool keepUnusedShapeKeys
         )
         {
-            GameObject clone = null, normalized = null;
+            GameObject clone = null;
             try
             {
                 var rootObjectName = instance.name;
@@ -130,11 +130,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
                 VRChatToVRMConverter.RemoveUnusedColliderGroups(clone);
 
                 // 正規化
-                normalized = VRMBoneNormalizer.Execute(clone, forceTPose: true);
+                VRMBoneNormalizer.Execute(clone, forceTPose: true);
 
                 // 全メッシュ結合
                 var combinedRenderer = CombineMeshesAndSubMeshes.Combine(
-                    normalized,
+                    clone,
                     notCombineRendererObjectNames: new List<string>(),
                     destinationObjectName: "vrm-mesh",
                     savingAsAsset: false
@@ -149,31 +149,31 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
                 }
 
                 // シェイプキーの分離
-                TabMeshSeparator.SeparationProcessing(normalized);
+                TabMeshSeparator.SeparationProcessing(clone);
 
                 // マテリアルの設定・アセットとして保存
-                VRChatToVRMConverter.ReplaceShaders(normalized, temporaryPrefabPath);
+                VRChatToVRMConverter.ReplaceShaders(clone, temporaryPrefabPath);
 
                 // GameObject・メッシュなどをアセットとして保存 (アセットとして存在しないと正常にエクスポートできない)
-                normalized.name = rootObjectName;
-                var animator = normalized.GetComponent<Animator>();
+                clone.name = rootObjectName;
+                var animator = clone.GetComponent<Animator>();
                 animator.avatar = Duplicator.CreateObjectToFolder(animator.avatar, temporaryPrefabPath);
                 meta.name = "Meta";
-                normalized.GetComponent<VRMMeta>().Meta = Duplicator.CreateObjectToFolder(meta, temporaryPrefabPath);
-                foreach (var renderer in normalized.GetComponentsInChildren<SkinnedMeshRenderer>())
+                clone.GetComponent<VRMMeta>().Meta = Duplicator.CreateObjectToFolder(meta, temporaryPrefabPath);
+                foreach (var renderer in clone.GetComponentsInChildren<SkinnedMeshRenderer>())
                 {
                     renderer.sharedMesh.name = renderer.name;
                     renderer.sharedMesh = Duplicator.CreateObjectToFolder(renderer.sharedMesh, temporaryPrefabPath);
                 }
 
                 // VRM設定2
-                VRChatToVRMConverter.SetFirstPersonRenderers(normalized);
+                VRChatToVRMConverter.SetFirstPersonRenderers(clone);
 
                 // 表情の設定
-                VRChatExpressionsReplacer.SetExpressions(normalized, presetShapeKeyNameWeightPairsPairs);
+                VRChatExpressionsReplacer.SetExpressions(clone, presetShapeKeyNameWeightPairsPairs);
 
                 var prefab = PrefabUtility
-                    .SaveAsPrefabAssetAndConnect(normalized, temporaryPrefabPath, InteractionMode.AutomatedAction);
+                    .SaveAsPrefabAssetAndConnect(clone, temporaryPrefabPath, InteractionMode.AutomatedAction);
 
                 // エクスポート
                 AssetDatabase.SaveAssets();
@@ -192,10 +192,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
                 if (clone != null)
                 {
                     Object.DestroyImmediate(clone);
-                }
-                if (normalized != null)
-                {
-                    Object.DestroyImmediate(normalized);
                 }
                 AssetDatabase.DeleteAsset("Assets/VRMConverterTemporary");
             }

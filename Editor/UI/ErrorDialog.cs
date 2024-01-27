@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEditor;
-using VRM;
+using UniGLTF;
 using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat.UI
@@ -50,7 +50,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                         text += $"VRChat SDK: {sdkVersion.text}\n";
                     }
                     text += $"{Converter.Name}: {this.version}\n"
-                        + $"UniVRM: {VRMVersion.VERSION}\n\n"
+                        + $"UniVRM: {PackageVersion.VERSION}\n\n"
                         + errorMessage;
                     GUIUtility.systemCopyBuffer = text;
                 }
