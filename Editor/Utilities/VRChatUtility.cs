@@ -44,19 +44,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             = Type.GetType("System.Collections.Generic.List`1[[DynamicBoneColliderBase, Assembly-CSharp]]");
 
         /// <summary>
-        /// VRChat SDKが対応しているUnityのバージョン。
-        /// </summary>
-        internal static readonly string SDKSupportedUnityVersion = "2019.4.31f1";
-
-        /// <summary>
         /// アバターの最小の肩の位置。
         /// </summary>
         internal static readonly float MinShoulderHeight = 0.2f;
-
-        /// <summary>
-        /// VRChat SDKがサポートするバージョンのUnityのダウンロード先。
-        /// </summary>
-        internal static readonly string DownloadURL = "https://docs.vrchat.com/docs/current-unity-version";
 
         /// <summary>
         /// オートアイムーブメントの有効化に必要となるダミーの階層構造。

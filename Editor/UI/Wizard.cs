@@ -507,17 +507,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 }
             }
 
-            var version = VRChatUtility.SDKSupportedUnityVersion;
-            if (version != "" && Application.unityVersion != version)
-            {
-                EditorGUILayout.HelpBox(string.Format(
-                    _("Unity {0} is running. If you are using a different version than {1}, VRChat SDK might not work correctly. Recommended using Unity downloaded from {2} ."),
-                    Application.unityVersion,
-                    version,
-                    VRChatUtility.DownloadURL
-                ), MessageType.Warning);
-            }
-
             if (!this.isValid || !this.forQuest)
             {
                 return true;
