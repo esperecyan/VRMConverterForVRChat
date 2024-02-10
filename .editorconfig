@@ -32,6 +32,8 @@ dotnet_style_qualification_for_event = true:warning
 dotnet_style_qualification_for_field = true:warning
 dotnet_style_qualification_for_method = true:warning
 dotnet_style_qualification_for_property = true:warning
+# メンバーアクセス簡略化の提案を無効に (staticメンバーに対応したコードスタイルオプションはない)
+dotnet_diagnostic.IDE0002.severity = none
 
 # 言語キーワードと BCL の種類の設定
 dotnet_style_predefined_type_for_locals_parameters_members = true:warning
