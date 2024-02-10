@@ -125,7 +125,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                 { ExpressionPreset.Oh, 13 },
             };
 
-        private static readonly Regex MybeBlinkShapeKeyNamePattern = new Regex(
+        private static readonly Regex MybeBlinkShapeKeyNamePattern = new(
             "blink|まばたき|またたき|瞬き|eye|目|瞳|眼|wink|ウィンク|ｳｨﾝｸ|ウインク|ｳｲﾝｸ",
             RegexOptions.IgnoreCase
         );

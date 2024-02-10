@@ -27,7 +27,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// <summary>
         /// ダイアログの最小サイズ。
         /// </summary>
-        private static readonly Vector2 MinSize = new Vector2(800, 350);
+        private static readonly Vector2 MinSize = new(800, 350);
 
         /// <summary>
         /// ダイアログを開いた時点の最小の高さ。
@@ -67,7 +67,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// 結合しないメッシュレンダラーのオブジェクト名。
         /// </summary>
         [SerializeField, Localizable]
-        private List<string> notCombineRendererObjectNames = new List<string>();
+        private List<string> notCombineRendererObjectNames = new();
 
         /// <summary>
         /// <c>false</c> の場合、シェイプキーの法線・接線を削除します。
@@ -112,7 +112,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// 除外する揺れ物の<see cref="VRMSpringBone.m_comment" />。
         /// </summary>
         [SerializeField, Localizable]
-        private List<string> excludedSpringBoneComments = new List<string>();
+        private List<string> excludedSpringBoneComments = new();
 
         [Header("For Quest")]
 

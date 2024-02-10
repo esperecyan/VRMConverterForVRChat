@@ -40,7 +40,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// アニメーションオーバーライドで表情をつけよう — VRで美少女になりたい人の備忘録
         /// <http://shiasakura.hatenablog.com/entry/2018/03/30/190811#%E3%83%A2%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3%E3%82%92%E3%82%B3%E3%83%B3%E3%83%88%E3%83%AD%E3%83%BC%E3%83%A9%E3%83%BC%E3%81%A8%E5%AF%BE%E5%BF%9C%E3%81%95%E3%81%9B%E3%82%8B>
         /// </remarks>
-        private static readonly Dictionary<BlendShapePreset, VRChatUtility.Anim> MappingBlendShapeToVRChatAnim = new Dictionary<BlendShapePreset, VRChatUtility.Anim> {
+        private static readonly Dictionary<BlendShapePreset, VRChatUtility.Anim> MappingBlendShapeToVRChatAnim = new()
+        {
             { BlendShapePreset.Joy, VRChatUtility.Anim.VICTORY },
             { BlendShapePreset.Angry, VRChatUtility.Anim.HANDGUN },
             { BlendShapePreset.Sorrow, VRChatUtility.Anim.THUMBSUP },
@@ -179,7 +180,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         /// <summary>
         /// <see cref="BlendShapePreset.Neutral"/>、および<see cref="BlendShapePreset.Blink"/>干渉防止用のアニメーションの設定値。キーに秒、値に有効無効。
         /// </summary>
-        private static readonly Dictionary<float, float> NeutralAndBlinkStopperWeights = new Dictionary<float, float> {
+        private static readonly Dictionary<float, float> NeutralAndBlinkStopperWeights = new()
+        {
             {  0.00f, 0 },
             {  1f / 60 * 2, 0 },
             {  1f / 60 * 3, 1 },
