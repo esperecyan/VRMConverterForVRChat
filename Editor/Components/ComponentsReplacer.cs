@@ -6,9 +6,7 @@ using UnityEditor;
 using VRM;
 using UniGLTF;
 using VRC.SDKBase;
-using VRC.SDK3.Avatars.Components;
 using Esperecyan.UniVRMExtensions.SwayingObjects;
-using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 {

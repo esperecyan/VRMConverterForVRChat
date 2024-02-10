@@ -8,7 +8,6 @@ using UnityEditor;
 using UnityEditor.Animations;
 using UniGLTF;
 using VRM;
-using UniHumanoid;
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 
 namespace Esperecyan.Unity.VRMConverterForVRChat

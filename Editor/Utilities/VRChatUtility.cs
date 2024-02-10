@@ -5,7 +5,6 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using UnityEditor;
-using VRC.Core;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Dynamics.PhysBone.Components;
 using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;

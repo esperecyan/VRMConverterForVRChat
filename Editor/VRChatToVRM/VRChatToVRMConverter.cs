@@ -12,7 +12,6 @@ using Esperecyan.UniVRMExtensions;
 using Esperecyan.UniVRMExtensions.SwayingObjects;
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 using SkinnedMeshUtility = Esperecyan.Unity.VRMConverterForVRChat.Utilities.SkinnedMeshUtility;
-using Esperecyan.Unity.VRMConverterForVRChat.Components;
 using Esperecyan.Unity.VRMConverterForVRChat.UI;
 using VRC.SDKBase;
 using VRC.SDK3.Avatars.Components;

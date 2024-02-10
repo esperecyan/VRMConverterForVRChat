@@ -1,13 +1,9 @@
-using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using UnityEditor;
-using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
-using Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM;
 using Esperecyan.Unity.VRMConverterForVRChat.Components;
-using VRM;
 using UniGLTF;
 using UniGLTF.MeshUtility;
 using BlendShape = UniGLTF.BlendShape;
