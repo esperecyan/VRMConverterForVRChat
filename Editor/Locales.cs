@@ -16,7 +16,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         {
             Gettext.SetLocalizedTexts(localizedTexts: new Dictionary<string, IDictionary<string, string>> {
                 { "ja", new Dictionary<string, string> {
-                    { "VRChat SDK3-Avatars has not been imported.", "VRChat SDK3-Avatars がインポートされていません。" },
                     { "Enable Eye Movement", "視線追従を有効化" },
                     { "Move Eye Bone To Front For Eye Movement", "目ボーンを手前に移動(視線用)" },
                     { "Swaying Objects", "揺れ物" },

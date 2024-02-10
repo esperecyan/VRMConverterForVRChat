@@ -5,11 +5,9 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using UnityEditor;
-#if VRC_SDK_VRCSDK3
 using VRC.Core;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Dynamics.PhysBone.Components;
-#endif
 using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
 using Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM;
 
@@ -113,16 +111,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             vrcPhysBoneColliderCount: 16,
             vrcPhysBoneCollisionCheckCount: 64
         );
-
-        /// <summary>
-        /// VRChat SDK3がインポートされていれば <c>3</c>、インポートされていなければ <c>null</c>。
-        /// </summary>
-        internal static readonly int? SDKVersion
-#if VRC_SDK_VRCSDK3
-            = 3;
-#else
-            = null;
-#endif
 
         /// <summary>
         /// <see cref="ExpressionPreset"/>と<see cref="VRC_AvatarDescriptor.VisemeBlendShapes"/>のインデックスの対応関係。
@@ -268,20 +256,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             var animations = new List<AnimationClip>();
             var expressions = new Dictionary<ExpressionPreset, VRChatExpressionBinding>();
 
-            var avatarDescriptor
-#if VRC_SDK_VRCSDK3
-                = instance.GetComponent<VRCAvatarDescriptor>();
-#else
-                = (dynamic)null;
-#endif
+            var avatarDescriptor = instance.GetComponent<VRCAvatarDescriptor>();
             var visemes = avatarDescriptor.VisemeBlendShapes;
             if (visemes != null)
             {
                 foreach (var (preset, index) in VRChatUtility.ExpressionPresetVRChatVisemeIndexPairs)
                 {
-#pragma warning disable IDE0007 // 暗黙的な型の使用 (VRChat SDKがインポートされていない場合のコンパイルエラー回避)
-                    string shapeKeyName = visemes.ElementAtOrDefault(index);
-#pragma warning restore IDE0007
+                    var shapeKeyName = visemes.ElementAtOrDefault(index);
                     if (shapeKeyName == null || !shapeKeyNames.Contains(shapeKeyName))
                     {
                         continue;
@@ -289,7 +270,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                     expressions[preset] = new VRChatExpressionBinding() { ShapeKeyNames = new[] { shapeKeyName } };
                 }
             }
-#if VRC_SDK_VRCSDK3
             var controller = avatarDescriptor.baseAnimationLayers
                 .FirstOrDefault(layer => layer.type == VRCAvatarDescriptor.AnimLayerType.FX)
                 .animatorController;
@@ -297,7 +277,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             {
                 animations = controller.animationClips.ToList();
             }
-#endif
 
             VRChatUtility.DetectBlinkExpressions(expressions, instance, shapeKeyNames);
 
@@ -343,7 +322,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                 shapeKeyName => VRChatUtility.OrderedBlinkGeneratedByCatsBlenderPlugin.Contains(shapeKeyName)
             ));
 
-#if VRC_SDK_VRCSDK3
             var settings = instance.GetComponent<VRCAvatarDescriptor>().customEyeLookSettings;
             if (settings.eyelidsSkinnedMesh != null && settings.eyelidsSkinnedMesh.sharedMesh != null
                 && settings.eyelidsBlendshapes != null && settings.eyelidsBlendshapes.Count() == 3
@@ -355,7 +333,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                     },
                 };
             }
-#endif
 
             var blinkShapeKeys = shapeKeyNames.Where(shapeKeyName => shapeKeyName.ToLower().Contains("blink")).ToList();
             if (blinkShapeKeys.Count() > 0)
@@ -432,13 +409,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
         {
             var messages = new List<(string, MessageType)>();
 
-            var vrcPhysBones = prefabInstance.GetComponentsInChildren<
-#if VRC_SDK_VRCSDK3
-                VRCPhysBone
-#else
-                dynamic
-#endif
-            >();
+            var vrcPhysBones = prefabInstance.GetComponentsInChildren<VRCPhysBone>();
             if (vrcPhysBones.Length > VRChatUtility.QuestPoorLimitations.vrcPhysBoneCount)
             {
                 messages.Add((string.Format(
@@ -467,13 +438,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                 vrcPhysBone => vrcPhysBone,
                 vrcPhysBone =>
                 {
-                    var root = (Transform/* SDK3なしのエラー回避 */)vrcPhysBone.rootTransform;
+                    var root = vrcPhysBone.rootTransform;
                     if (!root.IsChildOf(prefabInstance.transform))
                     {
                         return 0;
                     }
 
-                    var exclusions = (List<Transform>/* SDK3なしのエラー回避 */)vrcPhysBone.ignoreTransforms;
+                    var exclusions = vrcPhysBone.ignoreTransforms;
                     return root.GetComponentsInChildren<Transform>().Length
                         //- 1 // Collision checks counted incorrectly | Bug Reports | VRChat <https://vrchat.canny.io/bug-reports/p/collision-checks-counted-incorrectly>
                         - (exclusions != null
@@ -507,13 +478,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                 ), MessageType.Warning));
             }
 
-            var vrcPhysBoneColliderCount = prefabInstance.GetComponentsInChildren<
-#if VRC_SDK_VRCSDK3
-                VRCPhysBoneCollider
-#else
-                dynamic
-#endif
-            >().Length;
+            var vrcPhysBoneColliderCount = prefabInstance.GetComponentsInChildren<VRCPhysBoneCollider>().Length;
             if (vrcPhysBoneColliderCount > VRChatUtility.QuestPoorLimitations.vrcPhysBoneColliderCount)
             {
                 messages.Add((string.Format(
@@ -547,8 +512,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                 }
 
                 return (vrcPhysBoneAffectedTransformCountPair.Value - 1 /* ルートボーンを除外 */)
-                    * ((IEnumerable<Behaviour>/* SDK3なしのエラー回避 */)colliders)
-                        .Where(collider => collider.transform.IsChildOf(prefabInstance.transform)).Count();
+                    * colliders.Where(collider => collider.transform.IsChildOf(prefabInstance.transform)).Count();
             });
             if (collisionCheckCount > VRChatUtility.QuestPoorLimitations.vrcPhysBoneCollisionCheckCount)
             {

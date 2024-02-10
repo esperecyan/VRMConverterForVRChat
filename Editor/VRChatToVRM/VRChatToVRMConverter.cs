@@ -14,11 +14,9 @@ using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 using SkinnedMeshUtility = Esperecyan.Unity.VRMConverterForVRChat.Utilities.SkinnedMeshUtility;
 using Esperecyan.Unity.VRMConverterForVRChat.Components;
 using Esperecyan.Unity.VRMConverterForVRChat.UI;
-#if VRC_SDK_VRCSDK3
 using VRC.SDKBase;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Dynamics.PhysBone.Components;
-#endif
 
 namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
 {
@@ -93,13 +91,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
                 VRChatToVRMConverter.SetFirstPersonOffset(clone);
                 VRChatToVRMConverter.SetLookAtBoneApplyer(clone);
                 var sourceAndDestination = clone.GetComponent<Animator>();
-                if (sourceAndDestination.GetComponentInChildren<
-#if VRC_SDK_VRCSDK3
-                    VRCPhysBone
-#else
-                    dynamic
-#endif
-                >() != null)
+                if (sourceAndDestination.GetComponentInChildren<VRCPhysBone>() != null)
                 {
                     // VRCPhysBoneが含まれていれば
                     VRCPhysBonesToVRMSpringBonesConverter.Convert(
@@ -249,12 +241,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
 
         private static void SetFirstPersonOffset(GameObject instance)
         {
-            var avatarDescriptor
-#if VRC_SDK_VRCSDK3
-                = instance.GetComponent<VRC_AvatarDescriptor>();
-#else
-                = (dynamic)null;
-#endif
+            var avatarDescriptor = instance.GetComponent<VRC_AvatarDescriptor>();
             var firstPerson = instance.GetComponent<VRMFirstPerson>();
             firstPerson.FirstPersonOffset = avatarDescriptor.ViewPosition - firstPerson.FirstPersonBone.position;
         }
@@ -268,7 +255,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
         {
             var lookAtBoneApplyer = instance.GetComponent<VRMLookAtBoneApplyer>();
 
-#if VRC_SDK_VRCSDK3
             var settings = instance.GetComponent<VRCAvatarDescriptor>().customEyeLookSettings;
             if (settings.eyesLookingUp != null && settings.eyesLookingDown != null
                 && settings.eyesLookingLeft != null && settings.eyesLookingRight != null)
@@ -282,7 +268,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
                 lookAtBoneApplyer.HorizontalInner.CurveYRangeDegree
                     = Math.Min(-settings.eyesLookingLeft.right.y, settings.eyesLookingRight.left.y);
             }
-#endif
         }
 
         /// <summary>

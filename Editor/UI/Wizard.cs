@@ -9,9 +9,7 @@ using UnityEngine.SceneManagement;
 using UnityEditor;
 using UniGLTF;
 using VRM;
-#if VRC_SDK_VRCSDK3
 using VRC.Core;
-#endif
 using Esperecyan.UniVRMExtensions.SwayingObjects;
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
@@ -419,13 +417,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 indentStyle
             );
 
-            if (VRChatUtility.SDKVersion == null)
-            {
-                EditorGUILayout.HelpBox(_("VRChat SDK3-Avatars has not been imported."), MessageType.Error);
-                this.isValid = false;
-                return true;
-            }
-
             foreach (var type in Converter.RequiredComponents)
             {
                 if (!this.avatar.GetComponent(type))
@@ -523,11 +514,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
 
         private void OnWizardCreate()
         {
-            if (VRChatUtility.SDKVersion == null)
-            {
-                return;
-            }
-
             if (string.IsNullOrEmpty(this.destinationPath))
             {
                 var sourcePath = this.GetAssetsPath(vrm: this.avatar.gameObject);
@@ -565,12 +551,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
             if (previousPrefab)
             {
 
-                var pipelineManager
-#if VRC_SDK_VRCSDK3
-                    = previousPrefab.GetComponent<PipelineManager>();
-#else
-                    = (dynamic)null;
-#endif
+                var pipelineManager = previousPrefab.GetComponent<PipelineManager>();
                 prefabBlueprintId = pipelineManager ? pipelineManager.blueprintId : "";
 
                 GameObject[] previousRootGameObjects = SceneManager.GetActiveScene().GetRootGameObjects();
@@ -578,12 +559,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                     .Where(root => PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(root) == this.destinationPath)
                     .Select(root =>
                     {
-                        var manager
-#if VRC_SDK_VRCSDK3
-                            = root.GetComponent<PipelineManager>();
-#else
-                            = (dynamic)null;
-#endif
+                        var manager = root.GetComponent<PipelineManager>();
                         var blueprintId = manager ? manager.blueprintId : "";
                         return new
                         {
@@ -592,7 +568,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                         };
                     }).ToDictionary(
                         keySelector: indexAndBlueprintId => indexAndBlueprintId.index,
-                        elementSelector: indexAndBlueprintId => (string)/* VRChat SDKがインポートされていない場合のコンパイルエラー回避 */indexAndBlueprintId.blueprintId
+                        elementSelector: indexAndBlueprintId => indexAndBlueprintId.blueprintId
                     );
             }
 
@@ -640,9 +616,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
             // 変換前のプレハブのPipeline ManagerのBlueprint IDを反映
             if (!string.IsNullOrEmpty(prefabBlueprintId))
             {
-#if VRC_SDK_VRCSDK3
                 prefabInstance.GetComponent<PipelineManager>().blueprintId = prefabBlueprintId;
-#endif
             }
 
             PrefabUtility.ApplyPrefabInstance(prefabInstance, InteractionMode.AutomatedAction);
@@ -655,9 +629,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 {
                     continue;
                 }
-#if VRC_SDK_VRCSDK3
                 rootGameObjects[avatarIndex].GetComponent<PipelineManager>().blueprintId = blueprintId;
-#endif
             }
 
             if (blueprintIds.Count > 0)

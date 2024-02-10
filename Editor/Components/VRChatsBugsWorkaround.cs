@@ -6,9 +6,7 @@ using UnityEditor;
 using VRM;
 using UniHumanoid;
 using UniGLTF;
-#if VRC_SDK_VRCSDK3
 using VRC.SDKBase;
-#endif
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
 
@@ -189,9 +187,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                     humanDescription.skeleton[skeltonBones.FindIndex(match: skeltonBone => skeltonBone.name == armatureName)].position
                         += addedPosition;
 
-#if VRC_SDK_VRCSDK3
                     avatar.GetComponent<VRC_AvatarDescriptor>().ViewPosition += addedPosition;
-#endif
                 }
                 if (addedValueToShoulders != 0.0f)
                 {

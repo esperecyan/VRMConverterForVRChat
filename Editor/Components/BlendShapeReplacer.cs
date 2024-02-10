@@ -9,11 +9,9 @@ using VRM;
 using UniGLTF;
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 using SkinnedMeshUtility = Esperecyan.Unity.VRMConverterForVRChat.Utilities.SkinnedMeshUtility;
-#if VRC_SDK_VRCSDK3
 using VRC.SDKBase;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
-#endif
 
 namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 {
@@ -281,13 +279,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             }
             EditorUtility.SetDirty(mesh);
 
-            var avatarDescriptor
-#if VRC_SDK_VRCSDK3
-                = avatar.GetComponent<VRC_AvatarDescriptor>();
+            var avatarDescriptor = avatar.GetComponent<VRC_AvatarDescriptor>();
             avatarDescriptor.lipSync = VRC_AvatarDescriptor.LipSyncStyle.VisemeBlendShape;
-#else
-                = (dynamic)null;
-#endif
             avatarDescriptor.VisemeSkinnedMesh = renderer;
             avatarDescriptor.VisemeBlendShapes
                 = BlendShapeReplacer.VisemeShapeKeyNamesAndValues.Select(nameAndValues => nameAndValues.Key).ToArray();
@@ -389,7 +382,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 EditorUtility.SetDirty(mesh);
             }
 
-#if VRC_SDK_VRCSDK3
             var descriptor = avatar.GetComponent<VRCAvatarDescriptor>();
             descriptor.enableEyeLook = true;
 
@@ -443,7 +435,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             }
 
             descriptor.customEyeLookSettings = settings;
-#endif
         }
 
         /// <summary>
@@ -567,7 +558,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 prefabInstance: avatar
             );
 
-#if VRC_SDK_VRCSDK3
             var avatarDescriptor = avatar.GetOrAddComponent<VRCAvatarDescriptor>();
             avatarDescriptor.customizeAnimationLayers = true;
             avatarDescriptor.baseAnimationLayers = new[] {
@@ -642,7 +632,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 = (BlendTree)childStates.First(childState => childState.state.name == "FaceBlend").state.motion;
             var motions = blendTree.children;
 
-#endif
             AnimationClip neutral = null;
 
             foreach (var preset in BlendShapeReplacer.MappingBlendShapeToVRChatAnim.Keys.Concat(new[] { BlendShapePreset.Neutral }))
@@ -666,7 +655,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 usedPresets.Add(preset);
 
                 var animationClip = CreateFeeling(avatar, blendShapeClip);
-#if VRC_SDK_VRCSDK3
                 if (preset == BlendShapePreset.Neutral)
                 {
                     neutral = animationClip;
@@ -686,9 +674,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                     }
                 }
                 animationClips.Add(animationClip);
-#endif
             }
-#if VRC_SDK_VRCSDK3
             motions[0].motion = neutral;
             blendTree.children = motions;
 
@@ -789,7 +775,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                     state.state.motion = empty;
                 }
             }
-#endif
         }
 
         /// <summary>

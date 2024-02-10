@@ -6,9 +6,7 @@ using UnityEngine;
 using UnityEditor;
 using UniGLTF;
 using VRM;
-#if VRC_SDK_VRCSDK3
 using VRC.SDKBase;
-#endif
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
 using SkinnedMeshUtility = Esperecyan.Unity.VRMConverterForVRChat.Utilities.SkinnedMeshUtility;
@@ -127,13 +125,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         {
             this.isValid = true;
 
-            if (VRChatUtility.SDKVersion == null)
-            {
-                EditorGUILayout.HelpBox(_("VRChat SDK3-Avatars has not been imported."), MessageType.Error);
-                this.isValid = false;
-                return true;
-            }
-
             if (!this.prefabOrInstance.GetComponent<Animator>().isHuman)
             {
                 EditorGUILayout.HelpBox(_("This is not humanoid."), MessageType.Error);
@@ -141,7 +132,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 return true;
             }
 
-#if VRC_SDK_VRCSDK3
             if (this.prefabOrInstance.GetComponent<VRC_AvatarDescriptor>() == null)
             {
                 EditorGUILayout.HelpBox(
@@ -151,7 +141,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 this.isValid = false;
                 return true;
             }
-#endif
 
             if (this.expressions == null)
             {

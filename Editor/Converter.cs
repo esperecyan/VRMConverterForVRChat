@@ -6,10 +6,8 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.PackageManager;
 using VRM;
-#if VRC_SDK_VRCSDK3
 using VRC.Core;
 using VRC.SDK3.Avatars.Components;
-#endif
 using Esperecyan.UniVRMExtensions.SwayingObjects;
 using Esperecyan.Unity.VRMConverterForVRChat.Components;
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
@@ -87,12 +85,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         {
             AssetDatabase.SaveAssets();
 
-#if VRC_SDK_VRCSDK3
             prefabInstance.AddComponent<VRCAvatarDescriptor>();
             prefabInstance.GetOrAddComponent<PipelineManager>();
-#else
-            throw new PlatformNotSupportedException("VRChat SDK3-Avatars has not been imported.");
-#endif
 
             var messages = new List<(string, MessageType)>();
             messages.AddRange(GeometryCorrector.Apply(avatar: prefabInstance));
