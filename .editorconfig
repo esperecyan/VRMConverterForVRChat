@@ -80,13 +80,12 @@ csharp_prefer_simple_default_expression = true:warning
 # コード ブロックの設定
 csharp_prefer_braces = true:warning
 
-# インデックスと範囲のユーザー設定【C# 8.0】
+# インデックスと範囲のユーザー設定
 csharp_style_prefer_index_operator = false:error
 csharp_style_prefer_range_operator = false:error
 
 # その他のユーザー設定
 csharp_using_directive_placement = outside_namespace:warning
-# 【C# 8.0】
 csharp_style_prefer_switch_expression = false:error
 
 ### 書式規則 ###
