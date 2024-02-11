@@ -177,16 +177,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         };
 
         /// <summary>
-        /// <see cref="BlendShapePreset.Neutral"/>、および<see cref="BlendShapePreset.Blink"/>干渉防止用のアニメーションの設定値。キーに秒、値に有効無効。
-        /// </summary>
-        private static readonly Dictionary<float, float> NeutralAndBlinkStopperWeights = new()
-        {
-            {  0.00f, 0 },
-            {  1f / 60 * 2, 0 },
-            {  1f / 60 * 3, 1 },
-        };
-
-        /// <summary>
         /// クラスに含まれる処理を適用します。
         /// </summary>
         /// <param name="avatar"></param>
