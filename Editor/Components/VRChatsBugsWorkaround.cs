@@ -114,10 +114,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
             var humanoidDescription = avatar.GetComponent<VRMHumanoidDescription>();
             AvatarDescription avatarDescription = humanoidDescription.Description;
             var humanDescription = avatarDescription.ToHumanDescription(avatar.transform);
-            if (humanDescriptionModifier != null)
-            {
-                humanDescriptionModifier(humanDescription);
-            }
+            humanDescriptionModifier?.Invoke(humanDescription);
             Avatar humanoidRig = AvatarBuilder.BuildHumanAvatar(avatar, humanDescription);
             humanoidRig.name = humanoidDescription.Avatar.name;
             EditorUtility.CopySerialized(humanoidRig, humanoidDescription.Avatar);
