@@ -24,8 +24,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         internal static IEnumerable<(string, MessageType)> Apply(
             GameObject avatar,
             Converter.SwayingObjectsConverterSetting swayingObjectsConverterSetting,
-            VRMSpringBonesToVRCPhysBonesConverter.ParametersConverter swayingParametersConverter,
-            bool forQuest
+            VRMSpringBonesToVRCPhysBonesConverter.ParametersConverter swayingParametersConverter
         )
         {
             var messages = new List<(string, MessageType)>();
