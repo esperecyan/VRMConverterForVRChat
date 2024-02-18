@@ -31,7 +31,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 { ExpressionPreset.BlinkRight, nameof(VRChatExpressionBinding.ShapeKeyNames) },
             };
 
-        private static int UnityEditorMaxMultiSelectCount = 32;
+        private static readonly int UnityEditorMaxMultiSelectCount = 32;
 
         private string version;
 

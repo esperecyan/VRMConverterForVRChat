@@ -20,7 +20,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <summary>
         /// アセットの種類ごとの、複製先のフォルダ名の末尾に追加する文字列。
         /// </summary>
-        private static Dictionary<Type, string> FolderNameSuffixes = new()
+        private static readonly Dictionary<Type, string> FolderNameSuffixes = new()
         {
             { typeof(Mesh            ), ".Meshes"      },
             { typeof(Material        ), ".Materials"   },
