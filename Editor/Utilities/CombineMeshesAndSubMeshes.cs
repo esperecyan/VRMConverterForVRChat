@@ -5,12 +5,12 @@ using UnityEngine;
 using UnityEditor;
 using UniGLTF.MeshUtility;
 
-namespace Esperecyan.Unity.VRMConverterForVRChat
+namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
 {
     /// <summary>
     /// 指定したオブジェクト階下のメッシュを、指定したオブジェクト直下へ結合します。その際、マテリアルが同一であるサブメッシュ (マテリアルスロット) を結合します。
     /// </summary>
-    public class CombineMeshesAndSubMeshes
+    internal static class CombineMeshesAndSubMeshes
     {
         /// <summary>
         /// メッシュを結合します。
@@ -20,7 +20,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         /// <param name="destinationObjectName">結合したメッシュのオブジェクト名。</param>
         /// <param name="savingAsAsset">アセットとして保存しないなら <c>true</c> を指定。</param>
         /// <returns></returns>
-        public static SkinnedMeshRenderer Combine(
+        internal static SkinnedMeshRenderer Combine(
             GameObject root,
             IEnumerable<string> notCombineRendererObjectNames,
             string destinationObjectName,
@@ -139,101 +139,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
 
             return destinationRenderer;
-        }
-
-        /// <summary>
-        /// 当エディタ拡張の名称。
-        /// </summary>
-        internal const string Name = "CombineMeshesAndSubMeshes.cs";
-    }
-
-    /// <summary>
-    /// ダイアログ。
-    /// </summary>
-    public class CombinerWizard : ScriptableWizard
-    {
-        /// <summary>
-        /// 追加するメニューアイテムの、「UnityEditorScripts」メニュー内の位置。
-        /// </summary>
-        public const int Priority = 22;
-
-        [SerializeField]
-        private GameObject root = null;
-
-        [SerializeField]
-        private string destinationObjectName = "mesh";
-
-        [SerializeField]
-        private List<string> notCombineRendererObjectNames = new List<string>();
-
-        private static void OpenWizard()
-        {
-            CombinerWizard.Open();
-        }
-
-        /// <summary>
-        /// ダイアログを開きます。
-        /// </summary>
-        [MenuItem("GameObject/UnityEditorScripts/" + CombineMeshesAndSubMeshes.Name, false, CombinerWizard.Priority)]
-        private static void Open()
-        {
-            var wizard = DisplayWizard<CombinerWizard>(CombineMeshesAndSubMeshes.Name, "Combine");
-            wizard.root = Selection.activeObject as GameObject;
-        }
-
-        protected override bool DrawWizardGUI()
-        {
-            base.DrawWizardGUI();
-            this.isValid = true;
-
-            if (!this.root)
-            {
-                this.isValid = false;
-                return true;
-            }
-
-            if (string.IsNullOrEmpty(this.destinationObjectName))
-            {
-                EditorGUILayout.HelpBox("「Destination Object Name」を入力してください。", MessageType.Error);
-                this.isValid = false;
-            }
-
-            IEnumerable<string> notCombineRendererObjectNames = this.notCombineRendererObjectNames.Except(new[] { "" });
-            if (notCombineRendererObjectNames.Count() == 0)
-            {
-                return true;
-            }
-
-            IEnumerable<string> names = notCombineRendererObjectNames.Except(
-                this.root.GetComponentsInChildren<SkinnedMeshRenderer>()
-                    .Concat<Component>(this.root.GetComponentsInChildren<MeshRenderer>())
-                    .Select(renderer => renderer.name)
-            );
-
-            if (names.Count() == 0)
-            {
-                return true;
-            }
-
-            EditorGUILayout.HelpBox(string.Join(separator: "\n• ", value: new[] { "レンダラーが設定されたGameObjectのうち、以下の名前を持つものは存在しません。" }
-                .Concat(names).ToArray()), MessageType.Warning);
-
-            return true;
-        }
-
-        private void OnWizardCreate()
-        {
-            CombineMeshesAndSubMeshes.Combine(
-                root: this.root,
-                notCombineRendererObjectNames: this.notCombineRendererObjectNames.Except(new[] { "" }),
-                destinationObjectName: this.destinationObjectName
-            );
-
-            EditorUtility.DisplayDialog(
-                CombineMeshesAndSubMeshes.Name,
-                "メッシュ、およびマテリアルが同一であるサブメッシュの結合が完了しました。",
-                "OK"
-            );
         }
     }
 }

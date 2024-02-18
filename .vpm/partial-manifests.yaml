@@ -1,8 +1,6 @@
 jp.pokemori.vrm-converter-for-vrchat:
     legacyFolders:
         Assets/VRMConverterForVRChat: 54e219ee282743b42a5458f893e59b7e
-    legacyFiles:
-        CombineMeshesAndSubMeshes.cs:
 
 jp.pokemori.univrm-extensions:
     legacyFolders:
@@ -16,6 +14,8 @@ com.vrmc.gltf:
     legacyFolders:
         Assets/UniGLTF: 49e44e391b2db4e41bd32306cf7c7af5
         Assets/MeshUtility: f11c20c3f50e40b4f8f6259f8e0886e0
+    legacyFiles:
+        CombineMeshesAndSubMeshes.cs:
 
 com.vrmc.vrmshaders:
     legacyFolders:
