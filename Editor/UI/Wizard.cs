@@ -419,13 +419,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 indentStyle
             );
 
-            if (VRChatUtility.SDKVersion == 2)
-            {
-                EditorGUILayout.HelpBox(_("The conversion from VRM to VRChat avatar is not supported by VRChat SDK2."), MessageType.Error);
-                this.isValid = false;
-                return true;
-            }
-            else if (VRChatUtility.SDKVersion == null)
+            if (VRChatUtility.SDKVersion == null)
             {
                 EditorGUILayout.HelpBox(_("VRChat SDK3-Avatars has not been imported."), MessageType.Error);
                 this.isValid = false;

@@ -14,9 +14,7 @@ using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
 using SkinnedMeshUtility = Esperecyan.Unity.VRMConverterForVRChat.Utilities.SkinnedMeshUtility;
 using Esperecyan.Unity.VRMConverterForVRChat.Components;
 using Esperecyan.Unity.VRMConverterForVRChat.UI;
-#if VRC_SDK_VRCSDK2
-using VRCSDK2;
-#elif VRC_SDK_VRCSDK3
+#if VRC_SDK_VRCSDK3
 using VRC.SDKBase;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Dynamics.PhysBone.Components;
@@ -49,17 +47,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
             "VRM/UnlitTransparent",
             "VRM/UnlitTransparentZWrite",
         };
-
-        /// <summary>
-        /// <summary>
-        /// 【SDK2】オートアイムーブメントにおける目のボーンの回転角度の最大値。
-        /// </summary>
-        /// <remarks>
-        /// 参照:
-        /// Eye trackingの実装【VRChat技術情報】 — VRChatパブリックログ
-        /// <https://jellyfish-qrage.hatenablog.com/entry/2018/07/25/034610>
-        /// </remarks>
-        private static readonly int MaxAutoEyeMovementDegree = 30;
 
         /// <summary>
         /// VRChatアバターインスタンスからVRMインスタンスへ変換します。
@@ -263,7 +250,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
         private static void SetFirstPersonOffset(GameObject instance)
         {
             var avatarDescriptor
-#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
+#if VRC_SDK_VRCSDK3
                 = instance.GetComponent<VRC_AvatarDescriptor>();
 #else
                 = (dynamic)null;
@@ -281,41 +268,21 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
         {
             var lookAtBoneApplyer = instance.GetComponent<VRMLookAtBoneApplyer>();
 
-            if (VRChatUtility.SDKVersion == 2)
-            {
-                if (!VRChatUtility.IsEnabledAutoEyeMovementInSDK2(instance))
-                {
-                    return;
-                }
-
-                foreach (var mapper in new[] {
-                    lookAtBoneApplyer.HorizontalOuter,
-                    lookAtBoneApplyer.HorizontalInner,
-                    lookAtBoneApplyer.VerticalDown,
-                    lookAtBoneApplyer.VerticalUp,
-                })
-                {
-                    mapper.CurveYRangeDegree = VRChatToVRMConverter.MaxAutoEyeMovementDegree;
-                }
-            }
-            else
-            {
 #if VRC_SDK_VRCSDK3
-                var settings = instance.GetComponent<VRCAvatarDescriptor>().customEyeLookSettings;
-                if (settings.eyesLookingUp != null && settings.eyesLookingDown != null
-                    && settings.eyesLookingLeft != null && settings.eyesLookingRight != null)
-                {
-                    lookAtBoneApplyer.VerticalUp.CurveYRangeDegree
-                        = Math.Min(-settings.eyesLookingUp.left.x, -settings.eyesLookingUp.right.x);
-                    lookAtBoneApplyer.VerticalDown.CurveYRangeDegree
-                        = Math.Min(settings.eyesLookingDown.left.x, settings.eyesLookingDown.right.x);
-                    lookAtBoneApplyer.HorizontalOuter.CurveYRangeDegree
-                        = Math.Min(-settings.eyesLookingLeft.left.y, settings.eyesLookingRight.right.y);
-                    lookAtBoneApplyer.HorizontalInner.CurveYRangeDegree
-                        = Math.Min(-settings.eyesLookingLeft.right.y, settings.eyesLookingRight.left.y);
-                }
-#endif
+            var settings = instance.GetComponent<VRCAvatarDescriptor>().customEyeLookSettings;
+            if (settings.eyesLookingUp != null && settings.eyesLookingDown != null
+                && settings.eyesLookingLeft != null && settings.eyesLookingRight != null)
+            {
+                lookAtBoneApplyer.VerticalUp.CurveYRangeDegree
+                    = Math.Min(-settings.eyesLookingUp.left.x, -settings.eyesLookingUp.right.x);
+                lookAtBoneApplyer.VerticalDown.CurveYRangeDegree
+                    = Math.Min(settings.eyesLookingDown.left.x, settings.eyesLookingDown.right.x);
+                lookAtBoneApplyer.HorizontalOuter.CurveYRangeDegree
+                    = Math.Min(-settings.eyesLookingLeft.left.y, settings.eyesLookingRight.right.y);
+                lookAtBoneApplyer.HorizontalInner.CurveYRangeDegree
+                    = Math.Min(-settings.eyesLookingLeft.right.y, settings.eyesLookingRight.left.y);
             }
+#endif
         }
 
         /// <summary>

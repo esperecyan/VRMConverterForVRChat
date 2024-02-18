@@ -5,14 +5,10 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using UnityEditor;
-#if VRC_SDK_VRCSDK2
-using VRCSDK2;
-#elif VRC_SDK_VRCSDK3
+#if VRC_SDK_VRCSDK3
+using VRC.Core;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Dynamics.PhysBone.Components;
-#endif
-#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
-using VRC.Core;
 #endif
 using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
 using Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM;
@@ -119,13 +115,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
         );
 
         /// <summary>
-        /// VRChat SDK2がインポートされていれば <c>2</c>、SDK3がインポートされていれば <c>3</c>、いずれもインポートされていなければ <c>null</c>。
+        /// VRChat SDK3がインポートされていれば <c>3</c>、インポートされていなければ <c>null</c>。
         /// </summary>
         internal static readonly int? SDKVersion
 #if VRC_SDK_VRCSDK3
             = 3;
-#elif VRC_SDK_VRCSDK2
-            = 2;
 #else
             = null;
 #endif
@@ -141,16 +135,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                 { ExpressionPreset.Ou, 14 },
                 { ExpressionPreset.Ee, 11 },
                 { ExpressionPreset.Oh, 13 },
-            };
-
-        private static readonly IDictionary<Anim, ExpressionPreset> AnimPresetPairs
-            = new Dictionary<Anim, ExpressionPreset>()
-            {
-                { Anim.VICTORY    , ExpressionPreset.Happy     },
-                { Anim.HANDGUN    , ExpressionPreset.Angry     },
-                { Anim.THUMBSUP   , ExpressionPreset.Sad       },
-                { Anim.ROCKNROLL  , ExpressionPreset.Relaxed   },
-                { Anim.FINGERPOINT, ExpressionPreset.Surprised },
             };
 
         private static readonly Regex MybeBlinkShapeKeyNamePattern = new Regex(
@@ -285,9 +269,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             var expressions = new Dictionary<ExpressionPreset, VRChatExpressionBinding>();
 
             var avatarDescriptor
-#if VRC_SDK_VRCSDK2
-                = instance.GetComponent<VRC_AvatarDescriptor>();
-#elif VRC_SDK_VRCSDK3
+#if VRC_SDK_VRCSDK3
                 = instance.GetComponent<VRCAvatarDescriptor>();
 #else
                 = (dynamic)null;
@@ -307,30 +289,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                     expressions[preset] = new VRChatExpressionBinding() { ShapeKeyNames = new[] { shapeKeyName } };
                 }
             }
-#if VRC_SDK_VRCSDK2
-            var customStandingAnims = avatarDescriptor.CustomStandingAnims;
-            if (customStandingAnims != null)
-            {
-                foreach (Anim anim in Enum.GetValues(typeof(Anim)))
-                {
-                    var animationClip = customStandingAnims[anim.ToString()];
-                    if (animationClip == null || animationClip.name == anim.ToString())
-                    {
-                        continue;
-                    }
-                    animations.Add(animationClip);
-
-                    if (!VRChatUtility.AnimPresetPairs.ContainsKey(anim))
-                    {
-                        continue;
-                    }
-                    expressions.Add(
-                        VRChatUtility.AnimPresetPairs[anim],
-                        new VRChatExpressionBinding() { AnimationClip = animationClip }
-                    );
-                }
-            }
-#elif VRC_SDK_VRCSDK3
+#if VRC_SDK_VRCSDK3
             var controller = avatarDescriptor.baseAnimationLayers
                 .FirstOrDefault(layer => layer.type == VRCAvatarDescriptor.AnimLayerType.FX)
                 .animatorController;
@@ -462,40 +421,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// VRChat SDK2でオートアイムーブメントの条件を満たしていれば <code>true</code> を返します。
-        /// </summary>
-        /// <returns></returns>
-        internal static bool IsEnabledAutoEyeMovementInSDK2(GameObject instance)
-        {
-            if (VRChatUtility.RequiredPathForAutoEyeMovement.Concat(new string[] { VRChatUtility.AutoBlinkMeshPath })
-                .All(path => instance.transform.Find(path) != null))
-            {
-                return false;
-            }
-
-            var meshTransform = instance.transform.Find(VRChatUtility.AutoBlinkMeshPath);
-            if (meshTransform == null)
-            {
-                return false;
-            }
-
-            var renderer = meshTransform.GetComponent<SkinnedMeshRenderer>();
-            if (renderer == null)
-            {
-                return false;
-            }
-
-            var mesh = renderer.sharedMesh;
-            if (mesh == null
-                || mesh.blendShapeCount < VRChatUtility.OrderedBlinkGeneratedByCatsBlenderPlugin.Count())
-            {
-                return false;
-            }
-
-            return true;
         }
 
         /// <summary>

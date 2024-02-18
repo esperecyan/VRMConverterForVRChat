@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEditor;
 using UniGLTF;
 using VRM;
-#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
+#if VRC_SDK_VRCSDK3
 using VRC.SDKBase;
 #endif
 using Esperecyan.Unity.VRMConverterForVRChat.Utilities;
@@ -129,7 +129,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
 
             if (VRChatUtility.SDKVersion == null)
             {
-                EditorGUILayout.HelpBox(_("VRChat SDK2 or SDK3 has not been imported."), MessageType.Error);
+                EditorGUILayout.HelpBox(_("VRChat SDK3-Avatars has not been imported."), MessageType.Error);
                 this.isValid = false;
                 return true;
             }
@@ -141,13 +141,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 return true;
             }
 
-#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
+#if VRC_SDK_VRCSDK3
             if (this.prefabOrInstance.GetComponent<VRC_AvatarDescriptor>() == null)
             {
-                EditorGUILayout.HelpBox(string.Format(
-                    _("Not set “{0}” component."),
-                    VRChatUtility.SDKVersion == 3 ? "VRCAvatarDescriptor" : "VRC_AvatarDescriptor"
-                ), MessageType.Error);
+                EditorGUILayout.HelpBox(
+                    string.Format(_("Not set “{0}” component."), "VRCAvatarDescriptor"),
+                    MessageType.Error
+                );
                 this.isValid = false;
                 return true;
             }
