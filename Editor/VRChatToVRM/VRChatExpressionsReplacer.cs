@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -85,8 +86,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
                         shapeKeyNameWeightPair.Key,
                         shapeKeyNameWeightPair.Value
                     ))
-                    .Where(value => value != null)
-                    .Select(value => value.Value);
+                    .OfType<BlendShapeBinding>(); // nullを取り除く
 
                 VRChatExpressionsReplacer.GetExpression(blendShapeAvatar, preset).Values = values.ToArray();
             }

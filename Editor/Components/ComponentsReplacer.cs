@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -24,7 +25,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         internal static IEnumerable<(string, MessageType)> Apply(
             GameObject avatar,
             Converter.SwayingObjectsConverterSetting swayingObjectsConverterSetting,
-            VRMSpringBonesToVRCPhysBonesConverter.ParametersConverter swayingParametersConverter
+            VRMSpringBonesToVRCPhysBonesConverter.ParametersConverter? swayingParametersConverter
         )
         {
             var messages = new List<(string, MessageType)>();

@@ -1,3 +1,5 @@
+#nullable enable
+using System;
 using System.Reflection;
 using System.Linq;
 using System.Collections.Generic;
@@ -33,24 +35,24 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
 
         private static readonly int UnityEditorMaxMultiSelectCount = 32;
 
-        private string version;
+        private string version = null!;
 
         /// <summary>
         /// エクスポート対象のVRChatアバター (Humanoid)。
         /// </summary>
-        private GameObject prefabOrInstance = null;
+        private GameObject? prefabOrInstance = null;
 
-        private VRMMetaObject meta = null;
+        private VRMMetaObject meta = null!;
 
-        private IEnumerable<string> shapeKeyNames = null;
+        private IEnumerable<string>? shapeKeyNames = null;
         private bool noShapeKeys = true;
-        private string[] maybeBlinkShapeKeyNames = null;
-        private IEnumerable<AnimationClip> animations = null;
-        private string[] animationNames = null;
-        private IDictionary<ExpressionPreset, VRChatExpressionBinding> expressions = null;
-        private IDictionary<ExpressionPreset, int> expressionPresetFlagPairs = null;
+        private string[]? maybeBlinkShapeKeyNames = null;
+        private IEnumerable<AnimationClip>? animations = null;
+        private string[]? animationNames = null;
+        private IDictionary<ExpressionPreset, VRChatExpressionBinding>? expressions = null;
+        private IDictionary<ExpressionPreset, int>? expressionPresetFlagPairs = null;
         private bool keepUnusedShapeKeys = false;
-        private Editor metaEditor = null;
+        private Editor? metaEditor = null;
 
         /// <summary>
         /// 設定ダイアログを開きます。
@@ -124,7 +126,15 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         {
             this.isValid = true;
 
-            if (!this.prefabOrInstance.GetComponent<Animator>().isHuman)
+            if (this.prefabOrInstance == null)
+            {
+                // 選択されたオブジェクトが削除されていれば
+                this.Close();
+                return true;
+            }
+
+            var animator = this.prefabOrInstance.GetComponent<Animator>();
+            if (animator == null || !animator.isHuman)
             {
                 EditorGUILayout.HelpBox(_("This is not humanoid."), MessageType.Error);
                 this.isValid = false;
@@ -141,7 +151,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                 return true;
             }
 
-            if (this.expressions == null)
+            if (this.expressions == null || this.expressionPresetFlagPairs == null || this.metaEditor == null)
             {
                 this.shapeKeyNames = this.prefabOrInstance.GetComponentsInChildren<SkinnedMeshRenderer>()
                     .Select(renderer => renderer.sharedMesh)
@@ -248,6 +258,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
 
         private void OnWizardCreate()
         {
+            if (this.prefabOrInstance == null
+                || this.maybeBlinkShapeKeyNames == null)
+            {
+                throw new InvalidOperationException();
+            }
+
             var path = EditorUtility.SaveFilePanel(
                 title: _("Export VRM file"),
                 directory: "",

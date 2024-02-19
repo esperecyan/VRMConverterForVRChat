@@ -1,4 +1,4 @@
-
+#nullable enable
 namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
 {
     /// <summary>

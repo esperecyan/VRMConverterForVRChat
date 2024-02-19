@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Reflection;
 using System.Linq;
@@ -43,7 +44,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// 複製・変換対象のアバター。
         /// </summary>
         [SerializeField]
-        private Animator avatar = default;
+        private Animator? avatar = default;
 
         /// <summary>
         /// VRChat上でモデルがなで肩・いかり肩になる問題について、ボーンのPositionのYに加算する値。
@@ -128,24 +129,24 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// 各種コールバック関数のユーザー設定値。
         /// </summary>
         [SerializeField, Localizable]
-        private MonoScript callbackFunctions = default;
+        private MonoScript? callbackFunctions = default;
 
-        private string version;
+        private string version = null!;
 
         /// <summary>
         /// <see cref="Converter.SwayingParametersConverter"/>のユーザー設定値。
         /// </summary>
-        private VRMSpringBonesToVRCPhysBonesConverter.ParametersConverter swayingParametersConverter = default;
+        private VRMSpringBonesToVRCPhysBonesConverter.ParametersConverter? swayingParametersConverter = default;
 
         /// <summary>
         /// <see cref="Converter.PostConverting"/>のユーザー設定値。
         /// </summary>
-        private Converter.PostConverting postConverting = default;
+        private Converter.PostConverting? postConverting = default;
 
         /// <summary>
         /// 「Assets/」で始まり「.prefab」で終わる保存先のパス。
         /// </summary>
-        private string destinationPath = default;
+        private string? destinationPath = default;
 
         /// <summary>
         /// 変換ダイアログを開きます。
@@ -242,6 +243,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// </summary>
         private void LoadSettings()
         {
+            if (this.avatar == null)
+            {
+                return;
+            }
+
             var vrmMeta = this.avatar.GetComponent<VRMMeta>();
             if (vrmMeta == null)
             {
@@ -263,7 +269,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
             {
                 Type type = info.FieldType;
 
-                object fieldValue = null;
+                object? fieldValue = null;
                 if (type == typeof(List<string>))
                 {
                     XmlElement list = settings.GetElementsByTagName(localName: info.Name, namespaceURI: Wizard.EditorUserSettingsXmlNamespace)
@@ -312,6 +318,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// </summary>
         private void SaveSettings()
         {
+            if (this.avatar == null)
+            {
+                return;
+            }
+
             var title = this.avatar.GetComponent<VRMMeta>().Meta.Title;
             if (string.IsNullOrEmpty(title))
             {
@@ -348,7 +359,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                             namespaceURI: Wizard.EditorUserSettingsXmlNamespace
                         );
                     }
-                    foreach (var content in fieldValue as List<string>)
+                    foreach (var content in (List<string>)fieldValue)
                     {
                         if (string.IsNullOrEmpty(content))
                         {
@@ -383,7 +394,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
             base.DrawWizardGUI();
             this.isValid = true;
 
-            if (this.callbackFunctions)
+            if (this.avatar == null)
+            {
+                this.isValid = false;
+                return true;
+            }
+
+            if (this.callbackFunctions != null)
             {
                 Type callBackFunctions = this.callbackFunctions.GetClass();
 
@@ -514,6 +531,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
 
         private void OnWizardCreate()
         {
+            if (this.avatar == null)
+            {
+                return;
+            }
+
             if (string.IsNullOrEmpty(this.destinationPath))
             {
                 var sourcePath = this.GetAssetsPath(vrm: this.avatar.gameObject);
@@ -548,9 +570,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
             var prefabBlueprintId = "";
             var blueprintIds = new Dictionary<int, string>();
             var previousPrefab = AssetDatabase.LoadMainAssetAtPath(this.destinationPath) as GameObject;
-            if (previousPrefab)
+            if (previousPrefab != null)
             {
-
                 var pipelineManager = previousPrefab.GetComponent<PipelineManager>();
                 prefabBlueprintId = pipelineManager ? pipelineManager.blueprintId : "";
 
@@ -648,6 +669,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// <returns></returns>
         private string GetAssetsPath(GameObject vrm)
         {
+            if (this.avatar == null)
+            {
+                throw new InvalidOperationException();
+            }
+
             var path = AssetDatabase.GetAssetPath(vrm);
             if (path != null && !path.StartsWith("Assets/"))
             {

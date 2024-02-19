@@ -1,3 +1,4 @@
+#nullable enable
 using UnityEngine;
 using UnityEditor;
 
@@ -29,7 +30,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         [MenuItem(Menu.ItemName, false, Menu.Priority)]
         private static void DuplicateAndConvertForVRChat()
         {
-            Wizard.Open(avatar: ClosestModel());
+            var model = ClosestModel();
+            if (model == null)
+            {
+                return;
+            }
+            Wizard.Open(avatar: model);
         }
 
         /// <summary>
@@ -48,7 +54,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         [MenuItem(Menu.VRChatToVRMItemName, isValidateFunction: false, Menu.Priority + 1)]
         private static void ExportVRM()
         {
-            VRChatToVRMWizard.Open(ClosestModel());
+            var model = ClosestModel();
+            if (model == null)
+            {
+                return;
+            }
+            VRChatToVRMWizard.Open(model);
         }
 
         /// <summary>
@@ -65,10 +76,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         /// 選択されている、または祖先のオブジェクトで、Animatorコンポーネントが設定されているものを取得します。
         /// </summary>
         /// <returns>見つからなかった場合は <c>null</c> を返します。</returns>
-        private static GameObject ClosestModel()
+        private static GameObject? ClosestModel()
         {
             var activeObject = Selection.activeObject as GameObject;
-            if (!activeObject)
+            if (activeObject == null)
             {
                 return null;
             }

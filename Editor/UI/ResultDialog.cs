@@ -1,3 +1,4 @@
+#nullable enable
 using System.Collections.Generic;
 using UnityEditor;
 using static Esperecyan.Unity.VRMConverterForVRChat.Utilities.Gettext;
@@ -9,7 +10,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
     /// </summary>
     internal class ResultDialog : ScriptableWizard
     {
-        private IEnumerable<(string message, MessageType type)> messages;
+        private IEnumerable<(string message, MessageType type)> messages = null!;
 
         /// <summary>
         /// ダイアログを開きます。

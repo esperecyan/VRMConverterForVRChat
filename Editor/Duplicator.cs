@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,8 +42,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         public static GameObject Duplicate(
             GameObject sourceAvatar,
             string destinationPath,
-            IEnumerable<string> notCombineRendererObjectNames = null,
-            bool combineMeshesAndSubMeshes = true
+            IEnumerable<string> notCombineRendererObjectNames,
+            bool combineMeshesAndSubMeshes
         )
         {
             var destinationPrefab = Duplicator.DuplicatePrefab(sourceAvatar, destinationPath);
@@ -153,7 +154,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         internal static T CreateObjectToFolder<T>(
             T source,
             string prefabPath,
-            string destinationFileName = null
+            string? destinationFileName = null
         ) where T : Object
         {
             var path = AssetDatabase.GetAssetPath(source);
@@ -201,7 +202,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         internal static T CreateObjectToFolder<T>(
             T source,
             GameObject prefabInstance,
-            string destinationFileName = null
+            string destinationFileName
         ) where T : Object
         {
             return Duplicator.CreateObjectToFolder<T>(
@@ -270,7 +271,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         {
             if (source is AnimatorController controller)
             {
-                return Duplicator.DuplicateAnimatorControllerAsset(controller, destinationPath) as T;
+                return (T)(object)Duplicator.DuplicateAnimatorControllerAsset(controller, destinationPath);
             }
 
             var sourceUnityPath = UnityPath.FromAsset(source);
@@ -384,17 +385,18 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             IEnumerable<string> notCombineRendererObjectNames
         )
         {
-            var faceMeshRenderer
-                = combineMeshesAndSubMeshes ? null : Duplicator.GetFaceMeshRenderer(prefabInstance: prefabInstance);
+            var faceMeshTransform = combineMeshesAndSubMeshes
+                ? null
+                : Duplicator.GetFaceMeshRenderer(prefabInstance: prefabInstance).transform;
 
             var sameNameTransform = prefabInstance.transform.Find(VRChatUtility.AutoBlinkMeshPath);
-            if (sameNameTransform && (combineMeshesAndSubMeshes || faceMeshRenderer.transform != sameNameTransform))
+            if (sameNameTransform && (faceMeshTransform == null || faceMeshTransform != sameNameTransform))
             {
                 sameNameTransform.name += "-" + VRChatUtility.AutoBlinkMeshPath;
             }
 
             var prefabPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(prefabInstance);
-            if (combineMeshesAndSubMeshes)
+            if (faceMeshTransform == null)
             {
                 CombineMeshesAndSubMeshes.Combine(
                     root: prefabInstance,
@@ -404,10 +406,10 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             }
             else
             {
-                if (faceMeshRenderer.transform != sameNameTransform)
+                if (faceMeshTransform != sameNameTransform)
                 {
-                    faceMeshRenderer.transform.parent = prefabInstance.transform;
-                    faceMeshRenderer.transform.name = VRChatUtility.AutoBlinkMeshPath;
+                    faceMeshTransform.parent = prefabInstance.transform;
+                    faceMeshTransform.name = VRChatUtility.AutoBlinkMeshPath;
                 }
             }
             PrefabUtility.SaveAsPrefabAssetAndConnect(prefabInstance, prefabPath, InteractionMode.AutomatedAction);

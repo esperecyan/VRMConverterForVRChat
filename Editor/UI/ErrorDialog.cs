@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using UnityEngine;
 using UnityEditor;
@@ -14,9 +15,13 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         private static readonly string IssuesURL = "https://github.com/esperecyan/VRMConverterForVRChat/issues";
         private static readonly string VRChatSDKVersionFilePath = "Assets/VRCSDK/version.txt";
 
-        private string version;
-        private Exception exception;
+        private string version = null!;
+        private Exception exception = null!;
         private Vector2 errorMessageScrollPosition;
+
+        private ErrorDialog()
+        {
+        }
 
         /// <summary>
         /// ダイアログを開きます。

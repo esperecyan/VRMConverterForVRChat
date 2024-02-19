@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -73,14 +74,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             bool forQuest,
             SwayingObjectsConverterSetting swayingObjectsConverterSetting,
             bool takingOverSwayingParameters = true,
-            VRMSpringBonesToVRCPhysBonesConverter.ParametersConverter swayingParametersConverter = null,
-            VRMBlendShapeClip vrmBlendShapeForFINGERPOINT = null,
+            VRMSpringBonesToVRCPhysBonesConverter.ParametersConverter? swayingParametersConverter = null,
+            VRMBlendShapeClip? vrmBlendShapeForFINGERPOINT = null,
             bool keepingUpperChest = false,
             float addedShouldersPositionY = 0.0f,
             float addedArmaturePositionY = 0.0f,
             bool useShapeKeyNormalsAndTangents = false,
             OSCComponents oscComponents = OSCComponents.Blink,
-            PostConverting postConverting = null
+            PostConverting? postConverting = null
         )
         {
             AssetDatabase.SaveAssets();
@@ -102,8 +103,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 swayingObjectsConverterSetting: swayingObjectsConverterSetting,
                 swayingParametersConverter: takingOverSwayingParameters
                     ? swayingParametersConverter
-                    : null,
-                forQuest
+                    : null
             ));
             messages.AddRange(VRChatsBugsWorkaround.Apply(
                 avatar: prefabInstance,
@@ -146,7 +146,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 EditorApplication.update -= Handler;
 
                 taskCompleteSource.SetResult(
-                    request.Result.FirstOrDefault(info => info.name == "jp.pokemori.vrm-converter-for-vrchat")?.version
+                    request.Result.FirstOrDefault(info => info.name == "jp.pokemori.vrm-converter-for-vrchat").version
                 );
             }
 

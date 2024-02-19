@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -64,7 +65,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
             bool keepUnusedShapeKeys
         )
         {
-            GameObject clone = null;
+            GameObject? clone = null;
             try
             {
                 var rootObjectName = instance.name;

@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -108,7 +109,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         ///     再度メソッドを呼び出すと変更は失われます。</param>
         private static void ApplyAvatarDescription(
             GameObject avatar,
-            Action<HumanDescription> humanDescriptionModifier = null
+            Action<HumanDescription>? humanDescriptionModifier = null
         )
         {
             var humanoidDescription = avatar.GetComponent<VRMHumanoidDescription>();
@@ -218,7 +219,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                 }
 
                 var importer = AssetImporter.GetAtPath(path) as TextureImporter;
-                if (!importer || !importer.mipmapEnabled || importer.streamingMipmaps)
+                if (importer == null || !importer.mipmapEnabled || importer.streamingMipmaps)
                 {
                     continue;
                 }
