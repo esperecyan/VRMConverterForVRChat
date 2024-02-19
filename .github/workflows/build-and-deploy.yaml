@@ -11,7 +11,7 @@ jobs:
         runs-on: ubuntu-22.04
         steps:
             - name: メインブランチをチェックアウト
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
 
             - name: レジストリのキャッシュを展開
               uses: dawidd6/action-download-artifact@72aaadce3bc708349fc665eee3785cbb1b6e51d0 #v3.1.1
@@ -20,14 +20,14 @@ jobs:
                 path: ./registry/
                 if_no_artifact_found: warn
 
-            - uses: actions/setup-node@v3
+            - uses: actions/setup-node@v4
               with:
-                node-version: '18'
+                node-version: '20'
 
             # https://docs.github.com/ja/actions/using-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
             - name: Cache node modules
               id: cache-npm
-              uses: actions/cache@v3
+              uses: actions/cache@v4
               env:
                 cache-name: cache-node-modules
               with:
@@ -50,7 +50,7 @@ jobs:
                 TAG_NAME: ${{ github.event.release.tag_name }}
 
             - name: GitHub Pages用のデータをアップロード
-              uses: actions/upload-pages-artifact@v1
+              uses: actions/upload-pages-artifact@v3
               with:
                 path: ./.vpm/registry/
 
@@ -64,4 +64,4 @@ jobs:
         runs-on: ubuntu-22.04
         steps:
             - name: Deploy to GitHub Pages
-              uses: actions/deploy-pages@v2
+              uses: actions/deploy-pages@v4
