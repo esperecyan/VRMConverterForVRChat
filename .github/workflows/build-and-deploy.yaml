@@ -14,11 +14,11 @@ jobs:
               uses: actions/checkout@v3
 
             - name: レジストリのキャッシュを展開
-              uses: actions/checkout@v3
+              uses: dawidd6/action-download-artifact@72aaadce3bc708349fc665eee3785cbb1b6e51d0 #v3.1.1
               with:
-                path: ./.vpm/registry/
-                ref: registry
-              continue-on-error: true
+                name: github-pages
+                path: ./registry/
+                if_no_artifact_found: warn
 
             - uses: actions/setup-node@v3
               with:
@@ -48,19 +48,6 @@ jobs:
             - run: npm --prefix ./.vpm/ run build
               env:
                 TAG_NAME: ${{ github.event.release.tag_name }}
-
-            - name: リリースページへ添付
-              uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 #v0.1.15
-              with:
-                files: ./.vpm/packages/*.zip
-
-            - name: レジストリのキャッシュを保存
-              uses: peaceiris/actions-gh-pages@373f7f263a76c20808c831209c920827a82a2847 # v3.9.3
-              with:
-                github_token: ${{ secrets.GITHUB_TOKEN }}
-                publish_branch: registry
-                publish_dir: ./.vpm/registry/
-                force_orphan: true
 
             - name: GitHub Pages用のデータをアップロード
               uses: actions/upload-pages-artifact@v1

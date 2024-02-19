@@ -5,11 +5,14 @@ import crypto from 'node:crypto';
 import timers from 'node:timers/promises';
 import os from 'node:os';
 import core from '@actions/core';
+import semver from 'semver';
 import tar from 'tar';
 import AdmZip from 'adm-zip';
 import yaml from 'js-yaml';
 import openupm from 'openupm-cli/lib/core.js';
 
+/** VPMパッケージ化する最初のバージョン。 */
+const MIN_VERSION = '40.0.1';
 const INTERVAL_MILISECONDS = 1 * 60 * 1000;
 const IGNORE_PACKAGE_NAME_PREFIX = 'com.vrchat.';
 const IGNORE_PACKSGE_NAME_FROM_VPM_DEPENDENCIES_PREFIX = 'com.unity.';
@@ -20,30 +23,9 @@ await openupm.parseEnv({ _global: { } }, { });
 if (!process.env.GITHUB_ACTIONS) {
 	// ローカルデバッグ
 	process.env.TAG_NAME = 'v' + (await openupm.fetchPackageInfo(name))['dist-tags'].latest;
+	process.env.GITHUB_REPOSITORY = 'esperecyan/VRMConverterForVRChat';
 }
-const version = process.env.TAG_NAME.replace('v', '');
-
-let dependencies;
-while (true) {
-	let invalidDependencies;
-	[ dependencies, invalidDependencies ] = await openupm.fetchPackageDependencies({ name, version, deep: true });
-	invalidDependencies = invalidDependencies.filter(({ name }) => !name.startsWith(IGNORE_PACKAGE_NAME_PREFIX));
-
-	const package404Dependencies = invalidDependencies.filter(({ reason }) => reason === 'package404');
-	if (package404Dependencies.length > 0) {
-		throw new DOMException('次のパッケージはOpenUPMレジストリに存在しません:\n'
-			+ package404Dependencies.map(({ name }) => name).join('\n'), 'NotFoundError');
-	}
-
-	if (invalidDependencies.length > 0) {
-		core.debug(`次のパッケージのバージョンはOpenUPMレジストリに存在しないため、${INTERVAL_MILISECONDS} ミリ秒待機:\n`
-			+ invalidDependencies.map(({ name, version }) => name + '@' + version).join('\n'));
-		await timers.setTimeout(INTERVAL_MILISECONDS);
-		continue;
-	}
-
-	break;
-}
+const latestVersion = process.env.TAG_NAME.replace('v', '');
 
 // レジストリを保存するフォルダを作成
 const registryDirectoryPath = path.join(vpmDirectoryPath, 'registry');
@@ -62,16 +44,51 @@ try {
 	// キャッシュが存在しない場合
 	registry = yaml.load(await fs.readFile(path.join(vpmDirectoryPath, 'registry-template.yaml')));
 }
+const { packages } = registry;
+
+const dependencies = [ ];
+const registeredVersions = Object.keys(packages[name]?.versions ?? { });
+for (const version of new Set(Object.keys((await openupm.fetchPackageInfo(name)).versions).concat([ latestVersion ]))) {
+	if (semver.lt(version, MIN_VERSION) || registeredVersions.includes(version)) {
+		// VPMパッケージ化する最初のバージョンより小さいバージョン (VPMパッケージ化しないバージョン)
+		// またはすでにレジストリへ追加済みのバージョンなら
+		continue;
+	}
+
+	while (true) {
+		let [ validDependencies, invalidDependencies ]
+			= await openupm.fetchPackageDependencies({ name, version, deep: true });
+		invalidDependencies = invalidDependencies.filter(({ name }) => !name.startsWith(IGNORE_PACKAGE_NAME_PREFIX));
+
+		const package404Dependencies = invalidDependencies.filter(({ reason }) => reason === 'package404');
+		if (package404Dependencies.length > 0) {
+			throw new DOMException('次のパッケージはOpenUPMレジストリに存在しません:\n'
+				+ package404Dependencies.map(({ name }) => name).join('\n'), 'NotFoundError');
+		}
+
+		if (invalidDependencies.length > 0) {
+			core.debug(`次のパッケージのバージョンはOpenUPMレジストリに存在しないため、${INTERVAL_MILISECONDS} ミリ秒待機:\n`
+				+ invalidDependencies.map(({ name, version }) => name + '@' + version).join('\n'));
+			await timers.setTimeout(INTERVAL_MILISECONDS);
+			continue;
+		}
+
+		dependencies.push(...validDependencies);
+		break;
+	}
+}
 
 // パッケージを保存するフォルダを作成
-const packagesDirectoryPath = path.join(vpmDirectoryPath, 'packages');
+const packagesDirectoryPath = path.join(registryDirectoryPath, 'packages');
 try {
 	await fs.mkdir(packagesDirectoryPath);
 } catch (exception) {
 	// フォルダが存在する場合
 }
 
-const { packages } = registry;
+const [ owner, repositoryName ] = process.env.GITHUB_REPOSITORY.split('/');
+const packageURLPrefix = `https://${owner}.github.io/${repositoryName}/packages/`;
+
 const namePartialManifestPairs = yaml.load(await fs.readFile(path.join(vpmDirectoryPath, 'partial-manifests.yaml')));
 for (const { name, version, internal } of dependencies) {
 	if (internal) {
@@ -109,7 +126,7 @@ for (const { name, version, internal } of dependencies) {
 				]));
 		}
 		Object.assign(manifest, namePartialManifestPairs[name]);
-		manifest.url = `https://github.com/${process.env.GITHUB_REPOSITORY}/releases/download/${process.env.TAG_NAME}/${packageFileName}`; //eslint-disable-line max-len
+		manifest.url = packageURLPrefix + packageFileName;
 		await fs.writeFile(manifestPath, JSON.stringify(manifest, null, '\t'));
 
 		zip = new AdmZip();

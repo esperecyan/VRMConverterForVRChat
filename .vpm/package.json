@@ -9,6 +9,7 @@
 		"adm-zip": "^0.5.10",
 		"js-yaml": "^4.1.0",
 		"openupm-cli": "^1.14.3",
+		"semver": "^7.6.0",
 		"tar": "^6.1.14"
 	},
 	"scripts": {
