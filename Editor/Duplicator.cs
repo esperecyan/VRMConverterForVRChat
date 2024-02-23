@@ -225,7 +225,12 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             string destinationPath
         )
         {
-            var temporaryPath = AssetDatabase.GenerateUniqueAssetPath("Assets/temporary.animatorController");
+            var temporaryFolderPath = AssetDatabase.GenerateUniqueAssetPath("Assets/temporary");
+            AssetDatabase.CreateFolder(
+                Path.GetDirectoryName(temporaryFolderPath),
+                Path.GetFileName(temporaryFolderPath)
+            );
+            var temporaryPath = Path.Combine(temporaryFolderPath, Path.GetFileName(destinationPath));
             AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(sourceController), temporaryPath);
 
             if (AssetDatabase.LoadMainAssetAtPath(destinationPath) == null)
@@ -241,7 +246,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             EditorUtility.SetDirty(destinationController);
             AssetDatabase.SaveAssets();
 
-            AssetDatabase.DeleteAsset(temporaryPath);
+            AssetDatabase.DeleteAsset(temporaryFolderPath);
 
             return destinationController;
         }
