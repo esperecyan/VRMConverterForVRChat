@@ -11,7 +11,7 @@
 	"dependencies": {
 		"com.vrchat.avatars": "3.5.0",
 		"com.vrmc.univrm": "0.119.0",
-		"jp.pokemori.univrm-extensions": "9.2.0"
+		"jp.pokemori.univrm-extensions": "10.0.0"
 	},
 	"author": {
 		"name": "100の人",
