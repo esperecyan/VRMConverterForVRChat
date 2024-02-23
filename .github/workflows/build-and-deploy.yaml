@@ -2,6 +2,12 @@ on:
     release:
         types:
             - published
+    workflow_dispatch:
+        inputs:
+            releasedTagName:
+                description: 再実行を行うリリースタグ (「v」を前置したバージョン番号)
+                type: string
+                required: true
 
 jobs:
     build:
@@ -47,7 +53,7 @@ jobs:
             - run: npm --prefix ./.vpm/ ci
             - run: npm --prefix ./.vpm/ run build
               env:
-                TAG_NAME: ${{ github.event.release.tag_name }}
+                TAG_NAME: ${{ inputs.releasedTagName || github.event.release.tag_name }}
 
             - name: GitHub Pages用のデータをアップロード
               uses: actions/upload-pages-artifact@v3
