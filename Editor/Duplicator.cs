@@ -184,7 +184,9 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 AssetDatabase.CreateAsset(source, destinationPath);
             }
 
-            return AssetDatabase.LoadAssetAtPath<T>(destinationPath);
+            var dest = AssetDatabase.LoadAssetAtPath<T>(destinationPath);
+            dest.name = Path.GetFileNameWithoutExtension(destinationPath);
+            return dest;
         }
 
         /// <summary>
