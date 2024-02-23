@@ -9,7 +9,8 @@ import semver from 'semver';
 import tar from 'tar';
 import AdmZip from 'adm-zip';
 import yaml from 'js-yaml';
-import openupm from 'openupm-cli/lib/core.js';
+import * as openupmEnv from 'openupm-cli/lib/utils/env.js';
+import * as openupmRegistryClient from 'openupm-cli/lib/registry-client.js';
 
 /** VPMパッケージ化する最初のバージョン。 */
 const MIN_VERSION = '40.0.1';
@@ -19,10 +20,12 @@ const IGNORE_PACKSGE_NAME_FROM_VPM_DEPENDENCIES_PREFIX = 'com.unity.';
 
 const vpmDirectoryPath = path.dirname(url.fileURLToPath(import.meta.url));
 const { name } = JSON.parse(await fs.readFile(path.join(vpmDirectoryPath, '..', 'package.json')));
-await openupm.parseEnv({ _global: { } }, { });
+const env = await openupmEnv.parseEnv({ _global: { } });
+const npmClient = openupmRegistryClient.getNpmClient();
 if (!process.env.GITHUB_ACTIONS) {
 	// ローカルデバッグ
-	process.env.TAG_NAME = 'v' + (await openupm.fetchPackageInfo(name))['dist-tags'].latest;
+	process.env.TAG_NAME
+		= 'v' + (await openupmRegistryClient.fetchPackument(env.registry, name, npmClient))['dist-tags'].latest;
 	process.env.GITHUB_REPOSITORY = 'esperecyan/VRMConverterForVRChat';
 }
 const latestVersion = process.env.TAG_NAME.replace('v', '');
@@ -48,7 +51,10 @@ const { packages } = registry;
 
 const dependencies = [ ];
 const registeredVersions = Object.keys(packages[name]?.versions ?? { });
-for (const version of new Set(Object.keys((await openupm.fetchPackageInfo(name)).versions).concat([ latestVersion ]))) {
+for (const version of new Set(
+	Object.keys((await openupmRegistryClient.fetchPackument(env.registry, name, npmClient)).versions)
+		.concat([ latestVersion ]),
+)) {
 	if (semver.lt(version, MIN_VERSION) || registeredVersions.includes(version)) {
 		// VPMパッケージ化する最初のバージョンより小さいバージョン (VPMパッケージ化しないバージョン)
 		// またはすでにレジストリへ追加済みのバージョンなら
@@ -56,8 +62,8 @@ for (const version of new Set(Object.keys((await openupm.fetchPackageInfo(name))
 	}
 
 	while (true) {
-		let [ validDependencies, invalidDependencies ]
-			= await openupm.fetchPackageDependencies({ name, version, deep: true });
+		let [ validDependencies, invalidDependencies ] = await openupmRegistryClient
+			.fetchPackageDependencies(env.registry, env.upstreamRegistry, name, version, true, npmClient);
 		invalidDependencies = invalidDependencies.filter(({ name }) => !name.startsWith(IGNORE_PACKAGE_NAME_PREFIX));
 
 		const package404Dependencies = invalidDependencies.filter(({ reason }) => reason === 'package404');
@@ -111,7 +117,10 @@ for (const { name, version, internal } of dependencies) {
 	try {
 		const tarFilePath = path.join(tarDirectoryPath, 'package.tar.gz');
 		await fs.writeFile(tarFilePath, Buffer.from(
-			await (await fetch((await openupm.fetchPackageInfo(name)).versions[version].dist.tarball)).arrayBuffer(),
+			await (await fetch(
+				(await openupmRegistryClient.fetchPackument(env.registry, name, npmClient))
+					.versions[version].dist.tarball,
+			)).arrayBuffer(),
 		));
 		await tar.extract({ file: tarFilePath, cwd: extractedDirectoryPath, strip: 1 });
 
