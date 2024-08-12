@@ -135,6 +135,12 @@ for (const { name, version, internal } of dependencies) {
 				]));
 		}
 		Object.assign(manifest, namePartialManifestPairs[name]);
+		if (manifest.name === 'com.vrmc.gltf' && semver.gte(manifest.version, '0.125.0')) {
+			// UniGLTF-0.125.0かそれ以上のバージョンなら
+			// VRMShardersが統合されているため
+			manifest.legacyPackages = (manifest.legacyPackages ?? [ ]).concat([ 'com.vrmc.vrmshaders' ]);
+			Object.assign(manifest.legacyFolders, namePartialManifestPairs['com.vrmc.vrmshaders'].legacyFolders);
+		}
 		manifest.url = packageURLPrefix + packageFileName;
 		await fs.writeFile(manifestPath, JSON.stringify(manifest, null, '\t'));
 

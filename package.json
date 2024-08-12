@@ -10,8 +10,8 @@
 	"licensesUrl": "https://pokemori.booth.pm/items/1025226",
 	"dependencies": {
 		"com.vrchat.avatars": "3.5.0",
-		"com.vrmc.univrm": "0.121.0",
-		"jp.pokemori.univrm-extensions": "10.1.0"
+		"com.vrmc.univrm": "0.125.0",
+		"jp.pokemori.univrm-extensions": "10.2.0"
 	},
 	"author": {
 		"name": "100の人",
