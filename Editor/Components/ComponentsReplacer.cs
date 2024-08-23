@@ -73,7 +73,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         private static void RemoveUnusedColliderGroups(GameObject avatar)
         {
             IEnumerable<GameObject> objectsHavingUsedColliderGroup = avatar.GetComponentsInChildren<VRMSpringBone>()
-                .SelectMany(springBone => springBone.ColliderGroups)
+                .SelectMany(springBone => springBone.ColliderGroups ?? new VRMSpringBoneColliderGroup[] { })
                 .Select(colliderGroup => colliderGroup.gameObject)
                 .ToArray();
 

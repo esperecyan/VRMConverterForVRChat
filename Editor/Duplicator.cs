@@ -62,6 +62,47 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         }
 
         /// <summary>
+        /// アセットの保存先のフォルダを決定します。
+        /// </summary>
+        /// <param name="avatarGameObject"></param>
+        /// <param name="type">アセットの種類。</param>
+        /// <param name="fileName">ファイル名。</param>
+        /// <returns>「Assets/」から始まるパス。
+        ///     アバターがプレハブインスタンスならプレハブのパスを、
+        ///     そうでなければ、参照されている、アセットとして存在する、最初に見つかったマテリアルのパスを、
+        ///     いずれも存在しなければ、AssetsフォルダとアバターのGameObjectの名前を結合したパスを返します。</returns>
+        private static string DetermineDestinationFolderPath(GameObject avatarGameObject)
+        {
+            var destinationFolderPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(avatarGameObject);
+            if (string.IsNullOrEmpty(destinationFolderPath))
+            {
+                foreach (var material in avatarGameObject
+                    .GetComponentsInChildren<Renderer>().SelectMany(renderer => renderer.sharedMaterials))
+                {
+                    if (material == null)
+                    {
+                        continue;
+                    }
+
+                    var materialPath = AssetDatabase.GetAssetPath(material);
+                    if (string.IsNullOrEmpty(materialPath))
+                    {
+                        continue;
+                    }
+
+                    destinationFolderPath = materialPath;
+                    break;
+                }
+
+                if (string.IsNullOrEmpty(destinationFolderPath))
+                {
+                    destinationFolderPath = Path.Combine("Assets", avatarGameObject.name);
+                }
+            }
+            return destinationFolderPath;
+        }
+
+        /// <summary>
         /// アセットの種類に応じて、保存先を決定します。
         /// </summary>
         /// <param name="destinationFolderUnityPath"></param>
@@ -83,22 +124,6 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             destinationFolderUnityPath.EnsureFolder();
 
             return destinationFolderUnityPath.Child(fileName).Value;
-        }
-
-        /// <summary>
-        /// アセットの種類に応じて、保存先を決定します。
-        /// </summary>
-        /// <param name="prefabInstance"></param>
-        /// <param name="type">アセットの種類。</param>
-        /// <param name="fileName">ファイル名。</param>
-        /// <returns>「Assets/」から始まるパス。</returns>
-        internal static string DetermineAssetPath(GameObject prefabInstance, Type type, string fileName = "")
-        {
-            return Duplicator.DetermineAssetPath(
-                PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(prefabInstance),
-                type,
-                fileName
-            );
         }
 
         /// <summary>
@@ -133,10 +158,11 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
                 destinationFileName = fileName;
             }
 
-            return Duplicator.DuplicateAsset(
-                source,
-                destinationPath: Duplicator.DetermineAssetPath(prefabInstance, typeof(T), destinationFileName)
-            );
+            return Duplicator.DuplicateAsset(source, destinationPath: Duplicator.DetermineAssetPath(
+                Duplicator.DetermineDestinationFolderPath(prefabInstance),
+                typeof(T),
+                destinationFileName
+            ));
         }
 
         /// <summary>
@@ -209,7 +235,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
         {
             return Duplicator.CreateObjectToFolder<T>(
                 source,
-                PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(prefabInstance),
+                Duplicator.DetermineDestinationFolderPath(prefabInstance),
                 destinationFileName
             );
         }
