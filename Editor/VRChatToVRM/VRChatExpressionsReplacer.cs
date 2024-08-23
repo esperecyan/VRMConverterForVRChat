@@ -141,41 +141,49 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
             return null;
         }
 
-        private static BlendShapeClip GetExpression(BlendShapeAvatar blendShapeAvatar, ExpressionPreset preset)
+        private static BlendShapeClip GetExpression(
+            BlendShapeAvatar blendShapeAvatar,
+            ExpressionPreset preset
+        )
         {
-            switch (preset)
+            if (preset == ExpressionPreset.Aa)
+                return blendShapeAvatar.GetClip(BlendShapePreset.A);
+            if (preset == ExpressionPreset.Ih)
+
+                return blendShapeAvatar.GetClip(BlendShapePreset.I);
+            if (preset == ExpressionPreset.Ou)
+                return blendShapeAvatar.GetClip(BlendShapePreset.U);
+            if (preset == ExpressionPreset.Ee)
+                return blendShapeAvatar.GetClip(BlendShapePreset.E);
+            if (preset == ExpressionPreset.Oh)
+                return blendShapeAvatar.GetClip(BlendShapePreset.O);
+            if (preset == ExpressionPreset.Happy)
+                return blendShapeAvatar.GetClip(BlendShapePreset.Joy);
+            if (preset == ExpressionPreset.Angry)
+                return blendShapeAvatar.GetClip(BlendShapePreset.Angry);
+            if (preset == ExpressionPreset.Sad)
+                return blendShapeAvatar.GetClip(BlendShapePreset.Sorrow);
+            if (preset == ExpressionPreset.Relaxed)
+                return blendShapeAvatar.GetClip(BlendShapePreset.Fun);
+            if (preset == ExpressionPreset.Surprised)
             {
-                case ExpressionPreset.Aa:
-                    return blendShapeAvatar.GetClip(BlendShapePreset.A);
-                case ExpressionPreset.Ih:
-                    return blendShapeAvatar.GetClip(BlendShapePreset.I);
-                case ExpressionPreset.Ou:
-                    return blendShapeAvatar.GetClip(BlendShapePreset.U);
-                case ExpressionPreset.Ee:
-                    return blendShapeAvatar.GetClip(BlendShapePreset.E);
-                case ExpressionPreset.Oh:
-                    return blendShapeAvatar.GetClip(BlendShapePreset.O);
-                case ExpressionPreset.Happy:
-                    return blendShapeAvatar.GetClip(BlendShapePreset.Joy);
-                case ExpressionPreset.Angry:
-                    return blendShapeAvatar.GetClip(BlendShapePreset.Angry);
-                case ExpressionPreset.Sad:
-                    return blendShapeAvatar.GetClip(BlendShapePreset.Sorrow);
-                case ExpressionPreset.Relaxed:
-                    return blendShapeAvatar.GetClip(BlendShapePreset.Fun);
-                case ExpressionPreset.Surprised:
-                    var blendShapeClip = ScriptableObject.CreateInstance<BlendShapeClip>();
-                    blendShapeClip.BlendShapeName = "Surprised";
-                    blendShapeAvatar.Clips.Add(blendShapeClip);
-                    return blendShapeClip;
-                case ExpressionPreset.Blink:
-                    return blendShapeAvatar.GetClip(BlendShapePreset.Blink);
-                case ExpressionPreset.BlinkLeft:
-                    return blendShapeAvatar.GetClip(BlendShapePreset.Blink_L);
-                case ExpressionPreset.BlinkRight:
-                    return blendShapeAvatar.GetClip(BlendShapePreset.Blink_R);
+                var blendShapeClip = ScriptableObject.CreateInstance<BlendShapeClip>();
+                blendShapeClip.BlendShapeName = "Surprised";
+                blendShapeAvatar.Clips.Add(blendShapeClip);
+                return blendShapeClip;
             }
-            throw new ArgumentOutOfRangeException();
+            if (preset == ExpressionPreset.Blink)
+                return blendShapeAvatar.GetClip(BlendShapePreset.Blink);
+            if (preset == ExpressionPreset.BlinkLeft)
+                return blendShapeAvatar.GetClip(BlendShapePreset.Blink_L);
+            if (preset == ExpressionPreset.BlinkRight)
+                return blendShapeAvatar.GetClip(BlendShapePreset.Blink_R);
+
+            // カスタム表情やその他の場合
+            var defaultBlendShapeClip = ScriptableObject.CreateInstance<BlendShapeClip>();
+            defaultBlendShapeClip.BlendShapeName = preset.Name;
+            blendShapeAvatar.Clips.Add(defaultBlendShapeClip);
+            return defaultBlendShapeClip;
         }
     }
 }

@@ -54,6 +54,35 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
         private bool keepUnusedShapeKeys = false;
         private Editor? metaEditor = null;
 
+
+        private enum ExpressionBindingType
+        {
+            None,
+            AnimationClip,
+            ShapeKeys
+        }
+
+        private class CustomExpressionInfo
+        {
+            public ExpressionPreset Preset;
+            public ExpressionBindingType BindingType;
+            public int AnimationIndex;
+            public int ShapeKeyFlags;
+
+            public CustomExpressionInfo(string name)
+            {
+                Preset = ExpressionPreset.CreateCustom(name);
+                BindingType = ExpressionBindingType.None;
+                AnimationIndex = 0;
+                ShapeKeyFlags = 0;
+            }
+        }
+
+        private List<CustomExpressionInfo> customExpressions = new List<CustomExpressionInfo>();
+
+        private Dictionary<ExpressionPreset, int> customExpressionAnimationIndices =
+            new Dictionary<ExpressionPreset, int>();
+
         /// <summary>
         /// 設定ダイアログを開きます。
         /// </summary>
@@ -224,14 +253,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                     if (this.noShapeKeys)
                     {
                         // アバターにシェイプキーが1つも含まれていない場合
-                        EditorGUILayout.Popup(preset.ToString(), 0, new string[] { });
+                        EditorGUILayout.Popup(preset.Name, 0, new string[] { });
                         continue;
                     }
 
                     if (VRChatToVRMWizard.PresetFieldPairs[preset] == nameof(VRChatExpressionBinding.AnimationClip))
                     {
                         this.expressionPresetFlagPairs[preset] = EditorGUILayout.Popup(
-                            preset.ToString(),
+                            preset.Name,
                             this.expressionPresetFlagPairs[preset],
                             this.animationNames
                         );
@@ -240,11 +269,54 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                     {
                         // まばたき
                         this.expressionPresetFlagPairs[preset] = EditorGUILayout.MaskField(
-                            preset.ToString(),
+                            preset.Name,
                             this.expressionPresetFlagPairs[preset],
                             this.maybeBlinkShapeKeyNames
                         );
                     }
+                }
+
+                // カスタム表情の設定
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("Custom Expressions", EditorStyles.boldLabel);
+                for (int i = 0; i < customExpressions.Count; i++)
+                {
+                    var expression = customExpressions[i];
+                    EditorGUILayout.BeginHorizontal();
+
+                    // 表情名の入力フィールド
+                    string newName = EditorGUILayout.TextField(expression.Preset.Name);
+                    if (newName != expression.Preset.Name)
+                    {
+                        expression.Preset = ExpressionPreset.CreateCustom(newName);
+                    }
+
+                    // バインディングタイプの選択
+                    expression.BindingType = (ExpressionBindingType)EditorGUILayout.EnumPopup(expression.BindingType);
+
+                    // バインディングタイプに応じた設定
+                    switch (expression.BindingType)
+                    {
+                        case ExpressionBindingType.AnimationClip:
+                            expression.AnimationIndex = EditorGUILayout.Popup(expression.AnimationIndex, this.animationNames);
+                            break;
+                        case ExpressionBindingType.ShapeKeys:
+                            expression.ShapeKeyFlags = EditorGUILayout.MaskField(expression.ShapeKeyFlags, this.maybeBlinkShapeKeyNames);
+                            break;
+                    }
+
+                    // 削除ボタン
+                    if (GUILayout.Button("Remove", GUILayout.Width(60)))
+                    {
+                        customExpressions.RemoveAt(i);
+                        i--;
+                    }
+
+                    EditorGUILayout.EndHorizontal();
+                }
+                if (GUILayout.Button("Add Custom Expression"))
+                {
+                    customExpressions.Add(new CustomExpressionInfo("New Expression"));
                 }
             }
 
@@ -282,7 +354,25 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.UI
                     expression => VRChatToVRMWizard.PresetFieldPairs[expression.Key] == nameof(VRChatExpressionBinding.AnimationClip)
                         ? new VRChatExpressionBinding() { AnimationClip = this.animations.ElementAt(expression.Value - 1) }
                         : new VRChatExpressionBinding() { ShapeKeyNames = VRChatToVRMWizard.ToKeys(this.maybeBlinkShapeKeyNames, expression.Value) }
-                ).Concat(this.expressions.Where(expression => VRChatUtility.ExpressionPresetVRChatVisemeIndexPairs.Keys.Contains(expression.Key)))
+                )
+                .Concat(this.expressions.Where(expression => VRChatUtility.ExpressionPresetVRChatVisemeIndexPairs.Keys.Contains(expression.Key)))
+                .Concat(this.customExpressions.Select(customExpression =>
+                    new KeyValuePair<ExpressionPreset, VRChatExpressionBinding>(
+                        customExpression.Preset,
+                        new VRChatExpressionBinding() {
+                            AnimationClip = customExpression.BindingType == ExpressionBindingType.AnimationClip
+                                && this.animations != null
+                                && customExpression.AnimationIndex > 0
+                                && customExpression.AnimationIndex <= this.animations.Count()
+                                    ? this.animations.ElementAt(customExpression.AnimationIndex - 1)
+                                    : null,
+                            ShapeKeyNames = customExpression.BindingType == ExpressionBindingType.ShapeKeys
+                                && this.maybeBlinkShapeKeyNames != null
+                                    ? VRChatToVRMWizard.ToKeys(this.maybeBlinkShapeKeyNames, customExpression.ShapeKeyFlags)
+                                    : null
+                        }
+                    )
+                ))
                 .ToDictionary(expression => expression.Key, expression => expression.Value);
 
             if (string.IsNullOrEmpty(this.meta.Title))
