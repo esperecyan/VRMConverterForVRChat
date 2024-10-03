@@ -325,7 +325,8 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Utilities
             var settings = instance.GetComponent<VRCAvatarDescriptor>().customEyeLookSettings;
             if (settings.eyelidsSkinnedMesh != null && settings.eyelidsSkinnedMesh.sharedMesh != null
                 && settings.eyelidsBlendshapes != null && settings.eyelidsBlendshapes.Count() == 3
-                && settings.eyelidsSkinnedMesh.sharedMesh.blendShapeCount > settings.eyelidsBlendshapes[0])
+                && settings.eyelidsSkinnedMesh.sharedMesh.blendShapeCount > settings.eyelidsBlendshapes[0]
+                && settings.eyelidsBlendshapes[0] != -1)
             {
                 expressions[ExpressionPreset.Blink] = new VRChatExpressionBinding() {
                     ShapeKeyNames = new[] {
