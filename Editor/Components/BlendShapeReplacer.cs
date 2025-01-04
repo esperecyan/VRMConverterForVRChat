@@ -337,14 +337,14 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
         {
             var oscBlinkEnabled = oscComponents.HasFlag(Converter.OSCComponents.Blink);
             var lookAtBoneApplyer = avatar.GetComponent<VRMLookAtBoneApplyer>();
-            if (!oscBlinkEnabled && !lookAtBoneApplyer)
+            if (oscBlinkEnabled && !lookAtBoneApplyer)
             {
                 return;
             }
 
             var renderer = avatar.transform.Find(VRChatUtility.AutoBlinkMeshPath).GetComponent<SkinnedMeshRenderer>();
             var mesh = renderer.sharedMesh;
-            if (oscBlinkEnabled && mesh.GetBlendShapeIndex(BlendShapeReplacer.BlinkShapeKeyName) == -1)
+            if (!oscBlinkEnabled && mesh.GetBlendShapeIndex(BlendShapeReplacer.BlinkShapeKeyName) == -1)
             {
                 mesh.AddBlendShapeFrame(
                     BlendShapeReplacer.BlinkShapeKeyName,
@@ -367,7 +367,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
 
             var settings = new VRCAvatarDescriptor.CustomEyeLookSettings();
 
-            if (oscBlinkEnabled)
+            if (!oscBlinkEnabled)
             {
                 settings.eyelidType = VRCAvatarDescriptor.EyelidType.Blendshapes;
                 settings.eyelidsSkinnedMesh = renderer;
