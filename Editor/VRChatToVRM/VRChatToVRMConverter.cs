@@ -109,7 +109,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.VRChatToVRM
                 VRChatToVRMConverter.RemoveUnusedColliderGroups(clone);
 
                 // 正規化
-                VRMBoneNormalizer.Execute(clone, forceTPose: true);
+                VRMBoneNormalizer.Execute(clone, forceTPose: true, useCurrentBlendShapeWeight: true);
 
                 // 全メッシュ結合
                 var combinedRenderer = CombineMeshesAndSubMeshes.Combine(
