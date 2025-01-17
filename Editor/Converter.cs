@@ -80,7 +80,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat
             float addedShouldersPositionY = 0.0f,
             float addedArmaturePositionY = 0.0f,
             bool useShapeKeyNormalsAndTangents = false,
-            OSCComponents oscComponents = OSCComponents.Blink,
+            OSCComponents oscComponents = OSCComponents.None,
             PostConverting? postConverting = null
         )
         {
