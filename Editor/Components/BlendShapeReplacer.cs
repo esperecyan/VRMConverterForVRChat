@@ -601,6 +601,7 @@ namespace Esperecyan.Unity.VRMConverterForVRChat.Components
                     ),
                     prefabInstance: avatar
                 );
+            EditorUtility.SetDirty(avatarDescriptor.expressionsMenu);
             avatarDescriptor.expressionParameters = Duplicator.DuplicateAssetToFolder(
                 source: AssetDatabase.LoadAssetAtPath<VRCExpressionParameters>(
                     AssetDatabase.GUIDToAssetPath(BlendShapeReplacer.VRCExpressionParametersGUID)
